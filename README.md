@@ -36,10 +36,10 @@
 
 ```cpp
 // конструктор
-AnyText(String& str);
-AnyText(const String& str);
-AnyText(const __FlashStringHelper* str, int16_t _len = -1);
-AnyText(const char* str, bool pgm = 0, int16_t _len = -1);
+sutil::AnyText(String& str);
+sutil::AnyText(const String& str);
+sutil::AnyText(const __FlashStringHelper* str, int16_t _len = -1);
+sutil::AnyText(const char* str, bool pgm = 0, int16_t _len = -1);
 
 // методы
 // Строка из Flash памяти
@@ -116,20 +116,20 @@ String
 ### AnyValue
 Добавка к `AnyText`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp
-AnyValue(const char& value);
-AnyValue(const bool& value);
-AnyValue(const int8_t& value, uint8_t base = DEC);
-AnyValue(const uint8_t& value, uint8_t base = DEC);
-AnyValue(const int16_t& value, uint8_t base = DEC);
-AnyValue(const uint16_t& value, uint8_t base = DEC);
-AnyValue(const int32_t& value, uint8_t base = DEC);
-AnyValue(const uint32_t& value, uint8_t base = DEC);
-AnyValue(const int64_t& value, uint8_t base = DEC);
-AnyValue(const uint64_t& value, uint8_t base = DEC);
-AnyValue(const double& value, uint8_t dec = 2);
+sutil::AnyValue(const char& value);
+sutil::AnyValue(const bool& value);
+sutil::AnyValue(const int8_t& value, uint8_t base = DEC);
+sutil::AnyValue(const uint8_t& value, uint8_t base = DEC);
+sutil::AnyValue(const int16_t& value, uint8_t base = DEC);
+sutil::AnyValue(const uint16_t& value, uint8_t base = DEC);
+sutil::AnyValue(const int32_t& value, uint8_t base = DEC);
+sutil::AnyValue(const uint32_t& value, uint8_t base = DEC);
+sutil::AnyValue(const int64_t& value, uint8_t base = DEC);
+sutil::AnyValue(const uint64_t& value, uint8_t base = DEC);
+sutil::AnyValue(const double& value, uint8_t dec = 2);
 
 // аналогично с ручным размером буфера
-AnyValueT<размер буфера>();
+sutil::AnyValueT<размер буфера>();
 ```
 
 #### Пример
@@ -181,7 +181,7 @@ while (p.next()) {
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку! После удаления объекта строка восстанавливается, либо вручную вызвать `restore()`
 ```cpp
 sutil::SplitterT<макс. подстрок> spl(char* str, char div = ';');
-sutil::Splitter spl(char* str, char div = ';');
+sutil::Splitter spl(char* str, char div = ';');  // авто-размер (выделяется в heap)
 
 // восстановить строку (вернуть разделители)
 void restore();
@@ -196,8 +196,22 @@ const char* str(uint16_t idx);
 AnyText get(uint16_t idx);
 ```
 
+#### Пример
+```cpp
+char buf[] = "123;456;abc";
+
+sutil::Splitter spl(buf);
+for (uint8_t i = 0; i < spl.length(); i++) {
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(spl[i]);
+}
+
+spl.restore();
+```
+
 ### List
-Получение подстрок по разделителям без модификации исходной строки, работает также с PROGMEM строками.
+Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
 sutils::List list(любая строка);
 
@@ -226,20 +240,6 @@ Serial.print("index of '456':");
 Serial.println(list.indexOf(F("456"))); // 1
 Serial.print("index of '789':");
 Serial.println(list.indexOf("789"));    // -1
-```
-
-#### Пример
-```cpp
-char buf[] = "123;456;abc";
-
-sutil::Splitter spl(buf);
-for (uint8_t i = 0; i < spl.length(); i++) {
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.println(spl[i]);
-}
-
-spl.restore();
 ```
 
 ### PrintString

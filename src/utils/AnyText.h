@@ -161,8 +161,13 @@ class AnyText : public Printable {
     // Вывести в String строку. Вернёт false при неудаче
     bool toString(String& s) const {
         if (!valid() || !_len) return 0;
-        if (!s.reserve(s.length() + _len)) return 0;
-        for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+        if (!_charAt(_len)) {  // null
+            if (pgm()) s += (const __FlashStringHelper*)_str;
+            else s += str();
+        } else {
+            if (!s.reserve(s.length() + _len)) return 0;
+            for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+        }
         return 1;
     }
 

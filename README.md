@@ -74,7 +74,7 @@ int16_t indexOf(char sym, uint16_t from = 0);
 char charAt(uint16_t idx);
 
 // Получить символ по индексу
-char operator[](uint16_t idx);
+char operator[](int idx);
 
 // Получить как String строку
 String toString();

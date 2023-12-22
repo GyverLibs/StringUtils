@@ -63,7 +63,7 @@ class SplitterT {
     }
 
     // получить подстроку по индексу как AnyText
-    AnyText operator[](uint16_t idx) {
+    AnyText operator[](int idx) {
         return str(idx);
     }
 

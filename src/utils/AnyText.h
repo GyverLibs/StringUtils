@@ -152,7 +152,7 @@ class AnyText : public Printable {
     }
 
     // Получить символ по индексу
-    char operator[](uint16_t idx) const {
+    char operator[](int idx) const {
         return charAt(idx);
     }
 
@@ -214,7 +214,7 @@ class AnyText : public Printable {
     float toFloat() {
         if (!valid()) return 0;
         // if (pgm()) return strToFloat_P(str());
-        // return strToFloat(str());
+        // else return strToFloat(str());
         if (pgm()) {
             char buf[_len + 1];
             buf[_len] = 0;

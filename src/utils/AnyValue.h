@@ -18,39 +18,18 @@ class AnyValueT : public AnyText {
    public:
     using AnyText::AnyText;
 
-    AnyValueT(const char& value) {
-        buf[0] = value;
-        buf[1] = 0;
-        _len = 1;
-        _str = buf;
-    }
-
-    AnyValueT(const bool& value) {
-        buf[0] = value + '0';
-        buf[1] = 0;
-        _len = 1;
-        _str = buf;
-    }
-
-    AnyValueT(const int8_t& value, uint8_t base = DEC) {
-        _makeInt(value, base);
-    }
-    AnyValueT(const uint8_t& value, uint8_t base = DEC) {
-        _makeUint(value, base);
-    }
-
-    AnyValueT(const int16_t& value, uint8_t base = DEC) {
-        _makeInt(value, base);
-    }
-    AnyValueT(const uint16_t& value, uint8_t base = DEC) {
-        _makeUint(value, base);
-    }
+    AnyValueT(const int8_t& value, uint8_t base = DEC) : AnyValueT((int32_t)value, base) {}
+    AnyValueT(const uint8_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
+    AnyValueT(const int16_t& value, uint8_t base = DEC) : AnyValueT((int32_t)value, base) {}
+    AnyValueT(const uint16_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
 
     AnyValueT(const int32_t& value, uint8_t base = DEC) {
-        _makeInt(value, base);
+        _len = intToStr(value, buf, base);
+        _str = buf;
     }
     AnyValueT(const uint32_t& value, uint8_t base = DEC) {
-        _makeUint(value, base);
+        _len = uintToStr(value, buf, base);
+        _str = buf;
     }
 
     AnyValueT(const int64_t& value, uint8_t base = DEC) {
@@ -69,17 +48,22 @@ class AnyValueT : public AnyText {
         _str = buf;
     }
 
+    AnyValueT(const char& value) {
+        buf[0] = value;
+        buf[1] = 0;
+        _len = 1;
+        _str = buf;
+    }
+
+    AnyValueT(const bool& value) {
+        buf[0] = value + '0';
+        buf[1] = 0;
+        _len = 1;
+        _str = buf;
+    }
+
    private:
     char buf[bufsize] = {0};
-
-    void _makeInt(int32_t value, uint8_t base) {
-        _len = intToStr(value, buf, base);
-        _str = buf;
-    }
-    void _makeUint(uint32_t value, uint8_t base) {
-        _len = uintToStr(value, buf, base);
-        _str = buf;
-    }
 };
 
 // размер буфера общий для всех экземпляров и задаётся дефайном SU_ANYVALUE_BUF_LEN

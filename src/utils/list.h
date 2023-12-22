@@ -148,7 +148,7 @@ class List : public AnyText {
     }
 
     // получить подстроку под индексом
-    AnyText operator[](uint16_t idx) const {
+    AnyText operator[](int idx) const {
         return get(idx);
     }
 

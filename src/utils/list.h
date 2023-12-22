@@ -89,6 +89,27 @@ AnyText get(const AnyText& list, uint16_t idx, char div = ';') {
     return AnyText();
 }
 
+// распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
+template <typename T>
+uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
+    if (!list.valid() || !list.length()) return 0;
+    uint16_t idx = 0;
+    int16_t st = 0, end = -1;
+    bool stop = 0;
+    while (1) {
+        st = ++end;
+        end = list.indexOf(div, end);
+        if (end < 0) {
+            end = list.length();
+            stop = 1;
+        }
+        buf[idx] = AnyText(list.str() + st, list.pgm(), end - st);
+        idx++;
+        if (stop) return idx;
+        if (idx == len) return len;
+    }
+}
+
 }  // namespace list
 
 class List : public AnyText {
@@ -113,6 +134,12 @@ class List : public AnyText {
     // проверить наличие подстроки в списке
     bool contains(const AnyText& str) const {
         return list::contains(*this, str, _div);
+    }
+
+    // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
+    template <typename T>
+    uint16_t parse(T* buf, uint16_t len) {
+        return list::parse(*this, buf, len, _div);
     }
 
     // получить подстроку под индексом

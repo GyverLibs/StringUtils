@@ -12,10 +12,10 @@ namespace sutil {
 class AnyText : public Printable {
    private:
     enum class Type : uint8_t {
-        constChar,
-        pgmChar,
-        StringRef,
-        StringDup,
+        constChar,  // const char*
+        pgmChar,    // PROGMEM
+        StringRef,  // ссылка на строку
+        StringDup,  // копия String-строки
     };
 
    public:
@@ -65,21 +65,18 @@ class AnyText : public Printable {
 
     // Статус строки
     bool valid() const {
+#if AT_SAFE_STRING == 1
+        return (_type == Type::StringRef) || _str;
+#else
         return _str;
+#endif
     }
 
-    // Напечатать в Print (c учётом длины)
+    // Напечатать в Print
     size_t printTo(Print& p) const {
         if (!valid() || !_len) return 0;
-        if (pgm()) {
-            size_t s = 0;
-            for (uint16_t i = 0; i < _len; i++) {
-                s += p.write((char)pgm_read_byte(str() + i));
-            }
-            return s;
-        } else {
-            return p.write(str(), _len);
-        }
+        for (uint16_t i = 0; i < _len; i++) p.write(_charAt(i));
+        return _len;
     }
 
     // ========================== SEARCH ==========================
@@ -98,25 +95,8 @@ class AnyText : public Printable {
        @return false строки не совпадают
     */
     bool compare(const AnyText& s, uint16_t from = 0) const {
-        if (!valid() || !s.str() || _len != s._len || from > _len) return 0;
-        if (pgm()) {
-            if (s.pgm()) {
-                uint8_t c1, c2;
-                uint16_t i = 0;
-                while (1) {
-                    c1 = pgm_read_byte(str() + from + i);
-                    c2 = pgm_read_byte(s.str() + i);
-                    if (c1 != c2) return 0;
-                    if (!c1) return 1;  // c1 == c2 == 0
-                    i++;
-                }
-            } else {
-                return !strcmp_P(s.str(), str() + from);
-            }
-        } else {
-            if (s.pgm()) return !strcmp_P(str() + from, s.str());
-            else return !strcmp(s.str(), str() + from);
-        }
+        if (!valid() || !s.valid() || _len != s._len || from > _len) return 0;
+        return compareN(s, _len, from);
     }
 
     /**
@@ -130,21 +110,12 @@ class AnyText : public Printable {
     */
     bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) const {
         if (!valid() || !s.str() || !amount || amount > s._len || amount + from > _len) return 0;
-        if (pgm()) {
-            if (s.pgm()) {
-                uint16_t i = 0;
-                while (i != amount) {
-                    if (pgm_read_byte(str() + from + i) != pgm_read_byte(s.str() + i)) return 0;
-                    i++;
-                }
-                return 1;
-            } else {
-                return !strncmp_P(s.str(), str() + from, amount);
-            }
-        } else {
-            if (s.pgm()) return !strncmp_P(str() + from, s.str(), amount);
-            else return !strncmp(s.str(), str() + from, amount);
+        uint16_t i = 0;
+        while (i != amount) {
+            if (_charAt(from + i) != s._charAt(i)) return 0;
+            i++;
         }
+        return 1;
     }
 
     /**
@@ -159,9 +130,8 @@ class AnyText : public Printable {
         const char* p = str() + from;
         if (pgm()) {
 #if (defined(ESP8266) || defined(ESP32))
-            char b;
             while (1) {
-                b = pgm_read_byte(p);
+                char b = pgm_read_byte(p);
                 if (b == sym) break;
                 if (!b) return -1;
                 p++;
@@ -178,7 +148,7 @@ class AnyText : public Printable {
     // Получить символ по индексу
     char charAt(uint16_t idx) const {
         if (!valid() || idx >= _len) return 0;
-        else return pgm() ? (char)pgm_read_byte(str() + idx) : str()[idx];
+        else return _charAt(idx);
     }
 
     // Получить символ по индексу
@@ -188,14 +158,19 @@ class AnyText : public Printable {
 
     // ========================== EXPORT ==========================
 
-    // Вывести в String строку
+    // Вывести в String строку. Вернёт false при неудаче
+    bool toString(String& s) const {
+        if (!valid() || !_len) return 0;
+        if (!s.reserve(s.length() + _len)) return 0;
+        for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+        return 1;
+    }
+
+    // Получить как String строку
     String toString() const {
         if (!valid() || !_len) return String();
         String s;
-        s.reserve(_len);
-        for (uint16_t i = 0; i < _len; i++) {
-            s += pgm() ? (char)pgm_read_byte(str() + i) : str()[i];
-        }
+        toString(s);
         return s;
     }
 
@@ -304,6 +279,10 @@ class AnyText : public Printable {
 #if AT_SAFE_STRING == 1
     String* _sptr = nullptr;
 #endif
+
+    char _charAt(uint16_t idx) const {
+        return pgm() ? (char)pgm_read_byte(_str + idx) : str()[idx];
+    }
 };
 
 }  // namespace sutil

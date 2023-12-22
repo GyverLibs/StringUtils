@@ -76,8 +76,11 @@ char charAt(uint16_t idx);
 // Получить символ по индексу
 char operator[](uint16_t idx);
 
-// Вывести в String строку
+// Получить как String строку
 String toString();
+
+// Вывести в String строку. Вернёт false при неудаче
+bool toString(String& s);
 
 // Вывести в char массив. Сама добавит '\0' в конце!
 void toStr(char* buf);
@@ -210,7 +213,38 @@ for (uint8_t i = 0; i < spl.length(); i++) {
 spl.restore();
 ```
 
-### List
+### list функции
+```cpp
+// Получить количество подстрок в списке
+uint16_t sutil::list::length(const AnyText& list, char div = ';');
+
+// Получить индекс подстроки в списке
+int16_t sutil::list::indexOf(const AnyText& list, const AnyText& str, char div = ';');
+
+// Проверка содержит ли список подстроку
+bool sutil::list::contains(const AnyText& list, const AnyText& str, char div = ';');
+
+// Получить подстроку из списка по индексу
+AnyText sutil::list::get(const AnyText& list, uint16_t idx, char div = ';');
+
+// распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
+template <typename T>
+uint16_t sutil::list::parse(const AnyText& list, T* buf, uint16_t len, char div = ';');
+```
+
+#### Пример
+```cpp
+Serial.println(sutil::list::length("123;456;333"));             // 3
+Serial.println(sutil::list::contains("123;456;333", "456"));    // true
+Serial.println(sutil::list::indexOf("123;456;333", "333"));     // 2
+Serial.println(sutil::list::get("123;456;333", 1));             // 456
+
+// переписать в массив
+float arr[3];
+sutil::list::parse(F("3.14;2.54;15.15"), arr, 3);
+```
+
+### List Класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
 sutils::List list(любая строка);
@@ -229,17 +263,25 @@ bool contains(const AnyText& str);
 
 // получить подстроку под индексом
 AnyText get(uint16_t idx);
+
+// распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
+template <typename T>
+uint16_t parse(T* buf, uint16_t len);
 ```
 
 #### Пример
 ```cpp
-sutil::List list(F("123;456;abc"));
+sutil::List list(F("123;456;333"));
 Serial.print("len: ");
 Serial.println(list.length());  // 3
 Serial.print("index of '456':");
 Serial.println(list.indexOf(F("456"))); // 1
 Serial.print("index of '789':");
 Serial.println(list.indexOf("789"));    // -1
+
+// переписать в массив
+int arr[3];
+list.parse(arr, 3);
 ```
 
 ### PrintString
@@ -284,11 +326,12 @@ void sutil::b64::decode(uint8_t* data, const String& b64);
 ```
 
 ### Unicode
+Декодер строки, содержащей unicode символы вида `\u0abc`. Также делает unescape символов `\t\r\n`!
 ```cpp
-// декодировать строку с unicode символами. зарезервировать строку на длину len. Иначе - по длине строки
+// декодировать строку.Зарезервировать строку на длину len. Иначе - по длине строки
 String sutil::unicode::decode(const char* str, uint16_t len = 0);
 
-// декодировать строку с unicode символами
+// декодировать строку
 String sutil::unicode::decode(const String& str);
 
 // кодировать unicode символ по его коду. В массиве должно быть 5 ячеек
@@ -355,6 +398,7 @@ float sutil::strToFloat_P(PGM_P s);
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
 uint8_t sutil::getLog10(uint32_t value);
+uint8_t sutil::getLog10(int32_t value);
 
 // быстрое возведение 10 в степень
 uint32_t sutil::getPow10(uint8_t value);
@@ -364,6 +408,7 @@ uint32_t sutil::getPow10(uint8_t value);
 
 ## Версии
 - v1.0
+- v1.1.0 - оптимизация, добавлены фичи, исправлены уязвимости
 
 <a id="install"></a>
 

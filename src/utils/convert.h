@@ -31,7 +31,7 @@ uint32_t getPow10(uint8_t value) {
 }
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
-uint8_t getLog10(uint32_t value) {
+uint8_t getLog10(const uint32_t& value) {
     switch (value) {
         case 0 ... 9:
             return 1;
@@ -57,6 +57,10 @@ uint8_t getLog10(uint32_t value) {
     return 1;
 }
 
+uint8_t getLog10(const int32_t& value) {
+    return getLog10((value < 0) ? (uint32_t)(-value) : (uint32_t)value);
+}
+
 /**
  * @brief Длина строки с русскими символами
  *
@@ -73,24 +77,24 @@ uint16_t strlenRu(const char* str) {
 }
 
 /**
- * @brief Получить длину целого числа
+ * @brief Получить длину целого числа (с учётом знака -)
  *
  * @param val
  * @return uint8_t
  */
-uint8_t intLen(int32_t val) {
-    return getLog10(val);
+uint8_t intLen(const int32_t& val) {
+    return getLog10(val) + (val < 0 ? 1 : 0);
 }
 
 /**
- * @brief Получить длину float числа
+ * @brief Получить длину float числа (с учётом знака -)
  *
  * @param val
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(double val, uint8_t dec) {
-    return getLog10(val) + (dec ? (dec + 1) : 0);
+uint8_t floatLen(const double& val, uint8_t dec) {
+    return intLen((int32_t)val) + (dec ? (dec + 1) : 0);
 }
 
 /**

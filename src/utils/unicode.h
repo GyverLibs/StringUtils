@@ -8,7 +8,8 @@ namespace sutil::unicode {
 // декодировать строку с unicode символами. зарезервировать строку на длину len. Иначе - по длине строки
 String decode(const char* str, uint16_t len = 0) {
     String out;
-    out.reserve(len ? len : strlen(str));
+    if (!len) len = strlen(str);
+    out.reserve(len);
     uint32_t ub = 0, buf = 0;
     const char* x0 = "\0x";
     while (*str) {
@@ -17,8 +18,8 @@ String decode(const char* str, uint16_t len = 0) {
         } else {
             str++;
             switch (*str) {
-                case '0':
-                    break;
+                case '\0':
+                    return out;
                 case 'n':
                     out += '\n';
                     break;
@@ -29,10 +30,16 @@ String decode(const char* str, uint16_t len = 0) {
                     out += '\t';
                     break;
                 case 'u':
-                    ub = strToIntHex(str, 4);
-                    str += 4;
-                    if ((ub >= 0xD800) && (ub <= 0xDBFF)) buf = ub;
-                    else if ((ub >= 0xDC00) && (ub <= 0xDFFF)) {
+                    ub = 0;
+                    for (uint8_t i = 0; i < 4; i++) {
+                        if (!(*++str)) return out;
+                        ub <<= 4;
+                        ub += (*str & 0xf) + (*str > '9' ? 9 : 0);
+                    }
+
+                    if ((ub >= 0xD800) && (ub <= 0xDBFF)) {
+                        buf = ub;
+                    } else if ((ub >= 0xDC00) && (ub <= 0xDFFF)) {
                         ub = (0x10000 + ((buf - 0xD800) * 0x0400) + (ub - 0xDC00));
                         out += (char)(0b11110000 | ((ub >> 18) & 0b111));
                         out += x0;

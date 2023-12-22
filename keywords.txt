@@ -70,6 +70,7 @@ indexOf	KEYWORD2
 contains	KEYWORD2
 get	KEYWORD2
 setDiv	KEYWORD2
+parseTo	KEYWORD2
 
 next	KEYWORD2
 index	KEYWORD2

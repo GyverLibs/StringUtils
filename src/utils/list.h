@@ -14,7 +14,7 @@ namespace list {
  * @param div символ-разделитель (умолч. ';')
  * @return uint16_t
  */
-uint16_t length(const AnyText& list, char div = ';') {
+uint16_t length(AnyText list, char div = ';') {
     if (!list.valid() || !list.length()) return 0;
     uint16_t am = 0;
     int16_t p = -1;
@@ -33,7 +33,7 @@ uint16_t length(const AnyText& list, char div = ';') {
  * @param div символ-разделитель (умолч. ';')
  * @return int16_t индекс в строке. -1 если не найдена
  */
-int16_t indexOf(const AnyText& list, const AnyText& str, char div = ';') {
+int16_t indexOf(AnyText list, AnyText str, char div = ';') {
     if (!list.valid() || !str.valid() || !list.length() || !str.length()) return -1;
     int16_t idx = 0;
     int16_t st = 0, end = -1;
@@ -60,7 +60,7 @@ int16_t indexOf(const AnyText& list, const AnyText& str, char div = ';') {
  * @return true содержит
  * @return false не содержит
  */
-bool contains(const AnyText& list, const AnyText& str, char div = ';') {
+bool includes(AnyText list, AnyText str, char div = ';') {
     return indexOf(list, str, div) >= 0;
 }
 
@@ -72,7 +72,7 @@ bool contains(const AnyText& list, const AnyText& str, char div = ';') {
  * @param div символ-разделитель (умолч. ';')
  * @return AnyText подстрока
  */
-AnyText get(const AnyText& list, uint16_t idx, char div = ';') {
+AnyText get(AnyText list, uint16_t idx, char div = ';') {
     if (!list.valid() || !list.length()) return AnyText();
     int16_t spos = 0, epos = -1;
     bool stop = 0;
@@ -91,7 +91,7 @@ AnyText get(const AnyText& list, uint16_t idx, char div = ';') {
 
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
-uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
+uint16_t parse(AnyText list, T* buf, uint16_t len, char div = ';') {
     if (!list.valid() || !list.length()) return 0;
     uint16_t idx = 0;
     int16_t st = 0, end = -1;
@@ -127,13 +127,13 @@ class List : public AnyText {
     }
 
     // получить индекс подстроки в списке или -1 если её нет
-    int16_t indexOf(const AnyText& str) const {
+    int16_t indexOf(AnyText str) const {
         return list::indexOf(*this, str, _div);
     }
 
     // проверить наличие подстроки в списке
-    bool contains(const AnyText& str) const {
-        return list::contains(*this, str, _div);
+    bool includes(AnyText str) const {
+        return list::includes(*this, str, _div);
     }
 
     // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок

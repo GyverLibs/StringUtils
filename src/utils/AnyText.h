@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "convert.h"
+#include "hash.h"
 
 #ifndef AT_SAFE_STRING
 #define AT_SAFE_STRING 1
@@ -21,22 +22,21 @@ class AnyText : public Printable {
    public:
     // ========================== CONSTRUCTOR ==========================
     AnyText() {}
-    // AnyText(const char* str, int16_t _len = -1) : _str(str), _len(_len >= 0 ? _len : strlen(str)) {}
+    AnyText(const __FlashStringHelper* str, int16_t len = 0) : _str((PGM_P)str), _len(len), _type(Type::pgmChar) {}
+    AnyText(const char* str, bool pgm = 0, int16_t len = 0) : _str(str), _len(len), _type(pgm ? Type::pgmChar : Type::constChar) {}
+
 #if AT_SAFE_STRING == 1
     AnyText(String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringRef), _sptr(&str) {}
     AnyText(const String& str) : _str(strdup(str.c_str())), _len(str.length()), _type(Type::StringDup) {}
+    AnyText(const AnyText& s) : _str(s.valid() ? s.str() : nullptr), _len(s._len), _type(s._type == Type::StringDup ? Type::constChar : s._type), _sptr(s._sptr) {}
+    ~AnyText() {
+        if (_str && _type == Type::StringDup) free((char*)_str);
+    }
 #else
     AnyText(String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringRef) {}
     AnyText(const String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringDup) {}
+    AnyText(const AnyText& s) : _str(s._str), _len(s._len), _type(s._type) {}
 #endif
-    AnyText(const __FlashStringHelper* str, int16_t _len = -1) : _str((PGM_P)str), _len(_len >= 0 ? _len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
-    AnyText(const char* str, bool pgm = 0, int16_t _len = -1) : _str(str), _len(_len >= 0 ? _len : (pgm ? strlen_P(str) : strlen(str))), _type(pgm ? Type::pgmChar : Type::constChar) {}
-
-    ~AnyText() {
-#if AT_SAFE_STRING == 1
-        if (_str && _type == Type::StringDup) free((char*)_str);
-#endif
-    }
 
     // ========================== SYSTEM ==========================
     // Строка из Flash памяти
@@ -45,16 +45,17 @@ class AnyText : public Printable {
     }
 
     // Длина строки
-    uint16_t length() const {
+    uint16_t length() {
+        if (!_len) _len = _calcLen();
         return _len;
     }
 
     // Тип строки
-    Type type() {
+    Type type() const {
         return _type;
     }
 
-    // Получить указатель на строку
+    // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
     const char* str() const {
 #if AT_SAFE_STRING == 1
         return (_type == Type::StringRef) ? _sptr->c_str() : (_str ? _str : "");
@@ -74,9 +75,10 @@ class AnyText : public Printable {
 
     // Напечатать в Print
     size_t printTo(Print& p) const {
-        if (!valid() || !_len) return 0;
-        for (uint16_t i = 0; i < _len; i++) p.write(_charAt(i));
-        return _len;
+        uint16_t len = _len ? _len : _calcLen();
+        if (!valid() || !len) return 0;
+        for (uint16_t i = 0; i < len; i++) p.write(_charAt(i));
+        return len;
     }
 
     // ========================== SEARCH ==========================
@@ -84,6 +86,18 @@ class AnyText : public Printable {
     // Сравнить со строкой
     bool operator==(const AnyText& s) {
         return compare(s);
+    }
+    bool operator==(const char* s) {
+        return compare(s);
+    }
+    bool operator==(const __FlashStringHelper* s) {
+        return compare(s);
+    }
+    bool operator==(const String& s) {
+        return compare(s);
+    }
+    bool operator==(String& s) {
+        return compare(s.c_str());
     }
 
     /**
@@ -94,9 +108,8 @@ class AnyText : public Printable {
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compare(const AnyText& s, uint16_t from = 0) const {
-        if (!valid() || !s.valid() || _len != s._len || from > _len) return 0;
-        return compareN(s, _len, from);
+    bool compare(const AnyText& s, uint16_t from = 0) {
+        return compareN(s, length(), from);
     }
 
     /**
@@ -108,11 +121,13 @@ class AnyText : public Printable {
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) const {
-        if (!valid() || !s.str() || !amount || amount > s._len || amount + from > _len) return 0;
+    bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) {
+        if (!valid() || !s.valid() || !amount || amount + from > length()) return 0;
         uint16_t i = 0;
         while (i != amount) {
-            if (_charAt(from + i) != s._charAt(i)) return 0;
+            char c1 = _charAt(from + i);
+            char c2 = s._charAt(i);
+            if (!c1 || c1 != c2) return 0;  // c1 == c2 == 0
             i++;
         }
         return 1;
@@ -125,8 +140,8 @@ class AnyText : public Printable {
        @param from индекс начала поиска
        @return int16_t позиция символа, -1 если не найден
     */
-    int16_t indexOf(char sym, uint16_t from = 0) const {
-        if (!valid() || from > _len) return -1;
+    int16_t indexOf(char sym, uint16_t from = 0) {
+        if (!valid() || from > length()) return -1;
         const char* p = str() + from;
         if (pgm()) {
 #if (defined(ESP8266) || defined(ESP32))
@@ -146,34 +161,34 @@ class AnyText : public Printable {
     }
 
     // Получить символ по индексу
-    char charAt(uint16_t idx) const {
-        if (!valid() || idx >= _len) return 0;
+    char charAt(uint16_t idx) {
+        if (!valid() || idx >= length()) return 0;
         else return _charAt(idx);
     }
 
     // Получить символ по индексу
-    char operator[](int idx) const {
+    char operator[](int idx) {
         return charAt(idx);
     }
 
     // ========================== EXPORT ==========================
 
     // Вывести в String строку. Вернёт false при неудаче
-    bool toString(String& s) const {
-        if (!valid() || !_len) return 0;
-        if (!_charAt(_len)) {  // null
+    bool toString(String& s) {
+        if (!valid() || !length()) return 0;
+        if (!_charAt(length())) {  // null
             if (pgm()) s += (const __FlashStringHelper*)_str;
             else s += str();
         } else {
-            if (!s.reserve(s.length() + _len)) return 0;
-            for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+            if (!s.reserve(s.length() + length())) return 0;
+            for (uint16_t i = 0; i < length(); i++) s += _charAt(i);
         }
         return 1;
     }
 
     // Получить как String строку
-    String toString() const {
-        if (!valid() || !_len) return String();
+    String toString() {
+        if (!valid() || !length()) return String();
         String s;
         toString(s);
         return s;
@@ -181,8 +196,8 @@ class AnyText : public Printable {
 
     // Вывести в char массив. Сама добавит '\0' в конце!
     void toStr(char* buf) {
-        pgm() ? strncpy_P(buf, str(), _len) : strncpy(buf, str(), _len);
-        buf[_len] = 0;
+        pgm() ? strncpy_P(buf, str(), length()) : strncpy(buf, str(), length());
+        buf[length()] = 0;
     }
 
     // получить значение как bool
@@ -193,21 +208,21 @@ class AnyText : public Printable {
     // получить значение как int 16
     int16_t toInt16() {
         if (!valid()) return 0;
-        return pgm() ? strToInt_P<int16_t>(str(), _len) : strToInt<int16_t>(str(), _len);
+        return pgm() ? strToInt_P<int16_t>(str(), length()) : strToInt<int16_t>(str(), length());
     }
 
     // получить значение как int 32
     int32_t toInt32() {
         if (!valid()) return 0;
-        if (_len < 5) return toInt16();
-        return pgm() ? strToInt_P<int32_t>(str(), _len) : strToInt<int32_t>(str(), _len);
+        if (length() < 5) return toInt16();
+        return pgm() ? strToInt_P<int32_t>(str(), length()) : strToInt<int32_t>(str(), length());
     }
 
     // получить значение как int64
     int64_t toInt64() {
         if (!valid()) return 0;
-        if (_len < 10) return toInt32();
-        return pgm() ? strToInt_P<int64_t>(str(), _len) : strToInt<int64_t>(str(), _len);
+        if (length() < 10) return toInt32();
+        return pgm() ? strToInt_P<int64_t>(str(), length()) : strToInt<int64_t>(str(), length());
     }
 
     // получить значение как float
@@ -216,12 +231,22 @@ class AnyText : public Printable {
         // if (pgm()) return strToFloat_P(str());
         // else return strToFloat(str());
         if (pgm()) {
-            char buf[_len + 1];
-            buf[_len] = 0;
-            strncpy_P(buf, str(), _len);
+            char buf[length() + 1];
+            buf[length()] = 0;
+            strncpy_P(buf, str(), length());
             return atof(buf);
         }
         return atof(str());
+    }
+
+    // хэш строки, размер зависит от платформы (size_t)
+    size_t hash() {
+        return pgm() ? sutil::hash_P(_str, length()) : sutil::hash(str(), length());
+    }
+
+    // хэш строки 32 бит
+    uint32_t hash32() {
+        return pgm() ? sutil::hash32_P(_str, length()) : sutil::hash32(str(), length());
     }
 
     // ================= IMPLICIT =================
@@ -287,6 +312,10 @@ class AnyText : public Printable {
 
     char _charAt(uint16_t idx) const {
         return pgm() ? (char)pgm_read_byte(_str + idx) : str()[idx];
+    }
+
+    uint16_t _calcLen() const {
+        return valid() ? (pgm() ? strlen_P(_str) : strlen(str())) : 0;
     }
 };
 

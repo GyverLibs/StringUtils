@@ -5,6 +5,7 @@
 #include "utils/PrintString.h"
 #include "utils/b64.h"
 #include "utils/convert.h"
+#include "utils/hash.h"
 #include "utils/list.h"
 #include "utils/parser.h"
 #include "utils/qwerty.h"

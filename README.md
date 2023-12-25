@@ -32,73 +32,51 @@
 - `PROGMEM` - строки
 - `String` - строки
 
-Во всех случаях, кроме `AnyText(String("строка"))` не создаёт копию строки и работает с оригинальной строкой, т.е. оригинальная строка должна быть в памяти на время существования AnyText. Позволяет печататься и конвертироваться в любой формат.
+Особенности:
+- Не может изменять исходную строку, все операции только "для чтения"
+- Во всех случаях, кроме `AnyText(String("строка"))` **не создаёт копию строки** и работает с оригинальной строкой, т.е. оригинальная строка должна быть в памяти на время существования AnyText
+- Позволяет печататься и конвертироваться в любой целочисленный формат, а также сравниваться с любыми другими строками
+- Хранит длину строки для быстрых вычислений и сравнений. Длина считается не при создании строки, а при первом вызове `length()`
 
 ```cpp
 // конструктор
 sutil::AnyText(String& str);
 sutil::AnyText(const String& str);
-sutil::AnyText(const __FlashStringHelper* str, int16_t _len = -1);
-sutil::AnyText(const char* str, bool pgm = 0, int16_t _len = -1);
+sutil::AnyText(const __FlashStringHelper* str, int16_t len = 0);
+sutil::AnyText(const char* str, bool pgm = 0, int16_t len = 0);
 
 // методы
-// Строка из Flash памяти
-bool pgm();
+bool pgm();                 // Строка из Flash памяти
+uint16_t length();          // Длина строки
+Type type();                // Тип строки
+const char* str();          // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
+bool valid();               // Статус строки, существует или нет
+size_t printTo(Print& p);   // Напечатать в Print (c учётом длины)
 
-// Длина строки
-uint16_t length();
+// Сравнить со строкой, начиная с индекса
+bool compare(AnyText s, uint16_t from = 0);
 
-// Тип строки
-Type type();
+// Сравнить со строкой, начиная с индекса, с указанием количества символов
+bool compareN(AnyText s, uint16_t amount, uint16_t from = 0);
 
-// Получить указатель на строку
-const char* str();
-
-// Статус строки
-bool valid();
-
-// Напечатать в Print (c учётом длины)
-size_t printTo(Print& p);
-
-// ========================== SEARCH ==========================
-// Сравнить со строкой
-bool compare(const AnyText& s, uint16_t from = 0);
-
-// Сравнить со строкой с указанием количества символов
-bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0);
-
-// Найти позицию символа в строке
+// Найти позицию символа в строке, начиная с индекса
 int16_t indexOf(char sym, uint16_t from = 0);
 
-// Получить символ по индексу
-char charAt(uint16_t idx);
+char charAt(uint16_t idx);  // Получить символ по индексу
+char operator[](int idx);   // Получить символ по индексу
 
-// Получить символ по индексу
-char operator[](int idx);
+bool toString(String& s);   // Вывести в String строку. Вернёт false при неудаче
+void toStr(char* buf);      // Вывести в char массив. Сама добавит '\0' в конце!
 
-// Получить как String строку
-String toString();
+String toString();          // Получить как String строку
+bool toBool();              // получить значение как bool
+int16_t toInt16();          // получить значение как int 16
+int32_t toInt32();          // получить значение как int 32
+int64_t toInt64();          // получить значение как int64
+float toFloat();            // получить значение как float
 
-// Вывести в String строку. Вернёт false при неудаче
-bool toString(String& s);
-
-// Вывести в char массив. Сама добавит '\0' в конце!
-void toStr(char* buf);
-
-// получить значение как bool
-bool toBool();
-
-// получить значение как int 16
-int16_t toInt16();
-
-// получить значение как int 32
-int32_t toInt32();
-
-// получить значение как int64
-int64_t toInt64();
-
-// получить значение как float
-float toFloat();
+size_t hash();              // хэш строки size_t
+uint32_t hash32();          // хэш строки 32 бит
 
 // автоматически конвертируется в
 bool
@@ -114,22 +92,27 @@ float
 double
 const char*
 String
+
+// автоматически сравнивается с
+const char*
+const __FlashStringHelper*
+String
 ```
 
 ### AnyValue
 Добавка к `AnyText`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp
-sutil::AnyValue(const char& value);
-sutil::AnyValue(const bool& value);
-sutil::AnyValue(const int8_t& value, uint8_t base = DEC);
-sutil::AnyValue(const uint8_t& value, uint8_t base = DEC);
-sutil::AnyValue(const int16_t& value, uint8_t base = DEC);
-sutil::AnyValue(const uint16_t& value, uint8_t base = DEC);
-sutil::AnyValue(const int32_t& value, uint8_t base = DEC);
-sutil::AnyValue(const uint32_t& value, uint8_t base = DEC);
-sutil::AnyValue(const int64_t& value, uint8_t base = DEC);
-sutil::AnyValue(const uint64_t& value, uint8_t base = DEC);
-sutil::AnyValue(const double& value, uint8_t dec = 2);
+sutil::AnyValue(char value);
+sutil::AnyValue(bool value);
+sutil::AnyValue(int8_t value, uint8_t base = DEC);
+sutil::AnyValue(uint8_t value, uint8_t base = DEC);
+sutil::AnyValue(int16_t value, uint8_t base = DEC);
+sutil::AnyValue(uint16_t value, uint8_t base = DEC);
+sutil::AnyValue(int32_t value, uint8_t base = DEC);
+sutil::AnyValue(uint32_t value, uint8_t base = DEC);
+sutil::AnyValue(int64_t value, uint8_t base = DEC);
+sutil::AnyValue(uint64_t value, uint8_t base = DEC);
+sutil::AnyValue(double value, uint8_t dec = 2);
 
 // аналогично с ручным размером буфера
 sutil::AnyValueT<размер буфера>();
@@ -142,11 +125,27 @@ sutil::AnyValue v1(123);
 sutil::AnyValue v2(3.14);
 sutil::AnyValue v3((uint64_t)12345678987654321);
 
-Serial.println(v0);
-Serial.println(v1 == v2);
+Serial.println(v0);         // печатается в Serial
+Serial.println(v1 == v2);   // сравнивается
 
-// cast
+// может сравниваться с любыми строками
+sutil::AnyText s("123");
+String ss = "123";
+Serial.println(s == "123");
+Serial.println(s == F("123"));
+Serial.println(s == ss);
+
+// конвертация в любой тип
 float f = v2;   // f == 3.14
+int i = v1;     // i = 123
+
+// вывод в String
+String S;
+v0.toString(s);
+
+// вывод в char[]
+char buf[v1.length() + 1];  // +1 для '\0'
+v1.toStr(buf);
 ```
 
 ### Parser
@@ -155,17 +154,10 @@ float f = v2;   // f == 3.14
 ```cpp
 sutil::Parser p(char* str, char div = ';');
 
-// парсить следующую подстроку. Вернёт false, если парсинг закончен
-bool next();
-
-// индекс текущей подстроки
-uint8_t index();
-
-// получить подстроку
-const char* str();
-
-// получить подстроку как AnyText
-AnyText get();
+bool next();        // парсить следующую подстроку. Вернёт false, если парсинг закончен
+uint8_t index();    // индекс текущей подстроки
+const char* str();  // получить подстроку
+AnyText get();      // получить подстроку как AnyText
 ```
 
 #### Пример
@@ -186,17 +178,10 @@ while (p.next()) {
 sutil::SplitterT<макс. подстрок> spl(char* str, char div = ';');
 sutil::Splitter spl(char* str, char div = ';');  // авто-размер (выделяется в heap)
 
-// восстановить строку (вернуть разделители)
-void restore();
-
-// количество подстрок
-uint8_t length();
-
-// получить подстроку по индексу
-const char* str(uint16_t idx);
-
-// получить подстроку по индексу как AnyText
-AnyText get(uint16_t idx);
+void restore();                 // восстановить строку (вернуть разделители)
+uint8_t length();               // количество подстрок
+const char* str(uint16_t idx);  // получить подстроку по индексу
+AnyText get(uint16_t idx);      // получить подстроку по индексу как AnyText
 ```
 
 #### Пример
@@ -216,35 +201,35 @@ spl.restore();
 ### list функции
 ```cpp
 // Получить количество подстрок в списке
-uint16_t sutil::list::length(const AnyText& list, char div = ';');
+uint16_t sutil::list::length(AnyText list, char div = ';');
 
 // Получить индекс подстроки в списке
-int16_t sutil::list::indexOf(const AnyText& list, const AnyText& str, char div = ';');
+int16_t sutil::list::indexOf(AnyText list, AnyText str, char div = ';');
 
 // Проверка содержит ли список подстроку
-bool sutil::list::contains(const AnyText& list, const AnyText& str, char div = ';');
+bool sutil::list::includes(AnyText list, AnyText str, char div = ';');
 
 // Получить подстроку из списка по индексу
-AnyText sutil::list::get(const AnyText& list, uint16_t idx, char div = ';');
+AnyText sutil::list::get(AnyText list, uint16_t idx, char div = ';');
 
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
-uint16_t sutil::list::parse(const AnyText& list, T* buf, uint16_t len, char div = ';');
+uint16_t sutil::list::parse(AnyText list, T* buf, uint16_t len, char div = ';');
 ```
 
 #### Пример
 ```cpp
 Serial.println(sutil::list::length("123;456;333"));             // 3
-Serial.println(sutil::list::contains("123;456;333", "456"));    // true
+Serial.println(sutil::list::includes("123;456;333", "456"));    // true
 Serial.println(sutil::list::indexOf("123;456;333", "333"));     // 2
 Serial.println(sutil::list::get("123;456;333", 1));             // 456
 
-// переписать в массив
+// распарсить в массив
 float arr[3];
 sutil::list::parse(F("3.14;2.54;15.15"), arr, 3);
 ```
 
-### List Класс
+### List класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
 sutils::List list(любая строка);
@@ -256,10 +241,10 @@ void setDiv(char div);
 uint16_t length();
 
 // получить индекс подстроки в списке или -1 если её нет
-int16_t indexOf(const AnyText& str);
+int16_t indexOf(AnyText str);
 
 // проверить наличие подстроки в списке
-bool contains(const AnyText& str);
+bool includes(AnyText str);
 
 // получить подстроку под индексом
 AnyText get(uint16_t idx);
@@ -355,6 +340,60 @@ void sutil::url::decode(const String& src, String& dest);
 String sutil::url::decode(const String& src);
 ```
 
+### Hash
+Вместо сравнения строк можно сравнивать хэш этих строк, что делает программу компактнее, легче и в большинстве случаев быстрее. Функции, указанные ниже как "считается компилятором" - считаются компилятором, то есть **строка даже не попадает в код программы** - вместо неё подставляется хэш-число:
+
+```cpp
+// считается компилятором
+constexpr sutil::size_t SH(const char* str);               // (String Hash) размер size_t
+constexpr sutil::size_t SH32(const char* str);             // (String Hash) размер 32 бит
+
+// считается в рантайме
+size_t sutil::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t
+uint32_t sutil::hash32(const char* str, int16_t len = -1); // Размер 32 бит
+
+size_t sutil::hash_P(PGM_P str, int16_t len = -1);         // PROGMEM строка, размер size_t
+uint32_t sutil::hash32_P(PGM_P str, int16_t len = -1);     // PROGMEM строка, размер 32 бит
+```
+
+> На ESP-платах `SH`, `hash` и `hash_P` по умолчанию являются 32-битными!
+
+По проведённому тесту 32-битная версия хэша имеет 7 коллизий из 234450 английских слов, 16-битная версия - 170723 коллизий (что есть 73% - чисто статистическое количество коллизий из расчёта 16 бит - 65536 значений)
+
+#### Пример
+Определить, какая строка была "получена". Классический способ со сравнением строк из PROGMEM:
+
+```cpp
+char buf[] = "some_text";
+
+if (!strcmp_P(buf, PSTR("abcdef"))) Serial.println(0);
+else if (!strcmp_P(buf, PSTR("12345"))) Serial.println(1);
+else if (!strcmp_P(buf, PSTR("wrong text"))) Serial.println(2);
+else if (!strcmp_P(buf, PSTR("some text"))) Serial.println(3);
+else if (!strcmp_P(buf, PSTR("hello"))) Serial.println(4);
+else if (!strcmp_P(buf, PSTR("some_text"))) Serial.println(5);
+```
+
+Способ с хэшем строки:
+```cpp
+using sutil::SH;
+using sutil::hash;
+
+char buf[] = "some_text";
+
+switch (hash(buf)) {
+    case SH("abcdef"):      Serial.println(0); break;
+    case SH("12345"):       Serial.println(1); break;
+    case SH("wrong text"):  Serial.println(2); break;
+    case SH("some text"):   Serial.println(3); break;
+    case SH("hello"):       Serial.println(4); break;
+    case SH("some_text"):   Serial.println(5); break;
+}
+```
+> Один расчёт хэша занимает чуть большее время, чем сравнение со строкой. Но итоговая конструкция из примера выполняется в 2 раза быстрее (на ESP).
+
+> `SH("строки")` в данном примере вообще не попадают в код программы - вместо них подставляется их хэш
+
 ### Прочие утилиты
 ```cpp
 // Длина строки с русскими символами
@@ -409,6 +448,7 @@ uint32_t sutil::getPow10(uint8_t value);
 ## Версии
 - v1.0
 - v1.1.0 - оптимизация, добавлены фичи, исправлены уязвимости
+- v1.2 - добавлены хэш-функции
 
 <a id="install"></a>
 

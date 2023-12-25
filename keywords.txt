@@ -67,7 +67,7 @@ getLog10	KEYWORD2
 
 length	KEYWORD2
 indexOf	KEYWORD2
-contains	KEYWORD2
+includes	KEYWORD2
 get	KEYWORD2
 setDiv	KEYWORD2
 parseTo	KEYWORD2
@@ -81,6 +81,15 @@ toQwerty	KEYWORD2
 
 restore	KEYWORD2
 needsEncode	KEYWORD2
+
+hash_c	KEYWORD2
+hash32_c	KEYWORD2
+hash	KEYWORD2
+hash32	KEYWORD2
+hash_P	KEYWORD2
+hash32_P	KEYWORD2
+SH	KEYWORD2
+SH32	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

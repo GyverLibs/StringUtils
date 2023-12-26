@@ -27,73 +27,56 @@ Bug class for all types of lines:
 - `proGMEM` - lines
 - `string` - lines
 
-In all cases, except for `Anytext (String (" line "))` does not create a copy of the line and works with the original line, i.e.The original line should be in memory during the existence of Anytext.Allows you to print and convert to any format.
+Peculiarities:
+- cannot change the original line, all operations are only "for reading"
+- In all cases, except `Anytext (String (" line "))` ** does not create a copy of the line ** and works with the original line, i.e.The original line should be in memory during the existence of Anytext
+- allows you to print and convert to any integer format, as well as compare with any other lines
+- It stores the length of the line for quick calculations and comparisons.The length is considered not when creating a line, but with the first call `Length ()`
 
 `` `CPP
 // Designer
 Sutil :: Anytext (String & Str);
 Sutil :: Anytext (Constation String & Str);
-Sutil :: Anytext (const __flashstringhelper* str, int16_t _len = -1);
-Sutil :: Anytext (const chaar* str, bool pgm = 0, int16_t _len = -1);
+Sutil :: Anytext (const __flashstringhelper* str, int16_t len = 0);
+Sutil :: Anytext (const chaar* str, bool pgm = 0, int16_t len = 0);
 
 // Methods
-// Line from Flash memory
-Bool pgm ();
+Bool pgm ();// Line from Flash memory
+uint16_t Length ();// Line length
+Type type ();// Type of line
+const char* str ();// Get the pointer to the line.It will always return the pointer different from Nullptr!
+Bool Valid ();// Line status, exists or not
+Size_t Printto (Print & P);// Print in Print (from length)
 
-// Line length
-uint16_t Length ();
+// Compare with the line starting from the index
+Bool Compare (Anytext S, Uint16_T from = 0);
 
-// Type of line
-Type type ();
+// Compare with the line starting from the index, indicating the number of characters
+Bool Comparen (Anytext S, Uint16_t Amount, Uint16_t From = 0);
 
-// Get the pointer to the line
-const char* str ();
-
-// Line status
-Bool Valid ();
-
-// Print in Print (from length)
-Size_t Printto (Print & P);
-
-// ========================== search ==========================================================
-// compare with the line
-Bool Compare (Constext & S, Uint16_T from = 0);
-
-// Compare with the line indicating the number of characters
-Bool Comparen (Constext & S, Uint16_T AMOUNT, UINT16_T FROM = 0);
-
-// Find the position of the symbol in the line
+// Find the position of the symbol in the line starting from the index
 Int16_t Indexof (char, uint16_t from = 0);
 
-// Get a symbol by index
-Char charat (Uint16_T IDX);
+Char charat (Uint16_T IDX);// Get a symbol by index
+Char Operator [] (int IDX);// Get a symbol by index
 
-// Get a symbol by index
-Char Operator [] (int IDX);
+// Bring out a string line.Will return False in case.UDECODE - Decode unicode
+Bool Tostring (String & S, Bool UDecode = FALSE);
 
-// Get like string string
-String Tostring ();
+// Bring out an array.He will add '\ 0' at the end, will return the length of the line
+uint16_t Tostr (char* buf, int16_t bufsize = -1);
 
-// Bring out a string line.Will return FALSE in case of failure
-Bool Tostring (String & S);
+// Get a string line.UDECODE - Decode unicode
+String Tostring (Bool UDECODE = FALSE);
 
-// Bring out an array.He will add '\ 0' at the end!
-VOID TOSTR (Char* BUF);
+Bool Tobool ();// get a value as bool
+int16_t toint16 ();// get a value as int 16
+int32_t toint32 ();// get a value as int 32
+int64_t toint64 ();// get a value as int64
+Float Tofloat ();// get a value as Float
 
-// get a value as bool
-Bool Tobool ();
-
-// get a value as int 16
-int16_t toint16 ();
-
-// get a value as int 32
-int32_t toint32 ();
-
-// get a value as int64
-int64_t toint64 ();
-
-// get a value as Float
-Float Tofloat ();
+size_t hash ();// Hash lines size_t
+uint32_t hash32 ();// Hash lines 32 bits
 
 // automatically converted into
 Bool
@@ -109,22 +92,27 @@ Float
 Double
 COST Char*
 String
+
+// automaticCranberries and compared with
+COST Char*
+const __flashstringhelper*
+String
 `` `
 
 ### Anyvalue
 The additive to `Anytext` supports all other standard data types.It has a 22 byte buffer, when creating it converts the number into it:
 `` `CPP
-Sutil :: Anyvalue (Consta Char & Value);
-Sutil :: Anyvalue (Const Bool & Value);
-Sutil :: Anyvalue (Constus Int8_t & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Consta Uint8_t & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Const16_t & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Consta Uint16_t & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Consta Int32_T & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Consta Uint32_t & Value, Uint8_t Base = Dec);
-Sutil :: Anyvalue (Consta Int64_t & Value, Uint8_t Base = Dec);
-Sutil :: ANYVALUE (COST UINT64_T & VALUE, UINT8_T BASE =dec);
-Sutil :: Anyvalue (const Double & Value, Uint8_t Dec = 2);
+Sutil :: Anyvalue (Char Value);
+Sutil :: Anyvalue (Bool Value);
+Sutil :: Anyvalue (int8_t value, uint8_t base = dec);
+Sutil :: Anyvalue (Uint8_t Value, Uint8_t Base = Dec);
+Sutil :: Anyvalue (Int16_t Value, Uint8_t Base = Dec);
+Sutil :: Anyvalue (Uint16_t Value, Uint8_t Base = Dec);
+Sutil :: Anyvalue (int32_t value, uint8_t base = dec);
+Sutil :: Anyvalue (Uint32_T Value, Uint8_t Base = Dec);
+Sutil :: Anyvalue (int64_t value, uint8_t base = dec);
+Sutil :: Anyvalue (Uint64_t Value, Uint8_t Base = Dec);
+Sutil :: Anyvalue (Double Value, Uint8_t Dec = 2);
 
 // similarly with a manual sizes of the buffer
 Sutil :: Anyvaluet <Buffer size> ();
@@ -137,11 +125,32 @@ Sutil :: Anyvalue V1 (123);
 Sutil :: Anyvalue V2 (3.14);
 Sutil :: Anyvalue V3 ((Uint64_T) 12345678987654321);
 
-Serial.println (v0);
-Serial.println (v1 == v2);
+// conversion from among the text
+v1 = 10;
+v1 = 3.14;
+V1 = 12345654321ULL;
 
-// CAST
+Serial.println (v0);// printed in Serial
+Serial.println (v1 == v2);// compared
+
+// can be compared with any lines
+Sutil :: Anytext S ("123");
+String ss = "123";
+Serial.println (s == "123");
+Serial.println (s == f ("123"));
+Serial.println (s == SS);
+
+// Conversion in any type
 Float F = V2;// f == 3.14
+int i = v1;// I = 123
+
+// Conclusion in String
+String S;
+v0.tostring (s);
+
+// Conclusion in Char []
+Char buf [v1.length () + 1];// +1 for '\ 0'
+v1.tostr (buf);
 `` `
 
 ### Parser
@@ -150,17 +159,10 @@ Separation of the line into tips according to the separator in the cycle.** Chan
 `` `CPP
 sutil :: Parser p (char* str, char div = ';');
 
-// Parish the next tuning.Will return FALSE if Parsing is over
-Bool Next ();
-
-// current tuning index
-uint8_t index ();
-
-// Get tuning
-const char* str ();
-
-// Get tuning as anytext
-Anytext get ();
+Bool Next ();// Parish the next tuning.Will return FALSE if Parsing is over
+uint8_t index ();// current tuning index
+const char* str ();// Get tuning
+Anytext get ();// Get tuning as anytext
 `` `
 
 #### Example
@@ -181,17 +183,10 @@ Separation of the line into tips according to the separator in the cycle.** Chan
 Sutil :: Splittert <Max.Settings> SPL (char* str, char div = ';');
 Sutil :: Splitter Spl (Char* Str, Char Div = ';');// Auto-size (released in Heap)
 
-// Restore the line (return the dividers)
-VOID restore ();
-
-// Number of tuning
-uint8_t leength ();
-
-// Get the tuning on the index
-const char* str (uint16_t IDX);
-
-// Get a setting on the index as anytext
-Anytext Get (Uint16_T IDX);
+VOID restore ();// Restore the line (return the dividers)
+uint8_t leength ();// Number of tuning
+const char* str (uint16_t IDX);// Get the tuning on the index
+Anytext Get (Uint16_T IDX);// Get a setting on the index as anytext
 `` `
 
 #### Example
@@ -211,36 +206,36 @@ Spl.Restore ();
 ## list functions
 `` `CPP
 // Get the number of tuning in the list
-Uint16_T Sutil :: List :: Length (Cost Anytext & List, Char Div = ';');
+uint16_t Sutil :: list :: Length (Anytext List, Char Div = ';');
 
 // Get the tuning index in the list
-Int16_T Sutil :: list :: indexof (Cost Anytext & List, const ANYTEXT & STR, Char Div = ';');
+Int16_T Sutil :: list :: indexof (Anytext List, Anytext str, char div = ';');
 
 // Checking whether the list contains the list
-Bool Sutil :: List :: Contains (ConstaText & List, Cost Anytext & Str, Char Div = ';');
+Bool Sutil :: List :: includes (Anytext List, Anytext Str, Char Div = ';');
 
 // Get a setting from the list on the index
-Anytext Sutil :: List :: Get (Constext & List, Uint16_T IDX, Char Div = ';');
+Anytext Sutil :: list :: Get (Anytext List, Uint16_T IDX, Char Div = ';');
 
 // Parrow in an array of the specified type and size.Will return the number of recorded tuning
 TEMPLATE <TYPENAME T>
-Uint16_T Sutil :: List :: Parse (Constext & List, T* Buf, Uint16_t Len, Char Div = ';');
+uint16_t Sutil :: list :: Parse (Anytext List, T* Buf, Uint16_t Len, Char Div = ';');
 `` `
 
 #### Example
 `` `CPP
 Serial.println (sutil :: list :: Length ("123; 456; 333"));// 3
-Serial.println (sutil :: list :: containe ("123; 456; 333", "456"));// True
+Serial.println (Sutil :: List :: includes ("123; 456; 333", "456"));// True
 Serial.println (Sutil :: list :: indexof ("123; 456; 333", "333"));// 2
 Serial.println (sutil :: list :: get ("123; 456; 333", 1));// 456
 
-// rewrite in an array
+// Parish in an array
 Float Arr [3];
 Sutil :: list :: parse ("3.14; 2.54; 15.15"), Arr, 3);
 `` `
 
 ## list class
-Obtaining a settings by dividers ** without modifying the original line ** also works with Progmem lines.
+Obtaining a set -on by dividers ** without modifying the original line ** also works with Progmem lines.
 `` `CPP
 Sutils :: List List (any line);
 
@@ -251,10 +246,10 @@ VOID Setdiv (Char Div);
 uint16_t Length ();
 
 // Get the tuning index in the list or -1 if it is not
-Int16_T Indexof (Constext & Str);
+Int16_T Indexof (Anytext str);
 
 // Check the availability of tuning in the list
-Bool Contains (Constext & Str);
+Bool Includes (Anytext str);
 
 // Get the tuning under the index
 Anytext Get (Uint16_T IDX);
@@ -283,7 +278,7 @@ List.parse (Arr, 3);
 `` `CPP
 // line in which you can make Print/Println
 Sutil :: Printstring PRS;
-PRS += "Howregular string ";
+PRS += "As a regular string";
 
 PRS.Print (10);
 PRS.println ("Hello");
@@ -350,6 +345,60 @@ VOID Sutil :: url :: decode (Const String & SRC, String & Dest);
 String Sutil :: url :: decode (Const String & SRC);
 `` `
 
+### Hash
+Instead of comparing the lines, you can compare the hash of these lines, which makes the program more compact, lighter and in most cases faster.The functions indicated below as “is considered a compiler” are considered a compiler, that is, ** the line does not even get into the program ** - a hash -piece is substituted instead:
+
+`` `CPP
+// is considered a compiler
+Contexpr Sutil :: Size_T SH (COST Char* str);// (String Hash) Size_t size
+Contexpr Sutil :: Size_t SH32 (COST Char* str);// (String Hash) Size 32 bits
+
+// is considered in the radim
+Size_t Sutil :: Hash (const char* str, int16_t len = -1);// size depends on the platform and corresponds to size_t
+uint32_t Sutil :: hash32 (const char* str, int16_t len = -1);// size 32 bits
+
+Size_t Sutil :: hash_p (pgm_p str, int16_t len = -1);// Progmem line, size size_t
+uint32_t Sutil :: hash32_p (pgm_p str, int16_t len = -1);// ProgmemMEM line, pAzmer 32 bits
+`` `
+
+> On the ESP board `sh`,` hash` and `hash_p` are 32-bit by default!
+
+The 32 -bit version of the hash has 7 collisions of 234450 English words, 16 -bit version - 170723 collisions (which is 73% - a purely statistical number of conflicts from the calculation of 16 bits - 65536)
+
+#### Example
+Determine which line was "received".Classic method with comparing rows from Progmem:
+
+`` `CPP
+Char buf [] = "some_text";
+
+if (! strcmp_p (buf, pstr ("abcDef"))) serial.println (0);
+Else if (! Strcmp_p (BUF, PSTR ("12345"))) serial.println (1);
+Else if (! Strcmp_p (BUF, PSTR ("Wrong Text"))) serial.println (2);
+Else if (! Strcmp_p (BUF, PSTR ("SOME Text"))) serial.println (3);
+Else if (! Strcmp_p (BUF, PSTR ("HELLO"))) serial.println (4);
+Else if (! Strcmp_p (BUF, PSTR ("SOME_TEXT"))) serial.PRINTLN (5);
+`` `
+
+Method with Hash Line:
+`` `CPP
+USing Sutil :: SH;
+Using Sutil :: Hash;
+
+Char buf [] = "some_text";
+
+switch (hash (buf)) {
+    Case SH ("ABCDEF"): serial.println (0);Break;
+    Case SH ("12345"): serial.println (1);Break;
+    Case SH ("Wrong Text"): serial.println (2);Break;
+    Case SH ("Some Text"): Serial.println (3);Break;
+    Case SH ("Hello"): serial.println (4);Break;
+    Case SH ("SOME_TEXT"): Serial.Println (5);Break;
+}
+`` `
+> One calculation of the hash takes a little more time than a comparison with a line.But the final design from the example is 2 times faster (on ESP).
+
+> `SH (" lines ")` in this example do not fall into the program code at all - their hash is substituted instead of them
+
 ### other utilities
 `` `CPP
 // Line length with Russian symbols
@@ -361,7 +410,7 @@ uint8_t Sutil :: intlen (int32_t val);
 // Get the length of Float numbers
 Uint8_t Sutil :: Floatlen (Double Val, Uint8_t Dec);
 
-// Transfer the line into a whole number
+// Transform the line into a whole number
 TEMPLATE <TYPENAME T>
 T Sutil :: Strtoint (Consta Char* str, uint8_t len = 0);
 
@@ -404,6 +453,7 @@ uint32_t Sutil :: getpow10 (uint8_t value);
 ## versions
 - V1.0
 - v1.1.0 - optimization, features have been added, vulnerabilities are fixed
+- V1.2 - Added hash functions
 
 <a id="install"> </a>
 
@@ -412,12 +462,12 @@ uint32_t Sutil :: getpow10 (uint8_t value);
     - Arduino ide
     - Arduino ide v2
     - Platformio
-- [download library] (https://github.com/gyverlibs/stringutils/archive/refs/heads/main.zip) .z).IP archive for manual installation:
+- [download the library] (https://github.com/gyverlibs/stringutils/archive/refs/heads/main.zip) .Zip archive for manual installation:
     - unpack and put in * C: \ Program Files (X86) \ Arduino \ Libraries * (Windows X64)
     - unpack and put in * C: \ Program Files \ Arduino \ Libraries * (Windows X32)
     - unpack and put in *documents/arduino/libraries/ *
     - (Arduino id) Automatic installation from. Zip: * sketch/connect the library/add .Zip library ... * and specify downloaded archive
-- Read more detailed instructions for installing libraries [here] (https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%BD%D0%BE%BE%BE%BED0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
+- Read more undertimid instructions for installing libraries [here] (https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%BD%D0%BE%D0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
 ### Update
 - I recommend always updating the library: errors and bugs are corrected in the new versions, as well as optimization and new features are added
 - through the IDE library manager: find the library how to install and click "update"

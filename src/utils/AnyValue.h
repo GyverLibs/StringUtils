@@ -22,6 +22,9 @@ class AnyValueT : public AnyText {
     AnyValueT(const uint8_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
     AnyValueT(const int16_t& value, uint8_t base = DEC) : AnyValueT((int32_t)value, base) {}
     AnyValueT(const uint16_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
+    AnyValueT(const AnyValueT& value) {
+        _copy(value);
+    }
 
     AnyValueT(const int32_t& value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
@@ -62,8 +65,18 @@ class AnyValueT : public AnyText {
         _str = buf;
     }
 
+    void operator=(const AnyValueT& value) {
+        _copy(value);
+    }
+
    private:
     char buf[bufsize] = {0};
+
+    void _copy(const AnyValueT& value) {
+        if (value._str) strcpy(buf, value._str);
+        _str = buf;
+        _len = value._len;
+    }
 };
 
 // размер буфера общий для всех экземпляров и задаётся дефайном SU_ANYVALUE_BUF_LEN

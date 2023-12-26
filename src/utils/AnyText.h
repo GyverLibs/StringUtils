@@ -3,6 +3,7 @@
 
 #include "convert.h"
 #include "hash.h"
+#include "unicode.h"
 
 #ifndef AT_SAFE_STRING
 #define AT_SAFE_STRING 1
@@ -46,6 +47,7 @@ class AnyText : public Printable {
 
     // Длина строки
     uint16_t length() {
+        if (!valid()) return 0;
         if (!_len) _len = _calcLen();
         return _len;
     }
@@ -174,35 +176,53 @@ class AnyText : public Printable {
     // ========================== EXPORT ==========================
 
     // Вывести в String строку. Вернёт false при неудаче
-    bool toString(String& s) {
+    bool toString(String& s, bool uDecode = false) {
         if (!valid() || !length()) return 0;
-        if (!_charAt(length())) {  // null
-            if (pgm()) s += (const __FlashStringHelper*)_str;
-            else s += str();
+        if (uDecode) {
+            if (pgm()) return 0;
+            s = unicode::decode(str(), length());
         } else {
-            if (!s.reserve(s.length() + length())) return 0;
-            for (uint16_t i = 0; i < length(); i++) s += _charAt(i);
+            if (!_charAt(length())) {  // null
+                if (pgm()) s += (const __FlashStringHelper*)_str;
+                else s += str();
+            } else {
+                if (!s.reserve(s.length() + length())) return 0;
+                for (uint16_t i = 0; i < length(); i++) s += _charAt(i);
+            }
         }
         return 1;
     }
 
     // Получить как String строку
-    String toString() {
+    String toString(bool uDecode = false) {
         if (!valid() || !length()) return String();
         String s;
-        toString(s);
+        toString(s, uDecode);
         return s;
     }
 
-    // Вывести в char массив. Сама добавит '\0' в конце!
-    void toStr(char* buf) {
-        pgm() ? strncpy_P(buf, str(), length()) : strncpy(buf, str(), length());
-        buf[length()] = 0;
+    // Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
+    uint16_t toStr(char* buf, int16_t bufsize = -1) const {
+        if (!valid() || bufsize == 0) return 0;
+        if (_len) {
+            if (bufsize > 0 && _len + 1 >= bufsize) return 0;
+            pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
+            buf[_len] = 0;
+            return _len;
+        } else {
+            uint16_t i = 0;
+            while (1) {
+                buf[i] = _charAt(i);
+                if (!buf[i]) return i;
+                i++;
+                if (i == bufsize) return 0;
+            }
+        }
     }
 
     // получить значение как bool
     bool toBool() {
-        return (charAt(0) == 't' || charAt(0) == '1');
+        return valid() && (charAt(0) == 't' || charAt(0) == '1');
     }
 
     // получить значение как int 16
@@ -241,11 +261,13 @@ class AnyText : public Printable {
 
     // хэш строки, размер зависит от платформы (size_t)
     size_t hash() {
+        if (!valid()) return 0;
         return pgm() ? sutil::hash_P(_str, length()) : sutil::hash(str(), length());
     }
 
     // хэш строки 32 бит
     uint32_t hash32() {
+        if (!valid()) return 0;
         return pgm() ? sutil::hash32_P(_str, length()) : sutil::hash32(str(), length());
     }
 

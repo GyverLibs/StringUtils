@@ -65,10 +65,15 @@ int16_t indexOf(char sym, uint16_t from = 0);
 char charAt(uint16_t idx);  // Получить символ по индексу
 char operator[](int idx);   // Получить символ по индексу
 
-bool toString(String& s);   // Вывести в String строку. Вернёт false при неудаче
-void toStr(char* buf);      // Вывести в char массив. Сама добавит '\0' в конце!
+// Вывести в String строку. Вернёт false при неудаче. uDecode - декодировать unicode
+bool toString(String& s, bool uDecode = false);
 
-String toString();          // Получить как String строку
+// Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
+uint16_t toStr(char* buf, int16_t bufsize = -1);
+
+// Получить как String строку. uDecode - декодировать unicode
+String toString(bool uDecode = false);
+
 bool toBool();              // получить значение как bool
 int16_t toInt16();          // получить значение как int 16
 int32_t toInt32();          // получить значение как int 32

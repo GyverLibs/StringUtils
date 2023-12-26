@@ -205,12 +205,12 @@ class AnyText : public Printable {
     uint16_t toStr(char* buf, int16_t bufsize = -1) const {
         if (!valid() || bufsize == 0) return 0;
         if (_len) {
-            if (bufsize > 0 && _len + 1 >= bufsize) return 0;
+            if (bufsize > 0 && (int16_t)(_len + 1) >= bufsize) return 0;
             pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
             buf[_len] = 0;
             return _len;
         } else {
-            uint16_t i = 0;
+            int16_t i = 0;
             while (1) {
                 buf[i] = _charAt(i);
                 if (!buf[i]) return i;
@@ -276,35 +276,38 @@ class AnyText : public Printable {
         return toBool();
     }
 
-    operator int8_t() {
+    operator signed char() {
+        return (char)toInt16();
+    }
+    operator unsigned char() {
         return toInt16();
     }
 
-    operator uint8_t() {
+    operator short() {
+        return toInt16();
+    }
+    operator unsigned short() {
         return toInt16();
     }
 
-    operator int16_t() {
-        return toInt16();
+    operator int() {
+        return (sizeof(int) == 2) ? toInt16() : toInt32();
+    }
+    operator unsigned int() {
+        return (sizeof(int) == 2) ? toInt16() : toInt32();
     }
 
-    operator uint16_t() {
-        return toInt16();
+    operator long() {
+        return toInt32();
     }
-
-    operator int32_t() {
+    operator unsigned long() {
         return toInt32();
     }
 
-    operator uint32_t() {
-        return toInt32();
-    }
-
-    operator int64_t() {
+    operator long long() {
         return toInt64();
     }
-
-    operator uint64_t() {
+    operator unsigned long long() {
         return toInt64();
     }
 

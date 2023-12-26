@@ -130,6 +130,11 @@ sutil::AnyValue v1(123);
 sutil::AnyValue v2(3.14);
 sutil::AnyValue v3((uint64_t)12345678987654321);
 
+// конвертация из числа в текст
+v1 = 10;
+v1 = 3.14;
+v1 = 12345654321ull;
+
 Serial.println(v0);         // печатается в Serial
 Serial.println(v1 == v2);   // сравнивается
 

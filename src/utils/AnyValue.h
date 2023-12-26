@@ -18,11 +18,6 @@ class AnyValueT : public AnyText {
    public:
     using AnyText::AnyText;
 
-    AnyValueT(const int8_t& value, uint8_t base = DEC) : AnyValueT((int32_t)value, base) {}
-    AnyValueT(const uint8_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
-    AnyValueT(const int16_t& value, uint8_t base = DEC) : AnyValueT((int32_t)value, base) {}
-    AnyValueT(const uint16_t& value, uint8_t base = DEC) : AnyValueT((uint32_t)value, base) {}
-
     AnyValueT(const AnyValueT& value) {
         _copy(value);
     }
@@ -30,28 +25,10 @@ class AnyValueT : public AnyText {
         _copy(value);
     }
 
-    AnyValueT(const int32_t& value, uint8_t base = DEC) {
-        _len = intToStr(value, buf, base);
-        _str = buf;
-    }
-    AnyValueT(const uint32_t& value, uint8_t base = DEC) {
-        _len = uintToStr(value, buf, base);
-        _str = buf;
-    }
-
-    AnyValueT(const int64_t& value, uint8_t base = DEC) {
-        if (value >= 0 && value < UINT32_MAX) _len = uintToStr(value, buf, base);
-        else if (value < 0 && value > -INT32_MAX) _len = intToStr(value, buf, base);
-        else _len = int64ToStr(value, buf, base);
-        _str = buf;
-    }
-    AnyValueT(const uint64_t& value, uint8_t base = DEC) {
-        _len = (value <= UINT32_MAX) ? uintToStr(value, buf, base) : uint64ToStr(value, buf, base);
-        _str = buf;
-    }
-
-    AnyValueT(const double& value, uint8_t dec = 2) {
-        _len = floatToStr(value, buf, dec);
+    AnyValueT(const bool& value) {
+        buf[0] = value + '0';
+        buf[1] = 0;
+        _len = 1;
         _str = buf;
     }
 
@@ -61,11 +38,51 @@ class AnyValueT : public AnyText {
         _len = 1;
         _str = buf;
     }
+    AnyValueT(const unsigned char& value, uint8_t base = DEC) {
+        _len = intToStr(value, buf, base);
+        _str = buf;
+    }
 
-    AnyValueT(const bool& value) {
-        buf[0] = value + '0';
-        buf[1] = 0;
-        _len = 1;
+    AnyValueT(const short& value, uint8_t base = DEC) {
+        _len = intToStr(value, buf, base);
+        _str = buf;
+    }
+    AnyValueT(const unsigned short& value, uint8_t base = DEC) {
+        _len = uintToStr(value, buf, base);
+        _str = buf;
+    }
+
+    AnyValueT(const int& value, uint8_t base = DEC) {
+        _len = intToStr(value, buf, base);
+        _str = buf;
+    }
+    AnyValueT(const unsigned int& value, uint8_t base = DEC) {
+        _len = uintToStr(value, buf, base);
+        _str = buf;
+    }
+
+    AnyValueT(const long& value, uint8_t base = DEC) {
+        _len = intToStr(value, buf, base);
+        _str = buf;
+    }
+    AnyValueT(const unsigned long& value, uint8_t base = DEC) {
+        _len = uintToStr(value, buf, base);
+        _str = buf;
+    }
+
+    AnyValueT(const long long& value, uint8_t base = DEC) {
+        if (value >= 0 && value < UINT32_MAX) _len = uintToStr(value, buf, base);
+        else if (value < 0 && value > -INT32_MAX) _len = intToStr(value, buf, base);
+        else _len = int64ToStr(value, buf, base);
+        _str = buf;
+    }
+    AnyValueT(const unsigned long long& value, uint8_t base = DEC) {
+        _len = (value <= UINT32_MAX) ? uintToStr(value, buf, base) : uint64ToStr(value, buf, base);
+        _str = buf;
+    }
+
+    AnyValueT(const double& value, uint8_t dec = 2) {
+        _len = floatToStr(value, buf, dec);
         _str = buf;
     }
 

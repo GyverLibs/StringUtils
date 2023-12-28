@@ -175,12 +175,12 @@ class AnyText : public Printable {
 
     // ========================== EXPORT ==========================
 
-    // Вывести в String строку. Вернёт false при неудаче
+    // Вывести в String строку (добавить к строке). Вернёт false при неудаче
     bool toString(String& s, bool uDecode = false) {
         if (!valid() || !length()) return 0;
         if (uDecode) {
             if (pgm()) return 0;
-            s = unicode::decode(str(), length());
+            s += unicode::decode(str(), length());
         } else {
             if (!_charAt(length())) {  // null
                 if (pgm()) s += (const __FlashStringHelper*)_str;

@@ -11,8 +11,10 @@ namespace sutil {
 template <int16_t cap>
 class SplitterT {
    public:
-    SplitterT(char* str, char div = ';') : _div(div) {
-        if (!*str) return;
+    SplitterT(String& str, char div = ';') : SplitterT(str.c_str(), div) {}
+
+    SplitterT(const char* str, char div = ';') : _div(div) {
+        if (!str || !*str) return;
         uint16_t rsize = cap;
         if (cap >= 0) {
             _str = _arr;

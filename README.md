@@ -37,6 +37,7 @@
 - Во всех случаях, кроме `AnyText(String("строка"))` **не создаёт копию строки** и работает с оригинальной строкой, т.е. оригинальная строка должна быть в памяти на время существования AnyText
 - Позволяет печататься и конвертироваться в любой целочисленный формат, а также сравниваться с любыми другими строками
 - Хранит длину строки для быстрых вычислений и сравнений. Длина считается не при создании строки, а при первом вызове `length()`
+- Поддерживает 64 битные целые числа на ввод, вывод и печать
 
 ```cpp
 // конструктор
@@ -49,7 +50,7 @@ sutil::AnyText(const char* str, bool pgm = 0, int16_t len = 0);
 bool pgm();                 // Строка из Flash памяти
 uint16_t length();          // Длина строки
 Type type();                // Тип строки
-const char* str();          // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
+const char* str();          // Получить указатель на строку. Вернёт пустую строку "" если не объект не валидный
 bool valid();               // Статус строки, существует или нет
 size_t printTo(Print& p);   // Напечатать в Print (c учётом длины)
 
@@ -65,7 +66,7 @@ int16_t indexOf(char sym, uint16_t from = 0);
 char charAt(uint16_t idx);  // Получить символ по индексу
 char operator[](int idx);   // Получить символ по индексу
 
-// Вывести в String строку. Вернёт false при неудаче. uDecode - декодировать unicode
+// Вывести в String строку (добавить к строке). Вернёт false при неудаче. uDecode - декодировать unicode
 bool toString(String& s, bool uDecode = false);
 
 // Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
@@ -85,14 +86,11 @@ uint32_t hash32();          // хэш строки 32 бит
 
 // автоматически конвертируется в
 bool
-int8_t
-uint8_t
-int16_t
-uint16_t
-int32_t
-uint32_t
-int64_t
-uint64_t
+char + unsigned
+short + unsigned
+int + unsigned
+long + unsigned
+long long + unsigned
 float
 double
 const char*
@@ -104,19 +102,30 @@ const __FlashStringHelper*
 String
 ```
 
+#### Пример
+```cpp
+sutil::AnyText v0("-123456");
+sutil::AnyText v1 = "-123456";
+String s("abcd");
+sutil::AnyText v2 = s;
+
+// сравнивается с любой строкой
+v2 == v1;
+v2 == F("text");
+
+// конвертируется в любой тип
+int v = v0;
+```
+
 ### AnyValue
 Добавка к `AnyText`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp
-sutil::AnyValue(char value);
 sutil::AnyValue(bool value);
-sutil::AnyValue(int8_t value, uint8_t base = DEC);
-sutil::AnyValue(uint8_t value, uint8_t base = DEC);
-sutil::AnyValue(int16_t value, uint8_t base = DEC);
-sutil::AnyValue(uint16_t value, uint8_t base = DEC);
-sutil::AnyValue(int32_t value, uint8_t base = DEC);
-sutil::AnyValue(uint32_t value, uint8_t base = DEC);
-sutil::AnyValue(int64_t value, uint8_t base = DEC);
-sutil::AnyValue(uint64_t value, uint8_t base = DEC);
+sutil::AnyValue(char + unsigned value, uint8_t base = DEC);
+sutil::AnyValue(short + unsigned value, uint8_t base = DEC);
+sutil::AnyValue(int + unsigned value, uint8_t base = DEC);
+sutil::AnyValue(long + unsigned value, uint8_t base = DEC);
+sutil::AnyValue(long long + unsigned value, uint8_t base = DEC);
 sutil::AnyValue(double value, uint8_t dec = 2);
 
 // аналогично с ручным размером буфера
@@ -130,7 +139,7 @@ sutil::AnyValue v1(123);
 sutil::AnyValue v2(3.14);
 sutil::AnyValue v3((uint64_t)12345678987654321);
 
-// конвертация из числа в текст
+// конвертируется из числа в текст
 v1 = 10;
 v1 = 3.14;
 v1 = 12345654321ull;
@@ -138,22 +147,22 @@ v1 = 12345654321ull;
 Serial.println(v0);         // печатается в Serial
 Serial.println(v1 == v2);   // сравнивается
 
-// может сравниваться с любыми строками
+// сравнивается с любыми строками
 sutil::AnyText s("123");
 String ss = "123";
 Serial.println(s == "123");
 Serial.println(s == F("123"));
 Serial.println(s == ss);
 
-// конвертация в любой тип
+// конвертируется в любой тип
 float f = v2;   // f == 3.14
 int i = v1;     // i = 123
 
-// вывод в String
+// выводится в String
 String S;
 v0.toString(s);
 
-// вывод в char[]
+// выводится в char[]
 char buf[v1.length() + 1];  // +1 для '\0'
 v1.toStr(buf);
 ```
@@ -162,7 +171,8 @@ v1.toStr(buf);
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку, но после завершения возвращает разделители на место.
 
 ```cpp
-sutil::Parser p(char* str, char div = ';');
+sutil::Parser p(String& str, char div = ';');
+sutil::Parser p(const char* str, char div = ';');
 
 bool next();        // парсить следующую подстроку. Вернёт false, если парсинг закончен
 uint8_t index();    // индекс текущей подстроки
@@ -185,8 +195,11 @@ while (p.next()) {
 ### Splitter
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку! После удаления объекта строка восстанавливается, либо вручную вызвать `restore()`
 ```cpp
-sutil::SplitterT<макс. подстрок> spl(char* str, char div = ';');
-sutil::Splitter spl(char* str, char div = ';');  // авто-размер (выделяется в heap)
+sutil::SplitterT<макс. подстрок> spl(String& str, char div = ';');
+sutil::SplitterT<макс. подстрок> spl(const char* str, char div = ';');
+
+sutil::Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
+sutil::Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
 
 void restore();                 // восстановить строку (вернуть разделители)
 uint8_t length();               // количество подстрок

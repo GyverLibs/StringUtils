@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
+#include "AnyText.h"
 #include "list.h"
 
 // парсинг по разделителям
@@ -26,7 +27,7 @@ class SplitterT {
         char* divp;
         while (_len < rsize) {
             divp = strchr(str, _div);
-            _str[_len] = str;
+            _str[_len] = (char*)str;
             _len++;
             if (divp && _len < rsize) {
                 str = divp + 1;

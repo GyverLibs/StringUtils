@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
+#include "AnyText.h"
+
 // парсинг по разделителям
 
 namespace sutil {

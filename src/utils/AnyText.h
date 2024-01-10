@@ -1,9 +1,9 @@
 #pragma once
 #include <Arduino.h>
 
-#include "convert.h"
+#include "convert/convert.h"
+#include "convert/unicode.h"
 #include "hash.h"
-#include "unicode.h"
 
 #ifndef AT_SAFE_STRING
 #define AT_SAFE_STRING 1
@@ -175,10 +175,10 @@ class AnyText : public Printable {
 
     // ========================== EXPORT ==========================
 
-    // Вывести в String строку (добавить к строке). Вернёт false при неудаче
-    bool toString(String& s, bool uDecode = false) {
+    // Добавить к String строке. Вернёт false при неудаче
+    bool addString(String& s, bool decodeUnicode = false) {
         if (!valid() || !length()) return 0;
-        if (uDecode) {
+        if (decodeUnicode) {
             if (pgm()) return 0;
             s += unicode::decode(str(), length());
         } else {
@@ -193,11 +193,17 @@ class AnyText : public Printable {
         return 1;
     }
 
+    // Вывести в String строку. Вернёт false при неудаче
+    bool toString(String& s, bool decodeUnicode = false) {
+        s = "";
+        return addString(s, decodeUnicode);
+    }
+
     // Получить как String строку
-    String toString(bool uDecode = false) {
+    String toString(bool decodeUnicode = false) {
         if (!valid() || !length()) return String();
         String s;
-        toString(s, uDecode);
+        toString(s, decodeUnicode);
         return s;
     }
 

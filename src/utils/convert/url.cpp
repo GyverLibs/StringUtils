@@ -1,5 +1,4 @@
-#pragma once
-#include <Arduino.h>
+#include "url.h"
 
 namespace sutil::url {
 
@@ -20,12 +19,12 @@ bool needsEncode(char c) {
     return 1;
 }
 
-// закодировать в url
-void encode(const String& src, String& dest) {
-    dest.reserve(src.length());
-    char c;
-    for (uint16_t i = 0; i < src.length(); i++) {
-        c = src[i];
+// закодировать в url. Можно указать len = 0, если неизвестна
+void encode(const char* src, uint16_t len, String& dest) {
+    if (!len) len = strlen(src);
+    dest.reserve(len);
+    while (*src) {
+        char c = *src++;
         if (needsEncode(c)) {
             dest += '%';
             dest += (char)((c >> 4) + (((c >> 4) > 9) ? 55 : '0'));
@@ -37,27 +36,41 @@ void encode(const String& src, String& dest) {
 }
 
 // закодировать в url
+void encode(const String& src, String& dest) {
+    encode(src.c_str(), src.length(), dest);
+}
+
+// закодировать в url
 String encode(const String& src) {
     String dest;
     encode(src, dest);
     return dest;
 }
 
-uint8_t _decodeNibble(char c) {
+static uint8_t _decodeNibble(char c) {
     return c - ((c <= '9') ? '0' : ((c <= 'F') ? 55 : 87));
 }
 
 // раскодировать url
-void decode(const String& src, String& dest) {
-    dest.reserve(src.length());
-    for (uint16_t i = 0; i < src.length(); i++) {
-        if (src[i] != '%') {
-            dest += (src[i] == '+') ? ' ' : src[i];
+void decode(const char* src, uint16_t len, String& dest) {
+    if (!len) len = strlen(src);
+    dest.reserve(len);
+    while (*src) {
+        char c = *src++;
+        if (c != '%') {
+            dest += (c == '+') ? ' ' : c;
         } else {
-            dest += char(_decodeNibble(src[i + 2]) | (_decodeNibble(src[i + 1]) << 4));
-            i += 2;
+            char c1 = *src++;
+            char c2 = *src++;
+            if (!c1 || !c2) return;
+            dest += char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
         }
     }
+}
+
+// раскодировать url
+void decode(const String& src, String& dest) {
+    decode(src.c_str(), src.length(), dest);
 }
 
 // раскодировать url

@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 #include "AnyText.h"
-#include "convert.h"
+#include "convert/convert.h"
 
 // автоматическое преобразование любых данных к строке AnyText
 

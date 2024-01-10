@@ -1,12 +1,9 @@
-#pragma once
-#include <Arduino.h>
-
-#include "convert.h"
+#include "unicode.h"
 
 namespace sutil::unicode {
 
 // декодировать строку с unicode символами. зарезервировать строку на длину len. Иначе - по длине строки
-String decode(const char* str, uint16_t len = 0) {
+String decode(const char* str, uint16_t len) {
     String out;
     if (!len) len = strlen(str);
     out.reserve(len);

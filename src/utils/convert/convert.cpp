@@ -1,5 +1,4 @@
-#pragma once
-#include <Arduino.h>
+#include "convert.h"
 
 namespace sutil {
 
@@ -106,7 +105,7 @@ uint8_t floatLen(const double& val, uint8_t dec) {
  * @return T
  */
 template <typename T>
-T strToInt(const char* str, uint8_t len = 0) {
+T strToInt(const char* str, uint8_t len) {
     T v = 0;
     bool n = 0;
     const char* p = str;
@@ -128,7 +127,7 @@ T strToInt(const char* str, uint8_t len = 0) {
  * @return T
  */
 template <typename T>
-T strToInt_P(const char* str, uint8_t len = 0) {
+T strToInt_P(const char* str, uint8_t len) {
     T v = 0;
     bool n = 0;
     const char* p = str;
@@ -149,7 +148,7 @@ T strToInt_P(const char* str, uint8_t len = 0) {
  * @param dec кол-во знаков после точки
  * @return uint8_t длина полученной строки
  */
-uint8_t floatToStr(double val, char* buf, uint8_t dec = 2) {
+uint8_t floatToStr(double val, char* buf, uint8_t dec) {
     dtostrf(val, dec + 2, dec, buf);
     return floatLen(val, dec);
 }
@@ -161,7 +160,7 @@ uint8_t floatToStr(double val, char* buf, uint8_t dec = 2) {
  * @param len длина числа в строке (не указывать, если строка заканчивается '\0')
  * @return uint32_t
  */
-uint32_t strToIntHex(const char* str, int8_t len = -1) {
+uint32_t strToIntHex(const char* str, int8_t len) {
     uint32_t v = 0;
     while (*str && len) {
         v <<= 4;
@@ -210,7 +209,7 @@ struct _fdiv10 {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uintToStr(uint32_t n, char* buf, uint8_t base = DEC) {
+uint8_t uintToStr(uint32_t n, char* buf, uint8_t base) {
     char* p = buf;
     if (base == DEC) {
         do {
@@ -246,7 +245,7 @@ uint8_t uintToStr(uint32_t n, char* buf, uint8_t base = DEC) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t intToStr(int32_t n, char* buf, uint8_t base = DEC) {
+uint8_t intToStr(int32_t n, char* buf, uint8_t base) {
     char* p = buf;
     if (n < 0) *p++ = '-';
     p += uintToStr((n < 0) ? -n : n, p, base);
@@ -262,7 +261,7 @@ uint8_t intToStr(int32_t n, char* buf, uint8_t base = DEC) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC) {
+uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base) {
     char* p = buf;
     if (base == DEC) {
         do {
@@ -298,7 +297,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t int64ToStr(int64_t n, char* buf, uint8_t base = DEC) {
+uint8_t int64ToStr(int64_t n, char* buf, uint8_t base) {
     char* p = buf;
     if (n < 0) *p++ = '-';
     p += uint64ToStr((n < 0) ? -n : n, p, base);

@@ -66,8 +66,11 @@ int16_t indexOf(char sym, uint16_t from = 0);
 char charAt(uint16_t idx);  // Получить символ по индексу
 char operator[](int idx);   // Получить символ по индексу
 
-// Вывести в String строку (добавить к строке). Вернёт false при неудаче. uDecode - декодировать unicode
-bool toString(String& s, bool uDecode = false);
+// Добавить к String строке. Вернёт false при неудаче
+bool addString(String& s, bool decodeUnicode = false);
+
+// Вывести в String строку. Вернёт false при неудаче
+bool toString(String& s, bool decodeUnicode = false)
 
 // Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
 uint16_t toStr(char* buf, int16_t bufsize = -1);
@@ -355,10 +358,12 @@ String sutil::unicode::encode(uint32_t code);
 bool sutil::url::needsEncode(char c);
 
 // закодировать в url
+void sutil::url::encode(const char* src, uint16_t len, String& dest);
 void sutil::url::encode(const String& src, String& dest);
 String sutil::url::encode(const String& src);
 
 // раскодировать url
+void sutil::url::decode(const char* src, uint16_t len, String& dest);
 void sutil::url::decode(const String& src, String& dest);
 String sutil::url::decode(const String& src);
 ```

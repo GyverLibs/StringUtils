@@ -37,6 +37,7 @@ compare	KEYWORD2
 compareN	KEYWORD2
 indexOf	KEYWORD2
 charAt	KEYWORD2
+addString	KEYWORD2
 toString	KEYWORD2
 toStr	KEYWORD2
 toBool	KEYWORD2

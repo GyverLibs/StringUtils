@@ -6,7 +6,7 @@
 namespace sutil::unicode {
 
 // декодировать строку с unicode символами. зарезервировать строку на длину len. Иначе - по длине строки
-String decode(const char* str, uint16_t len = 0) {
+inline String decode(const char* str, uint16_t len = 0) {
     String out;
     if (!len) len = strlen(str);
     out.reserve(len);
@@ -71,12 +71,12 @@ String decode(const char* str, uint16_t len = 0) {
 }
 
 // декодировать строку с unicode символами
-String decode(const String& str) {
+inline String decode(const String& str) {
     return decode(str.c_str(), str.length());
 }
 
 // кодировать unicode символ по его коду. В массиве должно быть 5 ячеек
-void encode(char* str, uint32_t c) {
+inline void encode(char* str, uint32_t c) {
     char b1 = 0, b2 = 0, b3 = 0, b4 = 0;
     if (c < 0x80) {
         b1 = (c & 0x7F) | 0x00;
@@ -101,7 +101,7 @@ void encode(char* str, uint32_t c) {
 }
 
 // кодировать unicode символ по его коду
-String encode(uint32_t code) {
+inline String encode(uint32_t code) {
     char sym[5];
     encode(sym, code);
     return sym;

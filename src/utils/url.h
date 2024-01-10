@@ -4,7 +4,7 @@
 namespace sutil::url {
 
 // символ должен быть urlencoded
-bool needsEncode(char c) {
+inline bool needsEncode(char c) {
     switch (c) {
         case '0' ... '9':
         case 'a' ... 'z':
@@ -21,7 +21,7 @@ bool needsEncode(char c) {
 }
 
 // закодировать в url
-void encode(const String& src, String& dest) {
+inline void encode(const String& src, String& dest) {
     dest.reserve(src.length());
     char c;
     for (uint16_t i = 0; i < src.length(); i++) {
@@ -37,18 +37,18 @@ void encode(const String& src, String& dest) {
 }
 
 // закодировать в url
-String encode(const String& src) {
+inline String encode(const String& src) {
     String dest;
     encode(src, dest);
     return dest;
 }
 
-uint8_t _decodeNibble(char c) {
+inline uint8_t _decodeNibble(char c) {
     return c - ((c <= '9') ? '0' : ((c <= 'F') ? 55 : 87));
 }
 
 // раскодировать url
-void decode(const String& src, String& dest) {
+inline void decode(const String& src, String& dest) {
     dest.reserve(src.length());
     for (uint16_t i = 0; i < src.length(); i++) {
         if (src[i] != '%') {
@@ -61,7 +61,7 @@ void decode(const String& src, String& dest) {
 }
 
 // раскодировать url
-String decode(const String& src) {
+inline String decode(const String& src) {
     String dest;
     decode(src, dest);
     return dest;

@@ -97,50 +97,6 @@ uint8_t floatLen(const double& val, uint8_t dec) {
 }
 
 /**
- * @brief Преобразовать строку в целое число
- *
- * @tparam T тип целого
- * @param str строка
- * @param len опционально длина
- * @return T
- */
-template <typename T>
-T strToInt(const char* str, uint8_t len) {
-    T v = 0;
-    bool n = 0;
-    const char* p = str;
-    if (*p == '-') n = 1, p++;
-    while (1) {
-        if (!*p || *p < '0' || *p > '9' || (len && p - str >= len)) break;
-        v = v * 10 + (*p & 0xF);
-        p++;
-    }
-    return n ? -v : v;
-}
-
-/**
- * @brief Преобразовать PROGMEM строку в целое число
- *
- * @tparam T тип целого
- * @param str строка
- * @param len опционально длина
- * @return T
- */
-template <typename T>
-T strToInt_P(const char* str, uint8_t len) {
-    T v = 0;
-    bool n = 0;
-    const char* p = str;
-    if ((char)pgm_read_byte(p) == '-') n = 1, p++;
-    while (1) {
-        char c = (char)pgm_read_byte(p++);
-        if (!c || c < '0' || c > '9' || (len && p - str > len)) break;
-        v = v * 10 + (c & 0xF);
-    }
-    return n ? -v : v;
-}
-
-/**
  * @brief Преобразовать float в строку с указанием кол-ва знаков после точки
  *
  * @param val

@@ -46,7 +46,7 @@ uint8_t floatLen(const double& val, uint8_t dec);
  * @return T
  */
 template <typename T>
-T strToInt(const char* str, uint8_t len) {
+T strToInt(const char* str, uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;
@@ -68,7 +68,7 @@ T strToInt(const char* str, uint8_t len) {
  * @return T
  */
 template <typename T>
-T strToInt_P(const char* str, uint8_t len) {
+T strToInt_P(const char* str, uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;

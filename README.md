@@ -204,6 +204,7 @@ sutil::SplitterT<макс. подстрок> spl(const char* str, char div = ';'
 sutil::Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
 sutil::Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
 
+void setDiv(char div);          // установить разделитель
 void restore();                 // восстановить строку (вернуть разделители)
 uint8_t length();               // количество подстрок
 const char* str(uint16_t idx);  // получить подстроку по индексу
@@ -258,7 +259,8 @@ sutil::list::parse(F("3.14;2.54;15.15"), arr, 3);
 ### List класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
-sutils::List list(любая строка);
+sutils::List list(String&, char div = ';');
+sutils::List list(const char*, char div = ';');
 
 // установить разделитель
 void setDiv(char div);
@@ -477,6 +479,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.0
 - v1.1.0 - оптимизация, добавлены фичи, исправлены уязвимости
 - v1.2 - добавлены хэш-функции
+- v1.2.x - мелкие исправления и улучшения
 
 <a id="install"></a>
 

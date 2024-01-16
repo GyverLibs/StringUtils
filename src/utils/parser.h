@@ -14,6 +14,11 @@ class Parser {
         if (!*list) _stop = 1;
     }
 
+    // установить разделитель
+    void setDiv(char div) {
+        _div = div;
+    }
+
     // парсить следующую подстроку. Вернёт false, если парсинг закончен
     bool next() {
         if (!_stop && _end >= 0) _str[_end] = _div;

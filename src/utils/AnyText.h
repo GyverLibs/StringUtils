@@ -207,19 +207,23 @@ class AnyText : public Printable {
         return s;
     }
 
-    // Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
-    uint16_t toStr(char* buf, int16_t bufsize = -1) const {
+    // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
+    uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true) const {
         if (!valid() || bufsize == 0) return 0;
         if (_len) {
             if (bufsize > 0 && (int16_t)(_len + 1) >= bufsize) return 0;
             pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
-            buf[_len] = 0;
+            if (terminate) buf[_len] = 0;
             return _len;
         } else {
             int16_t i = 0;
             while (1) {
-                buf[i] = _charAt(i);
-                if (!buf[i]) return i;
+                char c = _charAt(i);
+                if (!c) {
+                    if (terminate) buf[i] = 0;
+                    return i;
+                }
+                buf[i] = c;
                 i++;
                 if (i == bufsize) return 0;
             }

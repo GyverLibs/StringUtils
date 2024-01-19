@@ -72,7 +72,7 @@ bool addString(String& s, bool decodeUnicode = false);
 // Вывести в String строку. Вернёт false при неудаче
 bool toString(String& s, bool decodeUnicode = false)
 
-// Вывести в char массив. Сама добавит '\0' в конце, вернёт длину строки
+// Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
 uint16_t toStr(char* buf, int16_t bufsize = -1);
 
 // Получить как String строку. uDecode - декодировать unicode

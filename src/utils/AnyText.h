@@ -48,12 +48,12 @@ class AnyText : public Printable {
     // Длина строки
     uint16_t length() {
         if (!valid()) return 0;
-        if (!_len) _len = calcLen(true);
+        if (!_len) _len = readLen(true);
         return _len;
     }
 
     // Длина строки const
-    uint16_t calcLen(bool force = false) const {
+    uint16_t readLen(bool force = false) const {
         if (!valid()) return 0;
         if (_len && !force) return _len;
         return pgm() ? strlen_P(_str) : strlen(str());
@@ -84,7 +84,7 @@ class AnyText : public Printable {
 
     // Напечатать в Print
     size_t printTo(Print& p) const {
-        uint16_t len = _len ? _len : calcLen();
+        uint16_t len = _len ? _len : readLen();
         if (!valid() || !len) return 0;
         for (uint16_t i = 0; i < len; i++) p.write(_charAt(i));
         return len;

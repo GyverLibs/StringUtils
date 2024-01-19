@@ -259,8 +259,7 @@ sutil::list::parse(F("3.14;2.54;15.15"), arr, 3);
 ### List класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
-sutils::List list(String&, char div = ';');
-sutils::List list(const char*, char div = ';');
+List(AnyText);
 
 // установить разделитель
 void setDiv(char div);

@@ -48,8 +48,15 @@ class AnyText : public Printable {
     // Длина строки
     uint16_t length() {
         if (!valid()) return 0;
-        if (!_len) _len = _calcLen();
+        if (!_len) _len = calcLen(true);
         return _len;
+    }
+
+    // Длина строки const
+    uint16_t calcLen(bool force = false) const {
+        if (!valid()) return 0;
+        if (_len && !force) return _len;
+        return pgm() ? strlen_P(_str) : strlen(str());
     }
 
     // Тип строки
@@ -77,7 +84,7 @@ class AnyText : public Printable {
 
     // Напечатать в Print
     size_t printTo(Print& p) const {
-        uint16_t len = _len ? _len : _calcLen();
+        uint16_t len = _len ? _len : calcLen();
         if (!valid() || !len) return 0;
         for (uint16_t i = 0; i < len; i++) p.write(_charAt(i));
         return len;
@@ -347,10 +354,6 @@ class AnyText : public Printable {
 
     char _charAt(uint16_t idx) const {
         return pgm() ? (char)pgm_read_byte(_str + idx) : str()[idx];
-    }
-
-    uint16_t _calcLen() const {
-        return valid() ? (pgm() ? strlen_P(_str) : strlen(str())) : 0;
     }
 };
 

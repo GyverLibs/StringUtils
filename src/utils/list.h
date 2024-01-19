@@ -69,10 +69,9 @@ uint16_t parse(AnyText list, T* buf, uint16_t len, char div = ';') {
 
 }  // namespace list
 
-class List {
+class List : public AnyText {
    public:
-    List(String& list, char div = ';') : List(list.c_str(), div) {}
-    List(const char* list, char div = ';') : _str(list), _div(div) {}
+    using AnyText::AnyText;
 
     // установить разделитель
     void setDiv(char div) {
@@ -80,30 +79,29 @@ class List {
     }
 
     // получить размер списка
-    uint16_t length() {
-        if (!_len) _len = list::length(_str, _div);
-        return _len;
+    uint16_t length() const {
+        return list::length(*this, _div);
     }
 
     // получить индекс подстроки в списке или -1 если её нет
     int16_t indexOf(AnyText str) const {
-        return list::indexOf(_str, str, _div);
+        return list::indexOf(*this, str, _div);
     }
 
     // проверить наличие подстроки в списке
     bool includes(AnyText str) const {
-        return list::includes(_str, str, _div);
+        return list::includes(*this, str, _div);
     }
 
     // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
     template <typename T>
     uint16_t parse(T* buf, uint16_t len) {
-        return list::parse<T>(_str, buf, len, _div);
+        return list::parse<T>(*this, buf, len, _div);
     }
 
     // получить подстроку под индексом
     AnyText get(uint16_t idx) const {
-        return list::get(_str, idx, _div);
+        return list::get(*this, idx, _div);
     }
 
     // получить подстроку под индексом
@@ -112,9 +110,7 @@ class List {
     }
 
    private:
-    const char* _str;
-    char _div;
-    uint16_t _len = 0;
+    char _div = ';';
 };
 
 }  // namespace sutil

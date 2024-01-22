@@ -23,8 +23,8 @@ class AnyText : public Printable {
    public:
     // ========================== CONSTRUCTOR ==========================
     AnyText() {}
-    AnyText(const __FlashStringHelper* str, int16_t len = 0) : _str((PGM_P)str), _len(len), _type(Type::pgmChar) {}
-    AnyText(const char* str, bool pgm = 0, int16_t len = 0) : _str(str), _len(len), _type(pgm ? Type::pgmChar : Type::constChar) {}
+    AnyText(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
+    AnyText(const char* str, bool pgm = 0, int16_t len = -1) : _str(str), _len(len >= 0 ? len : (pgm ? strlen_P(str) : strlen(str ? str : ""))), _type(pgm ? Type::pgmChar : Type::constChar) {}
 
 #if AT_SAFE_STRING == 1
     AnyText(String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringRef), _sptr(&str) {}
@@ -46,17 +46,13 @@ class AnyText : public Printable {
     }
 
     // Длина строки
-    uint16_t length() {
-        if (!valid()) return 0;
-        if (!_len) _len = readLen(true);
-        return _len;
+    uint16_t length() const {
+        return valid() ? _len : 0;
     }
 
-    // Длина строки const
-    uint16_t readLen(bool force = false) const {
-        if (!valid()) return 0;
-        if (_len && !force) return _len;
-        return pgm() ? strlen_P(_str) : strlen(str());
+    // пересчитать длину строки
+    void calcLen() {
+        if (valid()) _len = pgm() ? strlen_P(_str) : strlen(str());
     }
 
     // Тип строки
@@ -84,28 +80,30 @@ class AnyText : public Printable {
 
     // Напечатать в Print
     size_t printTo(Print& p) const {
-        uint16_t len = _len ? _len : readLen();
-        if (!valid() || !len) return 0;
-        for (uint16_t i = 0; i < len; i++) p.write(_charAt(i));
-        return len;
+        if (!valid()) return 0;
+        size_t ret = 0;
+        for (uint16_t i = 0; i < _len; i++) {
+            ret += p.write(_charAt(i));
+        }
+        return ret;
     }
 
     // ========================== SEARCH ==========================
 
     // Сравнить со строкой
-    bool operator==(const AnyText& s) {
+    bool operator==(const AnyText& s) const {
         return compare(s);
     }
-    bool operator==(const char* s) {
+    bool operator==(const char* s) const {
         return compare(s);
     }
-    bool operator==(const __FlashStringHelper* s) {
+    bool operator==(const __FlashStringHelper* s) const {
         return compare(s);
     }
-    bool operator==(const String& s) {
+    bool operator==(const String& s) const {
         return compare(s);
     }
-    bool operator==(String& s) {
+    bool operator==(String& s) const {
         return compare(s.c_str());
     }
 
@@ -113,12 +111,11 @@ class AnyText : public Printable {
        @brief Сравнить со строкой
 
        @param s
-       @param from с какого индекса начинать сравнение
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compare(const AnyText& s, uint16_t from = 0) {
-        return compareN(s, length(), from);
+    bool compare(const AnyText& s) const {
+        return (s.length() == _len) ? compareN(s, _len) : 0;
     }
 
     /**
@@ -130,14 +127,10 @@ class AnyText : public Printable {
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) {
-        if (!valid() || !s.valid() || !amount || amount + from > length()) return 0;
-        uint16_t i = 0;
-        while (i != amount) {
-            char c1 = _charAt(from + i);
-            char c2 = s._charAt(i);
-            if (!c1 || c1 != c2) return 0;  // c1 == c2 == 0
-            i++;
+    bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) const {
+        if (!valid() || !s.valid() || !amount || amount > s.length() || from + amount > _len) return 0;
+        for (uint16_t i = 0; i < amount; i++) {
+            if (_charAt(from + i) != s._charAt(i)) return 0;
         }
         return 1;
     }
@@ -149,11 +142,11 @@ class AnyText : public Printable {
        @param from индекс начала поиска
        @return int16_t позиция символа, -1 если не найден
     */
-    int16_t indexOf(char sym, uint16_t from = 0) {
-        if (!valid() || from > length()) return -1;
+    int16_t indexOf(char sym, uint16_t from = 0) const {
+        if (!valid() || from > _len) return -1;
         const char* p = str() + from;
         if (pgm()) {
-#if (defined(ESP8266) || defined(ESP32))
+#if defined(ESP8266) || defined(ESP32)
             while (1) {
                 char b = pgm_read_byte(p);
                 if (b == sym) break;
@@ -170,184 +163,182 @@ class AnyText : public Printable {
     }
 
     // Получить символ по индексу
-    char charAt(uint16_t idx) {
-        if (!valid() || idx >= length()) return 0;
-        else return _charAt(idx);
+    char charAt(uint16_t idx) const {
+        return (valid() && idx < _len) ? _charAt(idx) : 0;
     }
 
     // Получить символ по индексу
-    char operator[](int idx) {
+    char operator[](int idx) const {
         return charAt(idx);
     }
 
     // ========================== EXPORT ==========================
 
     // Добавить к String строке. Вернёт false при неудаче
-    bool addString(String& s, bool decodeUnicode = false) {
-        if (!valid() || !length()) return 0;
-        if (decodeUnicode) {
-            if (pgm()) return 0;
-            s += unicode::decode(str(), length());
-        } else {
-            if (!_charAt(length())) {  // null
-                if (pgm()) s += (const __FlashStringHelper*)_str;
-                else s += str();
+    bool addString(String& s, bool decode = false) const {
+        if (!valid() || !_len) return 0;
+        if (decode) {
+            if (pgm()) {
+                char str[_len + 1];
+                strncpy_P(str, _str, _len);
+                str[_len] = 0;
+                s += unicode::decode(str, _len);
             } else {
-                if (!s.reserve(s.length() + length())) return 0;
-                for (uint16_t i = 0; i < length(); i++) s += _charAt(i);
+                s += unicode::decode(str(), _len);
+            }
+        } else {
+            if (!s.reserve(s.length() + _len)) return 0;
+            if (pgm()) {
+                if (!_charAt(_len)) {
+                    s += (const __FlashStringHelper*)_str;
+                } else {
+                    for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+                }
+            } else {
+#if defined(ESP8266) || defined(ESP32)
+                s.concat(str(), _len);
+#else
+                s.concat(str());
+#endif
             }
         }
         return 1;
     }
 
     // Вывести в String строку. Вернёт false при неудаче
-    bool toString(String& s, bool decodeUnicode = false) {
+    bool toString(String& s, bool decode = false) const {
         s = "";
-        return addString(s, decodeUnicode);
+        return addString(s, decode);
     }
 
     // Получить как String строку
-    String toString(bool decodeUnicode = false) {
-        if (!valid() || !length()) return String();
+    String toString(bool decode = false) const {
+        if (!valid() || !_len) return String();
         String s;
-        toString(s, decodeUnicode);
+        toString(s, decode);
         return s;
     }
 
     // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
     uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true) const {
-        if (!valid() || bufsize == 0) return 0;
-        if (_len) {
-            if (bufsize > 0 && (int16_t)(_len + 1) >= bufsize) return 0;
-            pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
-            if (terminate) buf[_len] = 0;
-            return _len;
-        } else {
-            int16_t i = 0;
-            while (1) {
-                char c = _charAt(i);
-                if (!c) {
-                    if (terminate) buf[i] = 0;
-                    return i;
-                }
-                buf[i] = c;
-                i++;
-                if (i == bufsize) return 0;
-            }
-        }
+        if (!valid() || !bufsize || !_len) return 0;
+        if (bufsize > 0 && (int16_t)(_len + terminate) > bufsize) return 0;
+        pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
+        if (terminate) buf[_len] = 0;
+        return _len;
     }
 
     // получить значение как bool
-    bool toBool() {
+    bool toBool() const {
         return valid() && (charAt(0) == 't' || charAt(0) == '1');
     }
 
     // получить значение как int 16
-    int16_t toInt16() {
+    int16_t toInt16() const {
         if (!valid()) return 0;
-        return pgm() ? strToInt_P<int16_t>(str(), length()) : strToInt<int16_t>(str(), length());
+        return pgm() ? strToInt_P<int16_t>(_str, _len) : strToInt<int16_t>(str(), _len);
     }
 
     // получить значение как int 32
-    int32_t toInt32() {
+    int32_t toInt32() const {
         if (!valid()) return 0;
-        if (length() < 5) return toInt16();
-        return pgm() ? strToInt_P<int32_t>(str(), length()) : strToInt<int32_t>(str(), length());
+        if (_len < 5) return toInt16();
+        return pgm() ? strToInt_P<int32_t>(_str, _len) : strToInt<int32_t>(str(), _len);
     }
 
     // получить значение как int64
-    int64_t toInt64() {
+    int64_t toInt64() const {
         if (!valid()) return 0;
-        if (length() < 10) return toInt32();
-        return pgm() ? strToInt_P<int64_t>(str(), length()) : strToInt<int64_t>(str(), length());
+        if (_len < 10) return toInt32();
+        return pgm() ? strToInt_P<int64_t>(_str, _len) : strToInt<int64_t>(str(), _len);
     }
 
     // получить значение как float
-    float toFloat() {
+    float toFloat() const {
         if (!valid()) return 0;
         // if (pgm()) return strToFloat_P(str());
         // else return strToFloat(str());
         if (pgm()) {
-            char buf[length() + 1];
-            buf[length()] = 0;
-            strncpy_P(buf, str(), length());
+            char buf[_len + 1];
+            strncpy_P(buf, _str, _len);
+            buf[_len] = 0;
             return atof(buf);
+        } else {
+            return atof(str());
         }
-        return atof(str());
     }
 
     // хэш строки, размер зависит от платформы (size_t)
-    size_t hash() {
-        if (!valid()) return 0;
-        return pgm() ? sutil::hash_P(_str, length()) : sutil::hash(str(), length());
+    size_t hash() const {
+        return valid() ? (pgm() ? sutil::hash_P(_str, _len) : sutil::hash(str(), _len)) : 0;
     }
 
     // хэш строки 32 бит
-    uint32_t hash32() {
-        if (!valid()) return 0;
-        return pgm() ? sutil::hash32_P(_str, length()) : sutil::hash32(str(), length());
+    uint32_t hash32() const {
+        return valid() ? (pgm() ? sutil::hash32_P(_str, _len) : sutil::hash32(str(), _len)) : 0;
     }
 
     // ================= IMPLICIT =================
-    operator bool() {
+    operator bool() const {
         return toBool();
     }
 
-    operator signed char() {
+    operator signed char() const {
         return (char)toInt16();
     }
-    operator unsigned char() {
+    operator unsigned char() const {
         return toInt16();
     }
 
-    operator short() {
+    operator short() const {
         return toInt16();
     }
-    operator unsigned short() {
+    operator unsigned short() const {
         return toInt16();
     }
 
-    operator int() {
+    operator int() const {
         return (sizeof(int) == 2) ? toInt16() : toInt32();
     }
-    operator unsigned int() {
+    operator unsigned int() const {
         return (sizeof(int) == 2) ? toInt16() : toInt32();
     }
 
-    operator long() {
+    operator long() const {
         return toInt32();
     }
-    operator unsigned long() {
+    operator unsigned long() const {
         return toInt32();
     }
 
-    operator long long() {
+    operator long long() const {
         return toInt64();
     }
-    operator unsigned long long() {
+    operator unsigned long long() const {
         return toInt64();
     }
 
-    operator float() {
+    operator float() const {
         return toFloat();
     }
 
-    operator double() {
+    operator double() const {
         return toFloat();
     }
 
-    operator const char*() {
+    operator const char*() const {
         return str();
     }
 
-    operator String() {
+    operator String() const {
         return toString();
     }
 
-   protected:
     const char* _str = nullptr;
     uint16_t _len = 0;
-    const Type _type = Type::constChar;
+    Type _type = Type::constChar;
+
+   protected:
 #if AT_SAFE_STRING == 1
     String* _sptr = nullptr;
 #endif

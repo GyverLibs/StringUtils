@@ -29,6 +29,7 @@ url	KEYWORD2
 
 pgm	KEYWORD2
 length	KEYWORD2
+calcLen	KEYWORD2
 type	KEYWORD2
 str	KEYWORD2
 valid	KEYWORD2

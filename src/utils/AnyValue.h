@@ -100,6 +100,7 @@ class AnyValueT : public AnyText {
         if (!value.valid()) return;
         _len = value.toStr(buf, bufsize + 1);
         _str = _len ? buf : nullptr;
+        _type = AnyText::Type::constChar;
     }
 };
 

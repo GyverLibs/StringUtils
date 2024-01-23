@@ -18,12 +18,7 @@ class AnyValueT : public AnyText {
    public:
     using AnyText::AnyText;
 
-    AnyValueT(const AnyValueT& value) {
-        _copy(value);
-    }
-    AnyValueT(const AnyText& value) {
-        _copy(value);
-    }
+    AnyValueT(const AnyText& value) : AnyText(value) {}
 
     AnyValueT(const bool& value) {
         buf[0] = value + '0';
@@ -86,27 +81,13 @@ class AnyValueT : public AnyText {
         _str = buf;
     }
 
-    void operator=(const AnyValueT& value) {
-        _copy(value);
-    }
-    void operator=(const AnyText& value) {
-        _copy(value);
-    }
-
-   private:
-    char buf[bufsize + 1] = {0};
-
-    void _copy(const AnyText& value) {
-        if (!value.valid()) return;
-        _len = value.toStr(buf, bufsize + 1);
-        _str = _len ? buf : nullptr;
-        _type = AnyText::Type::constChar;
-    }
+   protected:
+    char buf[bufsize] = {0};
 };
 
 // размер буфера общий для всех экземпляров и задаётся дефайном SU_ANYVALUE_BUF_LEN
 class AnyValue : public AnyValueT<> {
-    using AnyValueT<>::AnyValueT;
+    using AnyValueT<SU_ANYVALUE_BUF_LEN>::AnyValueT;
 };
 
 }  // namespace sutil

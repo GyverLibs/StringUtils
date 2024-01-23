@@ -69,6 +69,11 @@ class AnyText : public Printable {
 #endif
     }
 
+    // указатель на конец строки
+    const char* end() {
+        return valid() ? str() + _len : nullptr;
+    }
+
     // Статус строки
     bool valid() const {
 #if AT_SAFE_STRING == 1

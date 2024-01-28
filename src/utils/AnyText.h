@@ -203,7 +203,11 @@ class AnyText : public Printable {
 #if defined(ESP8266) || defined(ESP32)
                 s.concat(str(), _len);
 #else
-                s.concat(str());
+                if (!_charAt(_len)) {
+                    s.concat(str());
+                } else {
+                    for (uint16_t i = 0; i < _len; i++) s += str()[i];
+                }
 #endif
             }
         }

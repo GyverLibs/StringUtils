@@ -58,7 +58,7 @@ class SplitterT {
 
     // получить подстроку по индексу
     const char* str(uint16_t idx) {
-        return (_str || idx < _len) ? _str[idx] : "";
+        return (_str && idx < _len) ? _str[idx] : "";
     }
 
     // получить подстроку по индексу как AnyText

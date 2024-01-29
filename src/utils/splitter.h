@@ -12,7 +12,6 @@ namespace sutil {
 template <int16_t cap>
 class SplitterT {
    public:
-    SplitterT(const AnyText& str, char div = ';') : SplitterT(str.str(), div) {}
     SplitterT(String& str, char div = ';') : SplitterT(str.c_str(), div) {}
 
     SplitterT(const char* str, char div = ';') : _div(div) {

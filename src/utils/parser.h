@@ -9,7 +9,6 @@ namespace sutil {
 
 class Parser {
    public:
-    Parser(const AnyText& list, char div = ';') : Parser(list.str(), div) {}
     Parser(String& list, char div = ';') : Parser(list.c_str(), div) {}
     
     Parser(const char* list, char div = ';') : _str((char*)list), _div(div) {

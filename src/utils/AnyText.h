@@ -106,10 +106,21 @@ class AnyText : public Printable {
         return compare(s);
     }
     bool operator==(const String& s) const {
-        return compare(s);
+        return compare(s.c_str());
     }
     bool operator==(String& s) const {
         return compare(s.c_str());
+    }
+
+    /**
+       @brief Сравнить со строкой
+
+       @param s
+       @return true строки совпадают
+       @return false строки не совпадают
+    */
+    bool compare(const char* s) const {
+        return (pgm() ? !strncmp_P(s, _str, _len) : !strncmp(s, str(), _len)) && !s[_len];
     }
 
     /**

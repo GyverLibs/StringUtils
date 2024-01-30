@@ -191,7 +191,33 @@ class AnyText : public Printable {
     // ========================== EXPORT ==========================
 
     // Добавить к String строке. Вернёт false при неудаче
-    bool addString(String& s, bool decode = false) const {
+    bool addString(String& s) const {
+        if (!valid() || !_len) return 0;
+        if (!s.reserve(s.length() + _len)) return 0;
+        if (pgm()) {
+            if (!_charAt(_len)) {
+                s += (const __FlashStringHelper*)_str;
+            } else {
+                for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
+            }
+        } else {
+#if defined(ESP8266) || defined(ESP32)
+            s.concat(str(), _len);
+#else
+            if (!_charAt(_len)) {
+                s.concat(str());
+            } else {
+                const char* p = str();
+                for (uint16_t i = 0; i < _len; i++) s += p[i];
+            }
+#endif
+        }
+
+        return 1;
+    }
+
+    // Добавить к String строке. Вернёт false при неудаче
+    bool addString(String& s, bool decode) const {
         if (!valid() || !_len) return 0;
         if (decode) {
             if (pgm()) {
@@ -203,24 +229,7 @@ class AnyText : public Printable {
                 s += unicode::decode(str(), _len);
             }
         } else {
-            if (!s.reserve(s.length() + _len)) return 0;
-            if (pgm()) {
-                if (!_charAt(_len)) {
-                    s += (const __FlashStringHelper*)_str;
-                } else {
-                    for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
-                }
-            } else {
-#if defined(ESP8266) || defined(ESP32)
-                s.concat(str(), _len);
-#else
-                if (!_charAt(_len)) {
-                    s.concat(str());
-                } else {
-                    for (uint16_t i = 0; i < _len; i++) s += str()[i];
-                }
-#endif
-            }
+            addString(s);
         }
         return 1;
     }

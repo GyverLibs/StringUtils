@@ -48,7 +48,7 @@ class Parser {
 
     // получить подстроку как AnyText
     AnyText get() {
-        return AnyText(str(), false, _end - _st);
+        return AnyText(str(), _end - _st);
     }
 
    private:

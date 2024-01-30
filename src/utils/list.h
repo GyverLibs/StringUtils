@@ -60,7 +60,7 @@ uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
             end = list.length();
             stop = 1;
         }
-        buf[idx] = AnyText(list.str() + st, list.pgm(), end - st);
+        buf[idx] = AnyText(list.str() + st, end - st, list.pgm());
         idx++;
         if (stop) return idx;
         if (idx == len) return len;

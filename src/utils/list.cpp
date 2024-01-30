@@ -77,7 +77,7 @@ AnyText get(const AnyText& list, uint16_t idx, char div) {
             epos = list.length();
             stop = 1;
         }
-        if (!idx--) return AnyText(list.str() + spos, list.pgm(), epos - spos);
+        if (!idx--) return AnyText(list.str() + spos, epos - spos, list.pgm());
         if (stop) break;
         spos = epos + 1;
     }

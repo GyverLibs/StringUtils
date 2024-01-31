@@ -64,6 +64,9 @@ bool compareN(AnyText s, uint16_t amount, uint16_t from = 0);
 // Найти позицию символа в строке, начиная с индекса
 int16_t indexOf(char sym, uint16_t from = 0);
 
+// найти символ и получить указатель на первое вхождение
+const char* find(char sym, uint16_t from = 0);
+
 char charAt(uint16_t idx);  // Получить символ по индексу
 char operator[](int idx);   // Получить символ по индексу
 

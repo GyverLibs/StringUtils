@@ -178,6 +178,12 @@ class AnyText : public Printable {
         return p ? (p - str()) : -1;
     }
 
+    // найти символ и получить указатель на первое вхождение
+    const char* find(char sym, uint16_t from = 0) const {
+        int16_t idx = indexOf(sym, from);
+        return (idx < 0) ? nullptr : (str() + idx);
+    }
+
     // Получить символ по индексу
     char charAt(uint16_t idx) const {
         return (valid() && idx < _len) ? _charAt(idx) : 0;

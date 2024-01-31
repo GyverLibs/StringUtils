@@ -37,6 +37,7 @@ printTo	KEYWORD2
 compare	KEYWORD2
 compareN	KEYWORD2
 indexOf	KEYWORD2
+find	KEYWORD2
 charAt	KEYWORD2
 addString	KEYWORD2
 toString	KEYWORD2

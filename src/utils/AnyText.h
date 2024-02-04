@@ -83,12 +83,23 @@ class AnyText : public Printable {
 #endif
     }
 
+    // строка валидна и оканчивается \0
+    bool terminated() const {
+        return (valid()) ? (_charAt(_len) == 0) : 0;
+    }
+
     // Напечатать в Print
     size_t printTo(Print& p) const {
         if (!valid()) return 0;
         size_t ret = 0;
-        for (uint16_t i = 0; i < _len; i++) {
-            ret += p.write(_charAt(i));
+        if (pgm()) {
+            if (terminated()) {
+                ret = p.print((const __FlashStringHelper*)_str);
+            } else {
+                for (uint16_t i = 0; i < _len; i++) ret += p.write(_charAt(i));
+            }
+        } else {
+            ret = p.write(str(), length());
         }
         return ret;
     }
@@ -201,7 +212,7 @@ class AnyText : public Printable {
         if (!valid() || !_len) return 0;
         if (!s.reserve(s.length() + _len)) return 0;
         if (pgm()) {
-            if (!_charAt(_len)) {
+            if (terminated()) {
                 s += (const __FlashStringHelper*)_str;
             } else {
                 for (uint16_t i = 0; i < _len; i++) s += _charAt(i);
@@ -210,7 +221,7 @@ class AnyText : public Printable {
 #if defined(ESP8266) || defined(ESP32)
             s.concat(str(), _len);
 #else
-            if (!_charAt(_len)) {
+            if (terminated()) {
                 s.concat(str());
             } else {
                 const char* p = str();

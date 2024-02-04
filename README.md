@@ -44,11 +44,13 @@
 sutil::AnyText(String& str);
 sutil::AnyText(const String& str);
 sutil::AnyText(const __FlashStringHelper* str, int16_t len = 0);
-sutil::AnyText(const char* str, bool pgm = 0, int16_t len = 0);
+sutil::AnyText(const char* str, int16_t len = 0, bool pgm = 0);
 
 // методы
 bool pgm();                 // Строка из Flash памяти
 uint16_t length();          // Длина строки
+uint16_t readLen();         // посчитать и вернуть длину строки (const)
+void calcLen();             // пересчитать и запомнить длину строки (non-const)
 Type type();                // Тип строки
 const char* str();          // Получить указатель на строку. Вернёт пустую строку "" если не объект не валидный
 const char* end();          // указатель на конец строки
@@ -58,6 +60,7 @@ size_t printTo(Print& p);   // Напечатать в Print (c учётом д�
 
 // Сравнить со строкой, начиная с индекса
 bool compare(AnyText s, uint16_t from = 0);
+// также сравнивается со всеми типами строк через ==
 
 // Сравнить со строкой, начиная с индекса, с указанием количества символов
 bool compareN(AnyText s, uint16_t amount, uint16_t from = 0);
@@ -68,8 +71,8 @@ int16_t indexOf(char sym, uint16_t from = 0);
 // найти символ и получить указатель на первое вхождение
 const char* find(char sym, uint16_t from = 0);
 
-char charAt(uint16_t idx);  // Получить символ по индексу
-char operator[](int idx);   // Получить символ по индексу
+// Получить символ по индексу
+char charAt(uint16_t idx);
 
 // Добавить к String строке. Вернёт false при неудаче
 bool addString(String& s, bool decodeUnicode = false);
@@ -78,21 +81,21 @@ bool addString(String& s, bool decodeUnicode = false);
 bool toString(String& s, bool decodeUnicode = false)
 
 // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
-uint16_t toStr(char* buf, int16_t bufsize = -1);
+uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 
 // Получить как String строку. uDecode - декодировать unicode
 String toString(bool uDecode = false);
 
 bool toBool();              // получить значение как bool
-int16_t toInt16();          // получить значение как int 16
-int32_t toInt32();          // получить значение как int 32
+int16_t toInt16();          // получить значение как int16
+int32_t toInt32();          // получить значение как int32
 int64_t toInt64();          // получить значение как int64
 float toFloat();            // получить значение как float
 
 size_t hash();              // хэш строки size_t
 uint32_t hash32();          // хэш строки 32 бит
 
-// автоматически конвертируется в
+// ьакже автоматически конвертируется в
 bool
 char + unsigned
 short + unsigned
@@ -102,11 +105,6 @@ long long + unsigned
 float
 double
 const char*
-String
-
-// автоматически сравнивается с
-const char*
-const __FlashStringHelper*
 String
 ```
 

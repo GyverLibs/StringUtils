@@ -31,6 +31,7 @@ pgm	KEYWORD2
 terminated	KEYWORD2
 length	KEYWORD2
 calcLen	KEYWORD2
+readLen	KEYWORD2
 type	KEYWORD2
 str	KEYWORD2
 valid	KEYWORD2

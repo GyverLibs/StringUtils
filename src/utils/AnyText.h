@@ -476,9 +476,9 @@ class AnyText : public Printable {
         return toFloat() != v;
     }
 
-    operator const char*() const {
-        return str();
-    }
+    // operator const char*() const {
+    //     return str();
+    // }
 
     operator String() const {
         return toString();

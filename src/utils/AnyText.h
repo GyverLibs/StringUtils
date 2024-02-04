@@ -12,7 +12,7 @@
 namespace sutil {
 
 class AnyText : public Printable {
-   private:
+   public:
     enum class Type : uint8_t {
         constChar,  // const char*
         pgmChar,    // PROGMEM
@@ -20,7 +20,6 @@ class AnyText : public Printable {
         StringDup,  // копия String-строки
     };
 
-   public:
     // ========================== CONSTRUCTOR ==========================
     AnyText() {}
     AnyText(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
@@ -50,9 +49,14 @@ class AnyText : public Printable {
         return valid() ? _len : 0;
     }
 
-    // пересчитать длину строки
+    // посчитать и вернуть длину строки (const)
+    uint16_t readLen() const {
+        return valid() ? (pgm() ? strlen_P(_str) : strlen(str())) : 0;
+    }
+
+    // пересчитать и запомнить длину строки (non-const)
     void calcLen() {
-        if (valid()) _len = pgm() ? strlen_P(_str) : strlen(str());
+        if (valid()) _len = readLen();
     }
 
     // Тип строки
@@ -70,7 +74,7 @@ class AnyText : public Printable {
     }
 
     // указатель на конец строки
-    const char* end() {
+    const char* end() const {
         return valid() ? str() + _len : nullptr;
     }
 
@@ -267,7 +271,11 @@ class AnyText : public Printable {
 
     // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
     uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true) const {
-        if (!valid() || !bufsize || !_len) return 0;
+        if (!bufsize) return 0;
+        if (!valid() || !_len) {
+            if (terminate) buf[_len] = 0;
+            return 0;
+        }
         if (bufsize > 0 && (int16_t)(_len + terminate) > bufsize) return 0;
         pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
         if (terminate) buf[_len] = 0;

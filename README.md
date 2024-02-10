@@ -33,11 +33,9 @@
 - `String` - строки
 
 Особенности:
-- Не может изменять исходную строку, все операции только "для чтения"
+- **Не может изменять исходную строку**, все операции только "для чтения"
 - Во всех случаях, кроме `AnyText(String("строка"))` **не создаёт копию строки** и работает с оригинальной строкой, т.е. оригинальная строка должна быть в памяти на время существования AnyText
-- Позволяет печататься и конвертироваться в любой целочисленный формат, а также сравниваться с любыми другими строками
-- Хранит длину строки для быстрых вычислений и сравнений. Длина считается не при создании строки, а при первом вызове `length()`
-- Поддерживает 64 битные целые числа на ввод, вывод и печать
+- Позволяет **печататься**, **конвертироваться** в любой целочисленный формат и **сравниваться** с переменными всех стандартных типов, а также сравниваться с любыми другими строками
 
 ```cpp
 // конструктор
@@ -47,6 +45,7 @@ sutil::AnyText(const __FlashStringHelper* str, int16_t len = 0);
 sutil::AnyText(const char* str, int16_t len = 0, bool pgm = 0);
 
 // методы
+bool valid();               // Статус строки, существует или нет
 bool pgm();                 // Строка из Flash памяти
 uint16_t length();          // Длина строки
 uint16_t readLen();         // посчитать и вернуть длину строки (const)
@@ -54,8 +53,8 @@ void calcLen();             // пересчитать и запомнить дл
 Type type();                // Тип строки
 const char* str();          // Получить указатель на строку. Вернёт пустую строку "" если не объект не валидный
 const char* end();          // указатель на конец строки
-bool valid();               // Статус строки, существует или нет
 bool terminated();          // строка валидна и оканчивается \0
+
 size_t printTo(Print& p);   // Напечатать в Print (c учётом длины)
 
 // Сравнить со строкой, начиная с индекса
@@ -86,6 +85,9 @@ uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 // Получить как String строку. uDecode - декодировать unicode
 String toString(bool uDecode = false);
 
+// вывести в переменную из b64
+bool decodeB64(void* var, size_t size);
+
 bool toBool();              // получить значение как bool
 int16_t toInt16();          // получить значение как int16
 int32_t toInt32();          // получить значение как int32
@@ -95,7 +97,11 @@ float toFloat();            // получить значение как float
 size_t hash();              // хэш строки size_t
 uint32_t hash32();          // хэш строки 32 бит
 
-// ьакже автоматически конвертируется в
+// для ручного управления строкой
+const char* _str;           // указатель на строку
+uint16_t _len;              // длина
+
+// также автоматически конвертируется и сравнивается с
 bool
 char + unsigned
 short + unsigned
@@ -104,7 +110,6 @@ long + unsigned
 long long + unsigned
 float
 double
-const char*
 String
 ```
 
@@ -115,12 +120,15 @@ sutil::AnyText v1 = "-123456";
 String s("abcd");
 sutil::AnyText v2 = s;
 
-// сравнивается с любой строкой
 v2 == v1;
 v2 == F("text");
+v1 == -123456;
 
-// конвертируется в любой тип
 int v = v0;
+String s2 = v2;
+
+char buf[20];
+v1.toStr(buf);
 ```
 
 ### AnyValue
@@ -174,9 +182,9 @@ v1.toStr(buf);
 ```
 
 #### Использование в библиотеках
-Основная идея AnyText - передача текста в функцию:
-- В любом формате Ардуино-строк
-- Без оверхэда и лишних аллокаций
+Передача текста в функцию:
+- Строки любого типа
+- Без аллокаций, что чрезвычайно критично при сборке String
 - Без создания десятка перегруженных функций
 
 Например нужна функция, принимающая строку в любом виде. В ванильном фреймворке Arduino можно сделать так:
@@ -207,6 +215,41 @@ void setText(const AnyText& str) {
 }
 ```
 Теперь эта функция так же умеет принимать строки в любом формате, но **не создаёт их копии**, и например прибавление к строке становится быстрым и безопасным.
+
+Также AnyText удобен для вывода, например в классе, который хранит буфер и сам наполняет его данными и знает их длину:
+
+```cpp
+class MyClass {
+    public:
+    sutil::AnyText get() {
+        return sutil::AnyText(buffer, len);
+    }
+
+    private:
+    char buffer[20];
+    int len;
+};
+
+MyClass s;
+Serial.println(s.get());
+```
+
+Вариант с наследованием:
+```cpp
+class MyClass : public sutil::AnyText {
+    public:
+    void foo() {
+        sutil::AnyText::_str = buffer;
+        sutil::AnyText::_len = somelen;
+    }
+
+    private:
+    char buffer[20];
+};
+
+MyClass s;
+Serial.println(s);
+```
 
 ### Parser
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку, но после завершения возвращает разделители на место.
@@ -359,19 +402,19 @@ char* sutil::toQwerty(const char* ru, char* qw);
 ### Base64
 ```cpp
 // размер закодированных данных по размеру исходных
-uint16_t sutil::b64::encodedLen(uint16_t len);
+size_t sutil::b64::encodedLen(size_t len);
 
 // будущий размер декодированных данных по строке b64 и её длине
-uint16_t sutil::b64::decodedLen(const char* b64, uint16_t len);
+size_t sutil::b64::decodedLen(const char* b64, size_t len);
 
 // закодировать данные в String
-void sutil::b64::encode(String* b64, uint8_t* data, uint16_t len, bool pgm = false);
+void sutil::b64::encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
 
 // закодировать данные в char[] (библиотека не добавляет '\0' в конец)
-void sutil::b64::encode(char* b64, uint8_t* data, uint16_t len, bool pgm = false);
+void sutil::b64::encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
 
 // раскодировать данные из строки b64 в буфер data
-void sutil::b64::decode(uint8_t* data, const char* b64, uint16_t len);
+void sutil::b64::decode(uint8_t* data, const char* b64, size_t len);
 void sutil::b64::decode(uint8_t* data, const String& b64);
 ```
 
@@ -517,7 +560,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.1.0 - оптимизация, добавлены фичи, исправлены уязвимости
 - v1.2 - добавлены хэш-функции
 - v1.2.x - мелкие исправления и улучшения
-- v1.3 - оптимизация const
+- v1.3 - оптимизация const, добавлены фичи, сравнения
 
 <a id="install"></a>
 

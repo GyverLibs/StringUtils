@@ -44,11 +44,11 @@ static uint8_t _getByte(char b) {
 #endif
 }
 
-uint16_t encodedLen(uint16_t len) {
+size_t encodedLen(size_t len) {
     return ((len + 3 - 1) / 3) * 4;  // padded
 }
 
-uint16_t decodedLen(const char* data, uint16_t len) {
+size_t decodedLen(const char* data, size_t len) {
     if (len < 4) return 0;
     uint8_t padd = 0;
     if (data[len - 2] == '=') padd = 2;
@@ -56,12 +56,12 @@ uint16_t decodedLen(const char* data, uint16_t len) {
     return ((len + 3) / 4) * 3 - padd;
 }
 
-void encode(String* out, uint8_t* data, uint16_t len, bool pgm) {
-    uint16_t slen = out->length();
+size_t encode(String* out, uint8_t* data, size_t len, bool pgm) {
+    size_t slen = out->length();
     out->reserve(slen + encodedLen(len));
     int8_t valb = -6;
-    uint16_t val = 0;
-    for (uint16_t i = 0; i < len; i++) {
+    size_t val = 0;
+    for (size_t i = 0; i < len; i++) {
         val = (val << 8) + (pgm ? pgm_read_byte(&data[i]) : data[i]);
         valb += 8;
         while (valb >= 0) {
@@ -71,13 +71,14 @@ void encode(String* out, uint8_t* data, uint16_t len, bool pgm) {
     }
     if (valb > -6) *out += _getChar(((val << 8) >> (valb + 8)) & 0x3F);
     while ((out->length() - slen) & 3) *out += '=';  // & 3 == % 4
+    return out->length() - slen;
 }
 
-void encode(char* out, uint8_t* data, uint16_t len, bool pgm) {
+size_t encode(char* out, uint8_t* data, size_t len, bool pgm) {
     char* p = out;
     int8_t valb = -6;
-    uint16_t val = 0;
-    for (uint16_t i = 0; i < len; i++) {
+    size_t val = 0;
+    for (size_t i = 0; i < len; i++) {
         val = (val << 8) + (pgm ? pgm_read_byte(&data[i]) : data[i]);
         valb += 8;
         while (valb >= 0) {
@@ -87,13 +88,14 @@ void encode(char* out, uint8_t* data, uint16_t len, bool pgm) {
     }
     if (valb > -6) *p++ = _getChar(((val << 8) >> (valb + 8)) & 0x3F);
     while ((p - out) & 3) *p++ = '=';  // & 3 == % 4
+    return p - out;
 }
 
-void decode(uint8_t* out, const char* data, uint16_t len) {
+void decode(uint8_t* out, const char* data, size_t len) {
     if (!decodedLen(data, len)) return;
-    uint16_t val = 0, idx = 0;
+    size_t val = 0, idx = 0;
     int8_t valb = -8;
-    for (uint16_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if (data[i] == '=') break;
         val = (val << 6) + _getByte(data[i]);
         valb += 6;

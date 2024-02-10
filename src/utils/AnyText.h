@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
+#include "convert/b64.h"
 #include "convert/convert.h"
 #include "convert/unicode.h"
 #include "hash.h"
@@ -280,6 +281,15 @@ class AnyText : public Printable {
         pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
         if (terminate) buf[_len] = 0;
         return _len;
+    }
+
+    // вывести в переменную из b64
+    bool decodeB64(void* var, size_t size) {
+        if (b64::decodedLen(str(), length()) == size) {
+            b64::decode((uint8_t*)var, str(), length());
+            return 1;
+        }
+        return 0;
     }
 
     // получить значение как bool

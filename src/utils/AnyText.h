@@ -284,13 +284,13 @@ class AnyText : public Printable {
     }
 
     // размер данных (байт), если они b64
-    size_t lengthB64() {
+    size_t sizeB64() {
         return b64::decodedLen(str(), length());
     }
 
     // вывести в переменную из b64
     bool decodeB64(void* var, size_t size) {
-        if (lengthB64() == size) {
+        if (sizeB64() == size) {
             b64::decode((uint8_t*)var, str(), length());
             return 1;
         }

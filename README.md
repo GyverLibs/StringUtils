@@ -86,7 +86,7 @@ uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 String toString(bool uDecode = false);
 
 // размер данных (байт), если они b64
-size_t lengthB64();
+size_t sizeB64();
 
 // вывести в переменную из b64
 bool decodeB64(void* var, size_t size);

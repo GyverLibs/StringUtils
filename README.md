@@ -85,6 +85,9 @@ uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 // Получить как String строку. uDecode - декодировать unicode
 String toString(bool uDecode = false);
 
+// размер данных (байт), если они b64
+size_t lengthB64();
+
 // вывести в переменную из b64
 bool decodeB64(void* var, size_t size);
 

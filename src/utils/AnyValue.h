@@ -25,6 +25,7 @@ class AnyValueT : public AnyText {
         buf[1] = 0;
         _len = 1;
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const char& value) {
@@ -32,37 +33,45 @@ class AnyValueT : public AnyText {
         buf[1] = 0;
         _len = 1;
         _str = buf;
+        _type = Type::value;
     }
     AnyValueT(const unsigned char& value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const short& value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
     AnyValueT(const unsigned short& value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const int& value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
     AnyValueT(const unsigned int& value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const long& value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
     AnyValueT(const unsigned long& value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const long long& value, uint8_t base = DEC) {
@@ -70,15 +79,18 @@ class AnyValueT : public AnyText {
         else if (value < 0 && value > -INT32_MAX) _len = intToStr(value, buf, base);
         else _len = int64ToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
     AnyValueT(const unsigned long long& value, uint8_t base = DEC) {
         _len = (value <= UINT32_MAX) ? uintToStr(value, buf, base) : uint64ToStr(value, buf, base);
         _str = buf;
+        _type = Type::value;
     }
 
     AnyValueT(const double& value, uint8_t dec = 2) {
         _len = floatToStr(value, buf, dec);
         _str = buf;
+        _type = Type::value;
     }
 
    protected:

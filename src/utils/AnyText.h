@@ -19,6 +19,7 @@ class AnyText : public Printable {
         pgmChar,    // PROGMEM
         StringRef,  // ссылка на строку
         StringDup,  // копия String-строки
+        value,      // буфер AnyValue
     };
 
     // ========================== CONSTRUCTOR ==========================

@@ -7,7 +7,7 @@
 #include "hash.h"
 
 #ifndef AT_SAFE_STRING
-#define AT_SAFE_STRING 1
+#define AT_SAFE_STRING 0
 #endif
 
 namespace sutil {
@@ -35,9 +35,7 @@ class AnyText : public Printable {
         if (_str && _type == Type::StringDup) free((char*)_str);
     }
 #else
-    AnyText(String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringRef) {}
-    AnyText(const String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringDup) {}
-    AnyText(const AnyText& s) : _str(s._str), _len(s._len), _type(s._type) {}
+    AnyText(const String& str) : _str(str.c_str()), _len(str.length()), _type(Type::constChar) {}
 #endif
 
     // ========================== SYSTEM ==========================
@@ -212,6 +210,26 @@ class AnyText : public Printable {
     }
 
     // ========================== EXPORT ==========================
+
+    // выделить подстроку. Отрицательные индексы работают с конца строки
+    AnyText substring(int16_t start, int16_t end = 0) const {
+        if (!length()) return AnyText();
+        if (start < 0) start += _len;
+        if (!end) end = _len;
+        else if (end < 0) end += _len;
+        if (start > (int16_t)_len || end > (int16_t)_len) return AnyText();
+
+        if (end && end < start) {
+            int16_t b = end;
+            end = start;
+            start = b;
+        }
+
+        AnyText t(*this);
+        t._str += start;
+        t._len = end - start + 1;
+        return t;
+    }
 
     // Добавить к String строке. Вернёт false при неудаче
     bool addString(String& s) const {

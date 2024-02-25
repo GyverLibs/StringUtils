@@ -85,7 +85,6 @@ void testCast(const char* str) {
     bool b = txt;
     float f = txt;
     double d = txt;
-    const char* cs = txt;
     String S = txt;
 
     Serial.println(String("int8_t: ") + i8);
@@ -99,7 +98,6 @@ void testCast(const char* str) {
     Serial.println(String("bool: ") + b);
     Serial.println(String("float: ") + f);
     Serial.println(String("double: ") + d);
-    Serial.println(String("const char*: ") + cs);
     Serial.println(String("String: ") + S);
     Serial.println();
     Serial.println();

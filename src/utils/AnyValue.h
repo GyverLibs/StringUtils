@@ -18,6 +18,8 @@ class AnyValueT : public AnyText {
    public:
     using AnyText::AnyText;
 
+    AnyValueT() : AnyText() {}
+
     AnyValueT(const AnyText& value) : AnyText(value) {}
 
     AnyValueT(const bool& value) {

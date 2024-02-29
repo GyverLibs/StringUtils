@@ -1,6 +1,7 @@
 #include "unicode.h"
 
-namespace sutil::unicode {
+namespace sutil {
+namespace unicode {
 
 // декодировать строку с unicode символами. зарезервировать строку на длину len. Иначе - по длине строки
 String decode(const char* str, uint16_t len) {
@@ -104,4 +105,5 @@ String encode(uint32_t code) {
     return sym;
 }
 
-}  // namespace sutil::unicode
+}  // namespace unicode
+}  // namespace sutil

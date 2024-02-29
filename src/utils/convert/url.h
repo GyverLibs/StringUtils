@@ -1,7 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
-namespace sutil::url {
+namespace sutil {
+namespace url {
 
 // символ должен быть urlencoded
 bool needsEncode(char c);
@@ -24,4 +25,5 @@ void decode(const String& src, String& dest);
 // раскодировать url
 String decode(const String& src);
 
-}  // namespace sutil::url
+}  // namespace url
+}  // namespace sutil

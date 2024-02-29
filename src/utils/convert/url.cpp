@@ -1,6 +1,7 @@
 #include "url.h"
 
-namespace sutil::url {
+namespace sutil {
+namespace url {
 
 // символ должен быть urlencoded
 bool needsEncode(char c) {
@@ -80,4 +81,5 @@ String decode(const String& src) {
     return dest;
 }
 
-}  // namespace sutil::url
+}  // namespace url
+}  // namespace sutil

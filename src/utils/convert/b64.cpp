@@ -1,6 +1,7 @@
 #include "b64.h"
 
-namespace sutil::b64 {
+namespace sutil {
+namespace b64 {
 
 #ifndef SU_B64_COMPACT
 static const char _b64_char[] PROGMEM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -110,4 +111,5 @@ void decode(uint8_t* out, const String& data) {
     decode(out, data.c_str(), data.length());
 }
 
-}  // namespace sutil::b64
+}  // namespace b64
+}  // namespace sutil

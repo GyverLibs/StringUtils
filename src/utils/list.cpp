@@ -1,6 +1,7 @@
 #include "list.h"
 
-namespace sutil::list {
+namespace sutil {
+namespace list {
 
 /**
  * @brief Получить количество подстрок в списке
@@ -84,4 +85,5 @@ AnyText get(const AnyText& list, uint16_t idx, char div) {
     return AnyText();
 }
 
-}  // namespace sutil::list
+}  // namespace list
+}  // namespace sutil

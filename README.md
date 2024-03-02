@@ -391,6 +391,8 @@ uint16_t parse(T* buf, uint16_t len);
 sutil::List list(F("123;456;333"));
 Serial.print("len: ");
 Serial.println(list.length());  // 3
+Serial.print("index 2: ");
+Serial.println(list[2]);  // 333
 Serial.print("index of '456':");
 Serial.println(list.indexOf(F("456"))); // 1
 Serial.print("index of '789':");

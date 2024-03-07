@@ -215,7 +215,7 @@ class AnyText : public Printable {
     AnyText substring(int16_t start, int16_t end = 0) const {
         if (!length()) return AnyText();
         if (start < 0) start += _len;
-        if (!end) end = _len;
+        if (!end) end = _len - 1;
         else if (end < 0) end += _len;
         if (start > (int16_t)_len || end > (int16_t)_len) return AnyText();
 

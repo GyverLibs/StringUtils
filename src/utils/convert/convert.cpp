@@ -177,7 +177,7 @@ uint8_t uintToStr(uint32_t n, char* buf, uint8_t base) {
         do {
             uint8_t c = n & (base - 1);
             n >>= (base == HEX) ? 4 : 1;
-            *p++ = (c < 10) ? (c + '0') : (c + 'A' - 10);
+            *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
     uint8_t len = p - buf;
@@ -229,7 +229,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base) {
         do {
             uint8_t c = n & (base - 1);
             n >>= (base == HEX) ? 4 : 1;
-            *p++ = (c < 10) ? (c + '0') : (c + 'A' - 10);
+            *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
     uint8_t len = p - buf;

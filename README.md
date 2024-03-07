@@ -589,6 +589,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.3 - оптимизация const, добавлены фичи, сравнения
 - v1.3.1 - добавлен substring
 - v1.3.2 - поддержка ESP8266 версий 2.x
+- v1.3.5 - uintToStr: HEX теперь в нижнем регистре как у си-функций
 
 <a id="install"></a>
 

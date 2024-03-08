@@ -24,7 +24,7 @@ class AnyTextListT {
 
     // получить подстроку под индексом
     const AnyText& get(uint16_t idx) const {
-        return arr[idx];
+        return arr[idx < len ? idx : 0];
     }
 
     // получить подстроку под индексом

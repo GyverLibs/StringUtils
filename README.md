@@ -313,6 +313,35 @@ Serial.println(s);
 
 Если вместо `AnyText` использовать `AnyValue` - функция сможет принимать также любые численные данные.
 
+### AnyTextList
+Разделитель `AnyText` списков на `AnyText` подстроки.
+
+#### Статический
+```cpp
+AnyTextListT<int16_t cap>(const AnyText& list, char div);
+
+// количество построк
+uint16_t length();
+
+// размер буфера
+uint16_t capacity();
+
+// получить подстроку под индексом
+const AnyText& get(uint16_t idx);
+const AnyText& operator[](int idx);
+```
+
+#### Динамический
+```cpp
+AnyTextList(const AnyText& list, char div);
+// количество построк
+uint16_t length();
+
+// получить подстроку под индексом
+const AnyText get(uint16_t idx);
+const AnyText operator[](int idx);
+```
+
 ### Parser
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку, но после завершения возвращает разделители на место.
 

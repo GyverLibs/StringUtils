@@ -16,6 +16,8 @@ Parser	KEYWORD1
 PrintString	KEYWORD1
 SplitterT	KEYWORD1
 Splitter	KEYWORD1
+AnyTextList	KEYWORD1
+AnyTextListT	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

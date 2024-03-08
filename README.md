@@ -120,6 +120,7 @@ bool toBool();              // получить значение как bool
 int16_t toInt16();          // получить значение как int16
 int32_t toInt32();          // получить значение как int32
 int64_t toInt64();          // получить значение как int64
+uint32_t toInt32HEX();      // получить значение как uint 32 из HEX строки
 float toFloat();            // получить значение как float
 
 // также автоматически конвертируется и сравнивается с
@@ -657,7 +658,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.3.1 - добавлен substring
 - v1.3.2 - поддержка ESP8266 версий 2.x
 - v1.3.5 - uintToStr: HEX теперь в нижнем регистре как у си-функций
-- v1.3.6 - в AnyText добавлены count, split и getSub
+- v1.3.6 - в AnyText добавлены toInt32HEX(), count(), split() и getSub(). Добавлен парсер AnyTextList
 
 <a id="install"></a>
 

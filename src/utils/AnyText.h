@@ -401,6 +401,20 @@ class AnyText : public Printable {
         return pgm() ? strToInt_P<int32_t>(_str, _len) : strToInt<int32_t>(str(), _len);
     }
 
+    // получить значение как uint 32 из HEX строки
+    uint32_t toInt32HEX() const {
+        if (!length()) return 0;
+        uint8_t i = 0;
+        uint32_t v = 0;
+        if (_len > 2 && _charAt(0) == '0' && _charAt(1) == 'x') i += 2;
+        for (; i < _len; i++) {
+            char sym = _charAt(i);
+            v <<= 4;
+            v += (sym & 0xf) + (sym > '9' ? 9 : 0);
+        }
+        return v;
+    }
+
     // получить значение как int64
     int64_t toInt64() const {
         if (!valid()) return 0;

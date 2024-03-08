@@ -192,6 +192,48 @@ void foo(const AnyText& text) {
 foo(String("123"));
 ```
 
+Встроенный разделитель и хэш-функции позволяют очень просто и эффективно разбирать различные текстовые протоколы. Например пакет вида `key=value`, где `key` может отсылать к переменной в коде. Пакет можно разделить, ключ хешировать и опросить через switch для присвоения н ужной переменной:
+```cpp
+AnyText txt("key1=1234");
+int val = txt.getSub(1, '=');   // значение в int
+
+switch (txt.getSub(0, '=').hash()) {    // хэш ключа
+    case SH("key1"):
+        var1 = val;
+        break;
+    case SH("key2"):
+        var2 = val;
+        break;
+    case SH("key3"):
+        var2 = val;
+        break;
+}
+```
+
+или протокол вида `name/index/value`, где `name` - текстовый ключ, `index` - порядковый номер:
+```cpp
+AnyText txt("key/3/1234");
+
+int val = txt.getSub(2, '/');
+
+switch (txt.getSub(0, '/').hash()) {
+    case SH("key"):
+        switch(txt.getSub(1, '/').toInt16()) {
+            case 0: break;
+            case 1: break;
+            case 2: break;
+            //.....
+        }
+        break;
+    case SH("keykey"):
+        //...
+        break;
+    case SH("anotherKey"):
+        //...
+        break;
+}
+```
+
 ### AnyValue
 Добавка к `AnyText`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp

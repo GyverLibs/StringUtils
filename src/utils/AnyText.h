@@ -114,17 +114,32 @@ class AnyText : public Printable {
     bool operator==(const AnyText& s) const {
         return compare(s);
     }
+    bool operator!=(const AnyText& s) const {
+        return !compare(s);
+    }
     bool operator==(const char* s) const {
         return compare(s);
+    }
+    bool operator!=(const char* s) const {
+        return !compare(s);
     }
     bool operator==(const __FlashStringHelper* s) const {
         return compare(s);
     }
+    bool operator!=(const __FlashStringHelper* s) const {
+        return !compare(s);
+    }
     bool operator==(const String& s) const {
         return compare(s.c_str());
     }
+    bool operator!=(const String& s) const {
+        return !compare(s.c_str());
+    }
     bool operator==(String& s) const {
         return compare(s.c_str());
+    }
+    bool operator!=(String& s) const {
+        return !compare(s.c_str());
     }
 
     /**

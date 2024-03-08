@@ -75,7 +75,7 @@ class AnyText : public Printable {
 
     // указатель на конец строки
     const char* end() const {
-        return valid() ? str() + _len : nullptr;
+        return valid() ? str() + _len : "";
     }
 
     // Статус строки
@@ -199,6 +199,60 @@ class AnyText : public Printable {
         return (idx < 0) ? nullptr : (str() + idx);
     }
 
+    // Посчитать количество подстрок, разделённых символом (количество символов +1)
+    uint16_t count(char sym, uint16_t from = 0) const {
+        if (!valid()) return 0;
+        uint16_t sum = 1;
+        for (uint16_t i = from; i < _len; i++) {
+            if (_charAt(i) == sym) sum++;
+        }
+        return sum;
+    }
+
+    // ========================== EXPORT ==========================
+
+    /**
+       @brief Разделить по символу-разделителю
+
+       @param arr внешний массив строк
+       @param len размер массива
+       @param sym символ
+       @return uint16_t количество найденных подстрок
+    */
+    uint16_t split(AnyText* arr, uint16_t len, char div) const {
+        if (!len || !valid() || !length()) return 0;
+        uint8_t i = 0;
+        int16_t start = 0, end = -1;
+
+        while (1) {
+            end = indexOf(div, end + 1);
+            if (end < 0 || i + 1 == len) end = length();
+            arr[i++] = AnyText(str() + start, end - start, pgm());
+            if (i == len || end == length()) return i;
+            start = end + 1;
+        }
+    }
+
+    /**
+     * @brief Получить подстроку из списка по индексу
+     *
+     * @param idx индекс
+     * @param div символ-разделитель
+     * @return AnyText подстрока
+     */
+    AnyText getSub(uint16_t idx, char div) const {
+        if (!valid() || !length()) return AnyText();
+        int16_t start = 0, end = -1;
+        while (1) {
+            end = indexOf(div, end + 1);
+            if (end < 0) end = length();
+            if (!idx--) return AnyText(str() + start, end - start, pgm());
+            if (end == length()) break;
+            start = end + 1;
+        }
+        return AnyText();
+    }
+
     // Получить символ по индексу
     char charAt(uint16_t idx) const {
         return (valid() && idx < _len) ? _charAt(idx) : 0;
@@ -208,8 +262,6 @@ class AnyText : public Printable {
     char operator[](int idx) const {
         return charAt(idx);
     }
-
-    // ========================== EXPORT ==========================
 
     // выделить подстроку. Отрицательные индексы работают с конца строки
     AnyText substring(int16_t start, int16_t end = 0) const {
@@ -258,9 +310,9 @@ class AnyText : public Printable {
     }
 
     // Добавить к String строке. Вернёт false при неудаче
-    bool addString(String& s, bool decode) const {
+    bool addString(String& s, bool decodeUnicode) const {
         if (!valid() || !_len) return 0;
-        if (decode) {
+        if (decodeUnicode) {
             if (pgm()) {
                 char str[_len + 1];
                 strncpy_P(str, _str, _len);
@@ -276,16 +328,16 @@ class AnyText : public Printable {
     }
 
     // Вывести в String строку. Вернёт false при неудаче
-    bool toString(String& s, bool decode = false) const {
+    bool toString(String& s, bool decodeUnicode = false) const {
         s = "";
-        return addString(s, decode);
+        return addString(s, decodeUnicode);
     }
 
     // Получить как String строку
-    String toString(bool decode = false) const {
+    String toString(bool decodeUnicode = false) const {
         if (!valid() || !_len) return String();
         String s;
-        toString(s, decode);
+        toString(s, decodeUnicode);
         return s;
     }
 

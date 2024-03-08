@@ -40,28 +40,35 @@
 - Если создана из String строки, то оригинальная String строка не должна меняться в процессе работы экземпляра AnyText
 
 ```cpp
-// конструктор
+// ====== КОНСТРУКТОР ======
 sutil::AnyText(String& str);
 sutil::AnyText(const String& str);
 sutil::AnyText(const __FlashStringHelper* str, int16_t len = 0);
 sutil::AnyText(const char* str, int16_t len = 0, bool pgm = 0);
 
-// методы
-bool valid();               // Статус строки, существует или нет
-bool pgm();                 // Строка из Flash памяти
-uint16_t length();          // Длина строки
-uint16_t readLen();         // посчитать и вернуть длину строки (const)
-void calcLen();             // пересчитать и запомнить длину строки (non-const)
-Type type();                // Тип строки
-const char* str();          // Получить указатель на строку. Вернёт пустую строку "" если не объект не валидный
-const char* end();          // указатель на конец строки
-bool terminated();          // строка валидна и оканчивается \0
+// ======== СИСТЕМА ========
+bool valid();           // Статус строки, существует или нет
+bool pgm();             // Строка из Flash памяти
+uint16_t length();      // Длина строки
+uint16_t readLen();     // посчитать и вернуть длину строки (const)
+void calcLen();         // пересчитать и запомнить длину строки (non-const)
+Type type();            // Тип строки
+const char* str();      // Получить указатель на строку. Всегда вернёт ненулевой указатель
+const char* end();      // указатель на конец строки. Всегда вернёт ненулевой указатель
+bool terminated();      // строка валидна и оканчивается \0
 
+// ======== ХЭШ ========
+size_t hash();              // хэш строки size_t
+uint32_t hash32();          // хэш строки 32 бит
+
+// ======== PRINT ========
 size_t printTo(Print& p);   // Напечатать в Print (c учётом длины)
+
+// ======== СРАВНЕНИЕ И ПОИСК ========
+// сравнивается со всеми типами строк через ==
 
 // Сравнить со строкой, начиная с индекса
 bool compare(AnyText s, uint16_t from = 0);
-// также сравнивается со всеми типами строк через ==
 
 // Сравнить со строкой, начиная с индекса, с указанием количества символов
 bool compareN(AnyText s, uint16_t amount, uint16_t from = 0);
@@ -72,42 +79,48 @@ int16_t indexOf(char sym, uint16_t from = 0);
 // найти символ и получить указатель на первое вхождение
 const char* find(char sym, uint16_t from = 0);
 
-// выделить подстроку. Отрицательные индексы работают с конца строки
+// ======== РАЗДЕЛЕНИЕ И ПАРСИНГ ========
+// Посчитать количество подстрок, разделённых символом (количество символов +1)
+uint16_t count(char sym, uint16_t from = 0);
+
+// Разделить по символу-разделителю в массив
+uint16_t split(AnyText* arr, uint16_t len, char div);
+
+// Получить подстроку из списка по индексу
+AnyText getSub(uint16_t idx, char div);
+
+// выделить подстроку (начало, конец). Отрицательные индексы работают с конца строки
 AnyText substring(int16_t start, int16_t end = 0);
 
 // Получить символ по индексу
 char charAt(uint16_t idx);
 
-// Добавить к String строке. Вернёт false при неудаче
-bool addString(String& s, bool decodeUnicode = false);
+// ======== ВЫВОД. СТРОКИ ========
+// Получить как String строку
+String toString(bool decodeUnicode = false);
 
 // Вывести в String строку. Вернёт false при неудаче
-bool toString(String& s, bool decodeUnicode = false)
+bool toString(String& s, bool decodeUnicode = false);
+
+// Добавить к String строке. Вернёт false при неудаче
+bool addString(String& s, bool decodeUnicode = false);
 
 // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
 uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 
-// Получить как String строку. uDecode - декодировать unicode
-String toString(bool uDecode = false);
-
+// ======== ВЫВОД. B64 ========
 // размер данных (байт), если они b64
 size_t sizeB64();
 
 // вывести в переменную из b64
 bool decodeB64(void* var, size_t size);
 
+// ======== ВЫВОД. ЧИСЛА ========
 bool toBool();              // получить значение как bool
 int16_t toInt16();          // получить значение как int16
 int32_t toInt32();          // получить значение как int32
 int64_t toInt64();          // получить значение как int64
 float toFloat();            // получить значение как float
-
-size_t hash();              // хэш строки size_t
-uint32_t hash32();          // хэш строки 32 бит
-
-// для ручного управления строкой
-const char* _str;           // указатель на строку
-uint16_t _len;              // длина
 
 // также автоматически конвертируется и сравнивается с
 bool
@@ -119,31 +132,56 @@ long long + unsigned
 float
 double
 String
+
+// для ручного управления строкой
+const char* _str;           // указатель на строку
+uint16_t _len;              // длина
 ```
 
 #### Пример
 ```cpp
+// конструктор
 sutil::AnyText v0("-123456");
 sutil::AnyText v1 = "-123456";
+v1 = F("-123456");
 String s("abcd");
-sutil::AnyText v2 = s;
+sutil::AnyText v2(s);
+v2 = s;
 
+// сравнение
 v2 == v1;
 v2 == F("text");
 v1 == -123456;
 
+// авто конвертация
 int v = v0;
 String s2 = v2;
 
+// вывод в массив
 char buf[20];
 v1.toStr(buf);
 
-// как делать НЕЛЬЗЯ
+// парсинг и разделение
+sutil::AnyText list("abc/123/def");
+Serial.println(list.getSub(0, '/')); // abc
+Serial.println(list.getSub(2, '/')); // def
+
+Serial.println(list.substring(4, 6));   // 123
+
+sutil::AnyText arr[3];
+list.split(arr, 3, '/');
+Serial.println(arr[0]);
+Serial.println(arr[1]);
+Serial.println(arr[2]);
+
+// так делать НЕЛЬЗЯ
 AnyText t1(String("123"));  // строка будет выгружена из памяти!
+// t1.... программа сломается
 
 String s;
 AnyText t1(s);
 s += String("123");     // адрес строки изменится!
+// t1.... программа сломается
 
 // в то же время вот так - можно
 void foo(const AnyText& text) {
@@ -590,6 +628,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.3.1 - добавлен substring
 - v1.3.2 - поддержка ESP8266 версий 2.x
 - v1.3.5 - uintToStr: HEX теперь в нижнем регистре как у си-функций
+- v1.3.6 - в AnyText добавлены count, split и getSub
 
 <a id="install"></a>
 

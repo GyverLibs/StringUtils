@@ -64,7 +64,7 @@ bool includes(const AnyText& list, AnyText str, char div) {
  * @brief Получить подстроку из списка по индексу
  *
  * @param list строка любого типа
- * @param idx строка любого типа
+ * @param idx индекс
  * @param div символ-разделитель (умолч. ';')
  * @return AnyText подстрока
  */

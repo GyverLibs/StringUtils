@@ -119,12 +119,22 @@ void test(const sutil::AnyText& text, const char* type) {
     LOG("toInt32:", text.toInt32() == 1234);
     LOG("toFloat:", text.toFloat() == 1234.5);
 
-    //1234.5abcd
+    // 1234.5abcd
     LOG("substring:", text.substring(0) == TEST_TEXT);
     LOG("substring:", text.substring(-2) == "cd");
     LOG("substring:", text.substring(3, 5) == "4.5");
     LOG("substring:", text.substring(3, -3) == "4.5ab");
     LOG("substring:", text.substring(-3, 3) == "4.5ab");
+
+    LOG("count:", text.count('.') == 2);
+
+    sutil::AnyText arr[2];
+    text.split(arr, 2, '.');
+    LOG("split:", arr[0] == "1234");
+    LOG("split:", arr[1] == "5abcd");
+
+    LOG("getSub:", text.getSub(0, '.') == "1234");
+    LOG("getSub:", text.getSub(1, '.') == "5abcd");
 }
 
 void setup() {

@@ -236,16 +236,35 @@ class AnyText : public Printable {
     */
     uint16_t split(AnyText* arr, uint16_t len, char div) const {
         if (!len || !valid() || !length()) return 0;
-        uint8_t i = 0;
+        uint16_t i = 0;
         int16_t start = 0, end = -1;
 
         while (1) {
             end = indexOf(div, end + 1);
             if (end < 0 || i + 1 == len) end = length();
             arr[i++] = AnyText(str() + start, end - start, pgm());
-            if (i == len || end == length()) return i;
+            if (i == len || (uint16_t)end == length()) return i;
             start = end + 1;
         }
+    }
+
+    // вернёт новую строку с убранными пробельными символами с начала и конца
+    AnyText trim() const {
+        if (!length()) return AnyText();
+        AnyText txt(*this);
+        while (txt._len) {
+            uint8_t sym = txt._charAt(0);
+            if (sym && (sym <= 0x0F || sym == ' ')) {
+                txt._str++;
+                txt._len--;
+            } else break;
+        }
+        while (txt._len) {
+            uint8_t sym = txt._charAt(txt._len - 1);
+            if (sym <= 0x0F || sym == ' ') txt._len--;
+            else break;
+        }
+        return txt;
     }
 
     /**
@@ -262,7 +281,7 @@ class AnyText : public Printable {
             end = indexOf(div, end + 1);
             if (end < 0) end = length();
             if (!idx--) return AnyText(str() + start, end - start, pgm());
-            if (end == length()) break;
+            if ((uint16_t)end == length()) break;
             start = end + 1;
         }
         return AnyText();
@@ -270,7 +289,7 @@ class AnyText : public Printable {
 
     // Получить символ по индексу
     char charAt(uint16_t idx) const {
-        return (valid() && idx < _len) ? _charAt(idx) : 0;
+        return (valid()) ? _charAt(idx) : 0;
     }
 
     // Получить символ по индексу
@@ -609,6 +628,7 @@ class AnyText : public Printable {
 #endif
 
     char _charAt(uint16_t idx) const {
+        if (idx >= _len) return 0;
         return pgm() ? (char)pgm_read_byte(_str + idx) : str()[idx];
     }
 };

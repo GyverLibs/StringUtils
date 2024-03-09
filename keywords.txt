@@ -58,6 +58,7 @@ sizeB64	KEYWORD2
 count	KEYWORD2
 split	KEYWORD2
 getSub	KEYWORD2
+trim	KEYWORD2
 
 encodedLen	KEYWORD2
 decodedLen	KEYWORD2

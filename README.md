@@ -80,6 +80,9 @@ int16_t indexOf(char sym, uint16_t from = 0);
 const char* find(char sym, uint16_t from = 0);
 
 // ======== РАЗДЕЛЕНИЕ И ПАРСИНГ ========
+// вернёт новую строку с убранными пробельными символами с начала и конца
+AnyText trim();
+
 // Посчитать количество подстрок, разделённых символом (количество символов +1)
 uint16_t count(char sym, uint16_t from = 0);
 
@@ -701,6 +704,7 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.3.2 - поддержка ESP8266 версий 2.x
 - v1.3.5 - uintToStr: HEX теперь в нижнем регистре как у си-функций
 - v1.3.6 - в AnyText добавлены toInt32HEX(), count(), split() и getSub(). Добавлен парсер AnyTextList
+- v1.3.7 - исправлены варнинги на AVR
 
 <a id="install"></a>
 

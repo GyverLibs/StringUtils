@@ -2,13 +2,13 @@
 #include <StringUtils.h>
 
 void testParse(const char* list);
-void testList(const sutil::List& list);
+void testList(const su::List& list);
 void testString();
 void testCompare();
 void testCompareValue();
-void testAnyValue();
+void testValue();
 template <typename T>
-void printAnyValue(T val);
+void printValue(T val);
 void testB64_cstr(const char* str);
 void testB64_str(const char* str);
 void testQwerty(const char* str);
@@ -40,7 +40,7 @@ void setup() {
     testString();
     testCompare();
     testCompareValue();
-    testAnyValue();
+    testValue();
     testUnicode();
     testQwerty("123 abc Привет");
 
@@ -51,7 +51,7 @@ void setup() {
 
     testSize();
 
-    Serial.println(sutil::strlenRu("hello привет"));
+    Serial.println(su::strlenRu("hello привет"));
 }
 
 void loop() {
@@ -59,7 +59,7 @@ void loop() {
 
 void testCast(const char* str) {
     Serial.println("========= CAST =========");
-    sutil::AnyText txt(str);
+    su::Text txt(str);
 
     // explicit
     Serial.println(String("toBool: ") + txt.toBool());
@@ -112,7 +112,7 @@ void testParse(const char* list) {
     strcpy(buf, list);
 
     Serial.println("=== SPLITTER ===");
-    sutil::Splitter spl(buf);
+    su::Splitter spl(buf);
     for (uint8_t i = 0; i < spl.length(); i++) {
         Serial.print(i);
         Serial.print(": ");
@@ -128,7 +128,7 @@ void testParse(const char* list) {
     Serial.println("done!");
 
     Serial.println("=== PARSER ===");
-    sutil::Parser p(buf);
+    su::Parser p(buf);
     while (p.next()) {
         Serial.print(p.index());
         Serial.print(": ");
@@ -147,7 +147,7 @@ void testParse(const char* list) {
     Serial.println();
 }
 
-void testList(const sutil::List& list) {
+void testList(const su::List& list) {
     Serial.println("=== LIST ===");
     Serial.print("list: ");
     Serial.print(list);
@@ -165,7 +165,7 @@ void testList(const sutil::List& list) {
 }
 void testString() {
     Serial.println("=== PrintString ===");
-    sutil::PrintString ps;
+    su::PrintString ps;
     ps.print(123);
     ps.print(F(" test"));
     Serial.println(ps);
@@ -173,98 +173,98 @@ void testString() {
 }
 void testCompare() {
     // true
-    Serial.println(sutil::AnyText("123") == sutil::AnyText(F("123")));
-    Serial.println(sutil::AnyText("abc") == sutil::AnyText(F("abc")));
-    Serial.println(sutil::AnyText("11111") == sutil::AnyText(F("11111")));
-    Serial.println(sutil::AnyText("11111") == sutil::AnyText(F("11111")));
+    Serial.println(su::Text("123") == su::Text(F("123")));
+    Serial.println(su::Text("abc") == su::Text(F("abc")));
+    Serial.println(su::Text("11111") == su::Text(F("11111")));
+    Serial.println(su::Text("11111") == su::Text(F("11111")));
 
     // false
-    Serial.println(sutil::AnyText(F("abc")) == sutil::AnyText(("123")));
-    Serial.println(sutil::AnyText(("1234")) == sutil::AnyText(F("123")));
-    Serial.println(sutil::AnyText(F("abc")) == sutil::AnyText(("abcd")));
+    Serial.println(su::Text(F("abc")) == su::Text(("123")));
+    Serial.println(su::Text(("1234")) == su::Text(F("123")));
+    Serial.println(su::Text(F("abc")) == su::Text(("abcd")));
 }
 void testCompareValue() {
     // true
-    Serial.println(sutil::AnyValue(12345) == sutil::AnyText(F("12345")));
-    Serial.println(sutil::AnyValue(3.14) == sutil::AnyText("3.14"));
-    Serial.println(sutil::AnyValue('c') == sutil::AnyText("c"));
-    Serial.println(sutil::AnyValue((uint64_t)12345654321) == sutil::AnyText("12345654321"));
+    Serial.println(su::Value(12345) == su::Text(F("12345")));
+    Serial.println(su::Value(3.14) == su::Text("3.14"));
+    Serial.println(su::Value('c') == su::Text("c"));
+    Serial.println(su::Value((uint64_t)12345654321) == su::Text("12345654321"));
 
     // false
-    Serial.println(sutil::AnyValue(123456) == sutil::AnyText(F("12345")));
-    Serial.println(sutil::AnyValue(3.0) == sutil::AnyText(F("3.14")));
-    Serial.println(sutil::AnyValue(0) == sutil::AnyText(F("")));
+    Serial.println(su::Value(123456) == su::Text(F("12345")));
+    Serial.println(su::Value(3.0) == su::Text(F("3.14")));
+    Serial.println(su::Value(0) == su::Text(F("")));
 }
 template <typename T>
-void printAnyValue(T val) {
-    sutil::AnyValue v(val);
+void printValue(T val) {
+    su::Value v(val);
     Serial.print(v);
     Serial.print(", len: ");
     Serial.println(v.length());
 }
-void testAnyValue() {
-    printAnyValue("cstr");
-    printAnyValue(F("f str"));
-    printAnyValue(-1234);
-    printAnyValue((uint16_t)1234);
-    printAnyValue((uint32_t)123456789);
-    printAnyValue((uint64_t)12345678987654321);
-    printAnyValue('a');
-    printAnyValue(3.14);
+void testValue() {
+    printValue("cstr");
+    printValue(F("f str"));
+    printValue(-1234);
+    printValue((uint16_t)1234);
+    printValue((uint32_t)123456789);
+    printValue((uint64_t)12345678987654321);
+    printValue('a');
+    printValue(3.14);
 }
 void testUrl(const char* str) {
     String s;
-    sutil::url::encode(str, s);
+    su::url::encode(str, s);
     Serial.println(s);
-    Serial.println(sutil::url::decode(s));
+    Serial.println(su::url::decode(s));
 }
 
 void testSize() {
-    Serial.println(sutil::charSize('f'));
-    Serial.println(sutil::charSize("й"[0]));
-    Serial.println(sutil::charSize("Ё"[0]));
+    Serial.println(su::charSize('f'));
+    Serial.println(su::charSize("й"[0]));
+    Serial.println(su::charSize("Ё"[0]));
 }
 
 void testQwerty(const char* str) {
-    Serial.println(sutil::toQwerty(str));
+    Serial.println(su::toQwerty(str));
 
     char qw[strlen(str) + 1];
-    sutil::toQwerty(str, qw);
+    su::toQwerty(str, qw);
     Serial.println(qw);
 }
 void testB64_str(const char* str) {
     // encode
     String b64;
-    sutil::b64::encode(&b64, (uint8_t*)str, strlen(str));
+    su::b64::encode(&b64, (uint8_t*)str, strlen(str));
     Serial.println(b64);
 
     // decode
-    uint16_t dlen = sutil::b64::decodedLen(b64.c_str(), b64.length());
+    uint16_t dlen = su::b64::decodedLen(b64.c_str(), b64.length());
     char dec[dlen + 1];
-    sutil::b64::decode((uint8_t*)dec, b64.c_str(), b64.length());
+    su::b64::decode((uint8_t*)dec, b64.c_str(), b64.length());
     dec[dlen] = 0;
     Serial.println(dec);
 }
 void testB64_cstr(const char* str) {
     // encode
     uint16_t slen = strlen(str);
-    uint16_t elen = sutil::b64::encodedLen(slen);
+    uint16_t elen = su::b64::encodedLen(slen);
     char b64[elen + 1];
-    sutil::b64::encode(b64, (uint8_t*)str, strlen(str));
+    su::b64::encode(b64, (uint8_t*)str, strlen(str));
     b64[elen] = 0;
     Serial.println(b64);
 
     // decode
-    uint16_t dlen = sutil::b64::decodedLen(b64, strlen(b64));
+    uint16_t dlen = su::b64::decodedLen(b64, strlen(b64));
     char dec[dlen + 1];
-    sutil::b64::decode((uint8_t*)dec, b64, strlen(b64));
+    su::b64::decode((uint8_t*)dec, b64, strlen(b64));
     dec[dlen] = 0;
     Serial.println(dec);
 }
 void testUnicode() {
-    Serial.println(sutil::unicode::decode("hello \u0421\u0430\u043d\u044f!"));
+    Serial.println(su::unicode::decode("hello \u0421\u0430\u043d\u044f!"));
     char sym[5];
-    sutil::unicode::encode(sym, 0x2605);
+    su::unicode::encode(sym, 0x2605);
     Serial.println(sym);
-    Serial.println(sutil::unicode::encode(0x23F0));
+    Serial.println(su::unicode::encode(0x23F0));
 }

@@ -1,6 +1,6 @@
 #include "convert.h"
 
-namespace sutil {
+namespace su {
 
 // быстрое возведение 10 в степень
 uint32_t getPow10(uint8_t value) {
@@ -204,8 +204,8 @@ uint8_t uintToStr(uint32_t n, char* buf, uint8_t base) {
  */
 uint8_t intToStr(int32_t n, char* buf, uint8_t base) {
     char* p = buf;
-    if (n < 0) *p++ = '-';
-    p += uintToStr((n < 0) ? -n : n, p, base);
+    if (n < 0 && base == DEC) *p++ = '-';
+    p += uintToStr((n < 0 && base == DEC) ? -n : n, p, base);
     *p = 0;
     return p - buf;
 }
@@ -282,4 +282,4 @@ float strToFloat_P(PGM_P s) {
     return f;
 }
 
-}  // namespace sutil
+}  // namespace su

@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-namespace sutil {
+namespace su {
 
 // быстрое возведение 10 в степень
 uint32_t getPow10(uint8_t value);
@@ -154,4 +154,4 @@ float strToFloat(const char* s);
 // конвертация из PROGEMEM строки во float
 float strToFloat_P(PGM_P s);
 
-}  // namespace sutil
+}  // namespace su

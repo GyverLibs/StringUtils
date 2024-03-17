@@ -1,6 +1,6 @@
 #include "b64.h"
 
-namespace sutil {
+namespace su {
 namespace b64 {
 
 #ifndef SU_B64_COMPACT
@@ -112,4 +112,4 @@ void decode(uint8_t* out, const String& data) {
 }
 
 }  // namespace b64
-}  // namespace sutil
+}  // namespace su

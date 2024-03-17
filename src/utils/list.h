@@ -1,9 +1,9 @@
 #pragma once
 #include <Arduino.h>
 
-#include "AnyText.h"
+#include "Text.h"
 
-namespace sutil {
+namespace su {
 namespace list {
 
 /**
@@ -13,7 +13,7 @@ namespace list {
  * @param div символ-разделитель (умолч. ';')
  * @return uint16_t
  */
-uint16_t length(const AnyText& list, char div = ';');
+uint16_t length(const Text& list, char div = ';');
 
 /**
  * @brief Получить индекс подстроки в списке
@@ -23,7 +23,7 @@ uint16_t length(const AnyText& list, char div = ';');
  * @param div символ-разделитель (умолч. ';')
  * @return int16_t индекс в строке. -1 если не найдена
  */
-int16_t indexOf(const AnyText& list, const AnyText& str, char div = ';');
+int16_t indexOf(const Text& list, const Text& str, char div = ';');
 
 /**
  * @brief Проверка содержит ли список подстроку
@@ -34,7 +34,7 @@ int16_t indexOf(const AnyText& list, const AnyText& str, char div = ';');
  * @return true содержит
  * @return false не содержит
  */
-bool includes(const AnyText& list, const AnyText& str, char div = ';');
+bool includes(const Text& list, const Text& str, char div = ';');
 
 /**
  * @brief Получить подстроку из списка по индексу
@@ -42,13 +42,13 @@ bool includes(const AnyText& list, const AnyText& str, char div = ';');
  * @param list строка любого типа
  * @param idx строка любого типа
  * @param div символ-разделитель (умолч. ';')
- * @return AnyText подстрока
+ * @return Text подстрока
  */
-AnyText get(const AnyText& list, uint16_t idx, char div = ';');
+Text get(const Text& list, uint16_t idx, char div = ';');
 
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
-uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
+uint16_t parse(const Text& list, T* buf, uint16_t len, char div = ';') {
     if (!list.valid() || !list.length()) return 0;
     uint16_t idx = 0;
     int16_t st = 0, end = -1;
@@ -60,7 +60,7 @@ uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
             end = list.length();
             stop = 1;
         }
-        buf[idx] = AnyText(list.str() + st, end - st, list.pgm());
+        buf[idx] = Text(list.str() + st, end - st, list.pgm());
         idx++;
         if (stop) return idx;
         if (idx == len) return len;
@@ -69,9 +69,9 @@ uint16_t parse(const AnyText& list, T* buf, uint16_t len, char div = ';') {
 
 }  // namespace list
 
-class List : public AnyText {
+class List : public Text {
    public:
-    using AnyText::AnyText;
+    using Text::Text;
 
     // установить разделитель
     void setDiv(char div) {
@@ -84,12 +84,12 @@ class List : public AnyText {
     }
 
     // получить индекс подстроки в списке или -1 если её нет
-    int16_t indexOf(const AnyText& str) const {
+    int16_t indexOf(const Text& str) const {
         return list::indexOf(*this, str, _div);
     }
 
     // проверить наличие подстроки в списке
-    bool includes(const AnyText& str) const {
+    bool includes(const Text& str) const {
         return list::includes(*this, str, _div);
     }
 
@@ -100,12 +100,12 @@ class List : public AnyText {
     }
 
     // получить подстроку под индексом
-    AnyText get(uint16_t idx) const {
+    Text get(uint16_t idx) const {
         return list::get(*this, idx, _div);
     }
 
     // получить подстроку под индексом
-    AnyText operator[](int idx) const {
+    Text operator[](int idx) const {
         return get(idx);
     }
 
@@ -113,4 +113,4 @@ class List : public AnyText {
     char _div = ';';
 };
 
-}  // namespace sutil
+}  // namespace su

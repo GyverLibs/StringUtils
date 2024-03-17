@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-namespace sutil {
+namespace su {
 namespace url {
 
 // символ должен быть urlencoded
@@ -26,4 +26,4 @@ void decode(const String& src, String& dest);
 String decode(const String& src);
 
 }  // namespace url
-}  // namespace sutil
+}  // namespace su

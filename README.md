@@ -24,7 +24,7 @@
 <a id="docs"></a>
 
 ## Документация
-### AnyText
+### su::Text
 Класс-обёртка для всех типов строк. Может быть создана в конструкторе из:
 - `"const char"` - строки
 - `char[]` - строки
@@ -33,23 +33,25 @@
 - `String` - строки
 
 Особенности:
-- Хранит тип и длину строки, все операции доступны и оптимизированы для всех типов строк
+- Хранит тип и длину строки
 - Позволяет **печататься**, **конвертироваться** в любой целочисленный формат и **сравниваться** с переменными всех стандартных типов, а также сравниваться с любыми другими строками
+- Вывод в подстроки разными способами, поиск и разделение
 - **Не может изменять исходную строку**, все операции только "для чтения"
-- **Не создаёт копию строки** и работает с оригинальной строкой, т.е. *оригинальная строка должна быть в памяти на время существования AnyText*
-- Если создана из String строки, то оригинальная String строка не должна меняться в процессе работы экземпляра AnyText
+- **Не создаёт копию строки** и работает с оригинальной строкой, т.е. *оригинальная строка должна быть в памяти на время существования Text*
+- Если создана из String строки, то оригинальная String строка не должна меняться в процессе работы экземпляра Text
 
 ```cpp
 // ====== КОНСТРУКТОР ======
-sutil::AnyText(String& str);
-sutil::AnyText(const String& str);
-sutil::AnyText(const __FlashStringHelper* str, int16_t len = 0);
-sutil::AnyText(const char* str, int16_t len = 0, bool pgm = 0);
+su::Text(String& str);
+su::Text(const String& str);
+su::Text(const __FlashStringHelper* str, int16_t len = 0);
+su::Text(const char* str, int16_t len = 0, bool pgm = 0);
 
 // ======== СИСТЕМА ========
 bool valid();           // Статус строки, существует или нет
 bool pgm();             // Строка из Flash памяти
 uint16_t length();      // Длина строки
+uint16_t lengthUnicode();// Длина строки с учётом unicode символов
 uint16_t readLen();     // посчитать и вернуть длину строки (const)
 void calcLen();         // пересчитать и запомнить длину строки (non-const)
 Type type();            // Тип строки
@@ -68,32 +70,53 @@ size_t printTo(Print& p);   // Напечатать в Print (c учётом д�
 // сравнивается со всеми типами строк через ==
 
 // Сравнить со строкой, начиная с индекса
-bool compare(AnyText s, uint16_t from = 0);
+bool compare(Text s, uint16_t from = 0);
 
 // Сравнить со строкой, начиная с индекса, с указанием количества символов
-bool compareN(AnyText s, uint16_t amount, uint16_t from = 0);
+bool compareN(Text s, uint16_t amount, uint16_t from = 0);
 
 // Найти позицию символа в строке, начиная с индекса
 int16_t indexOf(char sym, uint16_t from = 0);
 
+// Найти позицию строки в строке
+int16_t indexOf(Text txt, uint16_t from = 0);
+
+// Найти позицию символа в строке с конца
+int16_t lastIndexOf(char sym);
+
+// Найти позицию строки в строке с конца
+int16_t lastIndexOf(Text txt);
+
 // найти символ и получить указатель на первое вхождение
 const char* find(char sym, uint16_t from = 0);
 
+// начинается со строки
+bool startsWith(const Text& txt);
+
+// заканчивается строкой
+bool endsWith(const Text& txt);
+
 // ======== РАЗДЕЛЕНИЕ И ПАРСИНГ ========
 // вернёт новую строку с убранными пробельными символами с начала и конца
-AnyText trim();
+Text trim();
 
-// Посчитать количество подстрок, разделённых символом (количество символов +1)
-uint16_t count(char sym, uint16_t from = 0);
+// Посчитать количество подстрок, разделённых символом (количество разделителей +1)
+uint16_t count(char sym);
 
-// Разделить по символу-разделителю в массив
-uint16_t split(AnyText* arr, uint16_t len, char div);
+// Посчитать количество подстрок, разделённых строками (количество разделителей +1)
+uint16_t count(Text txt);
+
+// Разделить по символу-разделителю в массив любого типа
+uint16_t split(T* arr, uint16_t len, char div);
 
 // Получить подстроку из списка по индексу
-AnyText getSub(uint16_t idx, char div);
+Text getSub(uint16_t idx, char div);
 
-// выделить подстроку (начало, конец). Отрицательные индексы работают с конца строки
-AnyText substring(int16_t start, int16_t end = 0);
+// Получить подстроку из списка по индексу
+Text getSub(uint16_t idx, Text div);
+
+// выделить подстроку (начало, конец не включая). Отрицательные индексы работают с конца строки
+Text substring(int16_t start, int16_t end = 0);
 
 // Получить символ по индексу
 char charAt(uint16_t idx);
@@ -145,11 +168,11 @@ uint16_t _len;              // длина
 #### Пример
 ```cpp
 // конструктор
-sutil::AnyText v0("-123456");
-sutil::AnyText v1 = "-123456";
+su::Text v0("-123456");
+su::Text v1 = "-123456";
 v1 = F("-123456");
 String s("abcd");
-sutil::AnyText v2(s);
+su::Text v2(s);
 v2 = s;
 
 // сравнение
@@ -166,29 +189,36 @@ char buf[20];
 v1.toStr(buf);
 
 // парсинг и разделение
-sutil::AnyText list("abc/123/def");
+su::Text list("abc/123/def");
 Serial.println(list.getSub(0, '/')); // abc
 Serial.println(list.getSub(2, '/')); // def
 
 Serial.println(list.substring(4, 6));   // 123
 
-sutil::AnyText arr[3];
+su::Text arr[3];
 list.split(arr, 3, '/');
 Serial.println(arr[0]);
 Serial.println(arr[1]);
 Serial.println(arr[2]);
 
+// парсить можно в любой тип
+int arr2[3];    // float, byte...
+list.split(arr2, 3, '/');
+Serial.println(arr2[0]);
+Serial.println(arr2[1]);
+Serial.println(arr2[2]);
+
 // так делать НЕЛЬЗЯ
-AnyText t1(String("123"));  // строка будет выгружена из памяти!
+Text t1(String("123"));  // строка будет выгружена из памяти!
 // t1.... программа сломается
 
 String s;
-AnyText t1(s);
+Text t1(s);
 s += String("123");     // адрес строки изменится!
 // t1.... программа сломается
 
 // в то же время вот так - можно
-void foo(const AnyText& text) {
+void foo(const Text& text) {
     // String существует тут
     print(text);
 }
@@ -197,17 +227,17 @@ foo(String("123"));
 
 Встроенный разделитель и хэш-функции позволяют очень просто и эффективно разбирать различные текстовые протоколы. Например пакет вида `key=value`, где `key` может отсылать к переменной в коде. Пакет можно разделить, ключ хешировать и опросить через switch для присвоения н ужной переменной:
 ```cpp
-AnyText txt("key1=1234");
+Text txt("key1=1234");
 int val = txt.getSub(1, '=');   // значение в int
 
 switch (txt.getSub(0, '=').hash()) {    // хэш ключа
-    case SH("key1"):
+    case su::SH("key1"):
         var1 = val;
         break;
-    case SH("key2"):
+    case su::SH("key2"):
         var2 = val;
         break;
-    case SH("key3"):
+    case su::SH("key3"):
         var2 = val;
         break;
 }
@@ -215,12 +245,12 @@ switch (txt.getSub(0, '=').hash()) {    // хэш ключа
 
 или протокол вида `name/index/value`, где `name` - текстовый ключ, `index` - порядковый номер:
 ```cpp
-AnyText txt("key/3/1234");
+Text txt("key/3/1234");
 
 int val = txt.getSub(2, '/');
 
 switch (txt.getSub(0, '/').hash()) {
-    case SH("key"):
+    case su::SH("key"):
         switch(txt.getSub(1, '/').toInt16()) {
             case 0: break;
             case 1: break;
@@ -228,36 +258,36 @@ switch (txt.getSub(0, '/').hash()) {
             //.....
         }
         break;
-    case SH("keykey"):
+    case su::SH("keykey"):
         //...
         break;
-    case SH("anotherKey"):
+    case su::SH("anotherKey"):
         //...
         break;
 }
 ```
 
-### AnyValue
-Добавка к `AnyText`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
+### su::Value
+Добавка к `Text`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp
-sutil::AnyValue(bool value);
-sutil::AnyValue(char + unsigned value, uint8_t base = DEC);
-sutil::AnyValue(short + unsigned value, uint8_t base = DEC);
-sutil::AnyValue(int + unsigned value, uint8_t base = DEC);
-sutil::AnyValue(long + unsigned value, uint8_t base = DEC);
-sutil::AnyValue(long long + unsigned value, uint8_t base = DEC);
-sutil::AnyValue(double value, uint8_t dec = 2);
+su::Value(bool value);
+su::Value(char + unsigned value, uint8_t base = DEC);
+su::Value(short + unsigned value, uint8_t base = DEC);
+su::Value(int + unsigned value, uint8_t base = DEC);
+su::Value(long + unsigned value, uint8_t base = DEC);
+su::Value(long long + unsigned value, uint8_t base = DEC);
+su::Value(double value, uint8_t dec = 2);
 
 // аналогично с ручным размером буфера
-sutil::AnyValueT<размер буфера>();
+su::ValueT<размер буфера>();
 ```
 
 #### Пример
 ```cpp
-sutil::AnyValue v0("-123456");   // все строки также можно
-sutil::AnyValue v1(123);
-sutil::AnyValue v2(3.14);
-sutil::AnyValue v3((uint64_t)12345678987654321);
+su::Value v0("-123456");   // все строки также можно
+su::Value v1(123);
+su::Value v2(3.14);
+su::Value v3((uint64_t)12345678987654321);
 
 // конвертируется из числа в текст
 v1 = 10;
@@ -268,7 +298,7 @@ Serial.println(v0);         // печатается в Serial
 Serial.println(v1 == v2);   // сравнивается
 
 // сравнивается с любыми строками
-sutil::AnyText s("123");
+su::Text s("123");
 String ss = "123";
 Serial.println(s == "123");
 Serial.println(s == F("123"));
@@ -288,7 +318,7 @@ v1.toStr(buf);
 ```
 
 #### Использование в библиотеках
-На базе `AnyText` построены следующие библиотеки:
+На базе `Text` построены следующие библиотеки:
 - [GSON](https://github.com/GyverLibs/GSON)
 - [GyverHub](https://github.com/GyverLibs/GyverHub)
 - [Pairs](https://github.com/GyverLibs/Pairs)
@@ -318,10 +348,10 @@ setText(str);
 String s = "Arduino String";
 setText(s);
 ```
-Но эта строка будет *продублирована* в конструкторе `String`, и самое страшное - в динамической памяти! Таким образом при прибавлении к условно-глобальной String в этой области определения случится переаллокация и фрагментирование памяти. `AnyText` позволяет полностью этого избежать:
+Но эта строка будет *продублирована* в конструкторе `String`, и самое страшное - в динамической памяти! Таким образом при прибавлении к условно-глобальной String в этой области определения случится переаллокация и фрагментирование памяти. `Text` позволяет полностью этого избежать:
 
 ```cpp
-void setText(const AnyText& str) {
+void setText(const Text& str) {
     // и например прибавить к строке
     str.addString(s);
 }
@@ -329,13 +359,13 @@ void setText(const AnyText& str) {
 Теперь эта функция так же умеет принимать строки в любом формате, но **не создаёт их копии**, и например прибавление к строке становится быстрым и безопасным.
 
 ##### Вывод текста
-Также AnyText удобен для вывода, например в классе, который хранит буфер и сам наполняет его данными и знает их длину:
+Также Text удобен для вывода, например в классе, который хранит буфер и сам наполняет его данными и знает их длину:
 
 ```cpp
 class MyClass {
     public:
-    sutil::AnyText get() {
-        return sutil::AnyText(buffer, len);
+    su::Text get() {
+        return su::Text(buffer, len);
     }
 
     private:
@@ -349,11 +379,11 @@ Serial.println(s.get());
 
 Вариант с наследованием:
 ```cpp
-class MyClass : public sutil::AnyText {
+class MyClass : public su::Text {
     public:
     void foo() {
-        sutil::AnyText::_str = buffer;
-        sutil::AnyText::_len = somelen;
+        su::Text::_str = buffer;
+        su::Text::_len = somelen;
     }
 
     private:
@@ -364,14 +394,15 @@ MyClass s;
 Serial.println(s);
 ```
 
-Если вместо `AnyText` использовать `AnyValue` - функция сможет принимать также любые численные данные.
+Если вместо `Text` использовать `Value` - функция сможет принимать также любые численные данные.
 
-### AnyTextList
-Разделитель `AnyText` списков на `AnyText` подстроки.
+### su::TextList
+Разделитель `Text` списков на `Text` подстроки.
 
 #### Статический
 ```cpp
-AnyTextListT<int16_t cap>(const AnyText& list, char div);
+TextListT<int16_t cap>(Text list, char div);
+TextListT<int16_t cap>(Text list, Text div);
 
 // количество построк
 uint16_t length();
@@ -380,39 +411,43 @@ uint16_t length();
 uint16_t capacity();
 
 // получить подстроку под индексом
-const AnyText& get(uint16_t idx);
-const AnyText& operator[](int idx);
+const Text& get(uint16_t idx);
+const Text& operator[](int idx);
 ```
 
 #### Динамический
 ```cpp
-AnyTextList(const AnyText& list, char div);
+TextList(Text list, char div);
+TextList(Text list, Text div);
 // количество построк
 uint16_t length();
 
 // получить подстроку под индексом
-const AnyText get(uint16_t idx);
-const AnyText operator[](int idx);
+const Text& get(uint16_t idx);
+const Text& operator[](int idx);
 ```
 
-### Parser
+<details>
+<summary>Устаревшие парсеры</summary>
+
+### su::Parser
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку, но после завершения возвращает разделители на место.
 
 ```cpp
-sutil::Parser p(String& str, char div = ';');
-sutil::Parser p(const char* str, char div = ';');
+su::Parser p(String& str, char div = ';');
+su::Parser p(const char* str, char div = ';');
 
 bool next();        // парсить следующую подстроку. Вернёт false, если парсинг закончен
 uint8_t index();    // индекс текущей подстроки
 const char* str();  // получить подстроку
-AnyText get();      // получить подстроку как AnyText
+Text get();      // получить подстроку как Text
 ```
 
 #### Пример
 ```cpp
 char buf[] = "123;456;abc";
 
-sutil::Parser p(buf);
+su::Parser p(buf);
 while (p.next()) {
     Serial.print(p.index());
     Serial.print(": ");
@@ -420,27 +455,27 @@ while (p.next()) {
 }
 ```
 
-### Splitter
+### su::Splitter
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку! После удаления объекта строка восстанавливается, либо вручную вызвать `restore()`
 ```cpp
-sutil::SplitterT<макс. подстрок> spl(String& str, char div = ';');
-sutil::SplitterT<макс. подстрок> spl(const char* str, char div = ';');
+su::SplitterT<макс. подстрок> spl(String& str, char div = ';');
+su::SplitterT<макс. подстрок> spl(const char* str, char div = ';');
 
-sutil::Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
-sutil::Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
+su::Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
+su::Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
 
 void setDiv(char div);          // установить разделитель
 void restore();                 // восстановить строку (вернуть разделители)
 uint8_t length();               // количество подстрок
 const char* str(uint16_t idx);  // получить подстроку по индексу
-AnyText get(uint16_t idx);      // получить подстроку по индексу как AnyText
+Text get(uint16_t idx);      // получить подстроку по индексу как Text
 ```
 
 #### Пример
 ```cpp
 char buf[] = "123;456;abc";
 
-sutil::Splitter spl(buf);
+su::Splitter spl(buf);
 for (uint8_t i = 0; i < spl.length(); i++) {
     Serial.print(i);
     Serial.print(": ");
@@ -450,41 +485,41 @@ for (uint8_t i = 0; i < spl.length(); i++) {
 spl.restore();
 ```
 
-### list функции
+### su::list функции
 ```cpp
 // Получить количество подстрок в списке
-uint16_t sutil::list::length(AnyText list, char div = ';');
+uint16_t su::list::length(Text list, char div = ';');
 
 // Получить индекс подстроки в списке
-int16_t sutil::list::indexOf(AnyText list, AnyText str, char div = ';');
+int16_t su::list::indexOf(Text list, Text str, char div = ';');
 
 // Проверка содержит ли список подстроку
-bool sutil::list::includes(AnyText list, AnyText str, char div = ';');
+bool su::list::includes(Text list, Text str, char div = ';');
 
 // Получить подстроку из списка по индексу
-AnyText sutil::list::get(AnyText list, uint16_t idx, char div = ';');
+Text su::list::get(Text list, uint16_t idx, char div = ';');
 
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
-uint16_t sutil::list::parse(AnyText list, T* buf, uint16_t len, char div = ';');
+uint16_t su::list::parse(Text list, T* buf, uint16_t len, char div = ';');
 ```
 
 #### Пример
 ```cpp
-Serial.println(sutil::list::length("123;456;333"));             // 3
-Serial.println(sutil::list::includes("123;456;333", "456"));    // true
-Serial.println(sutil::list::indexOf("123;456;333", "333"));     // 2
-Serial.println(sutil::list::get("123;456;333", 1));             // 456
+Serial.println(su::list::length("123;456;333"));             // 3
+Serial.println(su::list::includes("123;456;333", "456"));    // true
+Serial.println(su::list::indexOf("123;456;333", "333"));     // 2
+Serial.println(su::list::get("123;456;333", 1));             // 456
 
 // распарсить в массив
 float arr[3];
-sutil::list::parse(F("3.14;2.54;15.15"), arr, 3);
+su::list::parse(F("3.14;2.54;15.15"), arr, 3);
 ```
 
-### List класс
+### su::List класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
-List(AnyText);
+List(Text);
 
 // установить разделитель
 void setDiv(char div);
@@ -493,13 +528,13 @@ void setDiv(char div);
 uint16_t length();
 
 // получить индекс подстроки в списке или -1 если её нет
-int16_t indexOf(AnyText str);
+int16_t indexOf(Text str);
 
 // проверить наличие подстроки в списке
-bool includes(AnyText str);
+bool includes(Text str);
 
 // получить подстроку под индексом
-AnyText get(uint16_t idx);
+Text get(uint16_t idx);
 
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
@@ -508,7 +543,7 @@ uint16_t parse(T* buf, uint16_t len);
 
 #### Пример
 ```cpp
-sutil::List list(F("123;456;333"));
+su::List list(F("123;456;333"));
 Serial.print("len: ");
 Serial.println(list.length());  // 3
 Serial.print("index 2: ");
@@ -522,11 +557,12 @@ Serial.println(list.indexOf("789"));    // -1
 int arr[3];
 list.parse(arr, 3);
 ```
+</details>
 
-### PrintString
+### su::PrintString
 ```cpp
 // строка, в которую можно делать print/println
-sutil::PrintString prs;
+su::PrintString prs;
 prs += "как обычный String";
 
 prs.print(10);
@@ -539,61 +575,61 @@ Serial.println(prs);
 ### QWERTY
 ```cpp
 // Изменить раскладку (RU в QWERTY) - String
-String sutil::toQwerty(const String& ru);
+String su::toQwerty(const String& ru);
 
 // Изменить раскладку (RU в QWERTY) - char* (qw длина как ru + 1, функция добавит '\0')
-char* sutil::toQwerty(const char* ru, char* qw);
+char* su::toQwerty(const char* ru, char* qw);
 ```
 
 ### Base64
 ```cpp
 // размер закодированных данных по размеру исходных
-size_t sutil::b64::encodedLen(size_t len);
+size_t su::b64::encodedLen(size_t len);
 
 // будущий размер декодированных данных по строке b64 и её длине
-size_t sutil::b64::decodedLen(const char* b64, size_t len);
+size_t su::b64::decodedLen(const char* b64, size_t len);
 
 // закодировать данные в String
-void sutil::b64::encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
+void su::b64::encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
 
 // закодировать данные в char[] (библиотека не добавляет '\0' в конец)
-void sutil::b64::encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
+void su::b64::encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
 
 // раскодировать данные из строки b64 в буфер data
-void sutil::b64::decode(uint8_t* data, const char* b64, size_t len);
-void sutil::b64::decode(uint8_t* data, const String& b64);
+void su::b64::decode(uint8_t* data, const char* b64, size_t len);
+void su::b64::decode(uint8_t* data, const String& b64);
 ```
 
 ### Unicode
 Декодер строки, содержащей unicode символы вида `\u0abc`. Также делает unescape символов `\t\r\n`!
 ```cpp
 // декодировать строку.Зарезервировать строку на длину len. Иначе - по длине строки
-String sutil::unicode::decode(const char* str, uint16_t len = 0);
+String su::unicode::decode(const char* str, uint16_t len = 0);
 
 // декодировать строку
-String sutil::unicode::decode(const String& str);
+String su::unicode::decode(const String& str);
 
 // кодировать unicode символ по его коду. В массиве должно быть 5 ячеек
-void sutil::unicode::encode(char* str, uint32_t c);
+void su::unicode::encode(char* str, uint32_t c);
 
 // кодировать unicode символ по его коду
-String sutil::unicode::encode(uint32_t code);
+String su::unicode::encode(uint32_t code);
 ```
 
 ### URL
 ```cpp
 // символ должен быть urlencoded
-bool sutil::url::needsEncode(char c);
+bool su::url::needsEncode(char c);
 
 // закодировать в url
-void sutil::url::encode(const char* src, uint16_t len, String& dest);
-void sutil::url::encode(const String& src, String& dest);
-String sutil::url::encode(const String& src);
+void su::url::encode(const char* src, uint16_t len, String& dest);
+void su::url::encode(const String& src, String& dest);
+String su::url::encode(const String& src);
 
 // раскодировать url
-void sutil::url::decode(const char* src, uint16_t len, String& dest);
-void sutil::url::decode(const String& src, String& dest);
-String sutil::url::decode(const String& src);
+void su::url::decode(const char* src, uint16_t len, String& dest);
+void su::url::decode(const String& src, String& dest);
+String su::url::decode(const String& src);
 ```
 
 ### Hash
@@ -601,15 +637,15 @@ String sutil::url::decode(const String& src);
 
 ```cpp
 // считается компилятором
-constexpr sutil::size_t SH(const char* str);               // (String Hash) размер size_t
-constexpr sutil::size_t SH32(const char* str);             // (String Hash) размер 32 бит
+constexpr su::size_t su::SH(const char* str);               // (String Hash) размер size_t
+constexpr su::size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
 // считается в рантайме
-size_t sutil::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t
-uint32_t sutil::hash32(const char* str, int16_t len = -1); // Размер 32 бит
+size_t su::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t
+uint32_t su::hash32(const char* str, int16_t len = -1); // Размер 32 бит
 
-size_t sutil::hash_P(PGM_P str, int16_t len = -1);         // PROGMEM строка, размер size_t
-uint32_t sutil::hash32_P(PGM_P str, int16_t len = -1);     // PROGMEM строка, размер 32 бит
+size_t su::hash_P(PGM_P str, int16_t len = -1);         // PROGMEM строка, размер size_t
+uint32_t su::hash32_P(PGM_P str, int16_t len = -1);     // PROGMEM строка, размер 32 бит
 ```
 
 > На ESP-платах `SH`, `hash` и `hash_P` по умолчанию являются 32-битными!
@@ -632,18 +668,18 @@ else if (!strcmp_P(buf, PSTR("some_text"))) Serial.println(5);
 
 Способ с хэшем строки:
 ```cpp
-using sutil::SH;
-using sutil::hash;
+using su::SH;
+using su::hash;
 
 char buf[] = "some_text";
 
 switch (hash(buf)) {
-    case SH("abcdef"):      Serial.println(0); break;
-    case SH("12345"):       Serial.println(1); break;
-    case SH("wrong text"):  Serial.println(2); break;
-    case SH("some text"):   Serial.println(3); break;
-    case SH("hello"):       Serial.println(4); break;
-    case SH("some_text"):   Serial.println(5); break;
+    case su::SH("abcdef"):      Serial.println(0); break;
+    case su::SH("12345"):       Serial.println(1); break;
+    case su::SH("wrong text"):  Serial.println(2); break;
+    case su::SH("some text"):   Serial.println(3); break;
+    case su::SH("hello"):       Serial.println(4); break;
+    case su::SH("some_text"):   Serial.println(5); break;
 }
 ```
 > Один расчёт хэша занимает чуть большее время, чем сравнение со строкой. Но итоговая конструкция из примера выполняется в 2 раза быстрее (на ESP).
@@ -653,50 +689,50 @@ switch (hash(buf)) {
 ### Прочие утилиты
 ```cpp
 // Длина строки с русскими символами
-uint16_t sutil::strlenRu(const char* str);
+uint16_t su::strlenRu(const char* str);
 
 // Получить длину целого числа
-uint8_t sutil::intLen(int32_t val);
+uint8_t su::intLen(int32_t val);
 
 // Получить длину float числа
-uint8_t sutil::floatLen(double val, uint8_t dec);
+uint8_t su::floatLen(double val, uint8_t dec);
 
 // Преобразовать строку в целое число
 template <typename T>
-T sutil::strToInt(const char* str, uint8_t len = 0);
+T su::strToInt(const char* str, uint8_t len = 0);
 
 // Преобразовать PROGMEM строку в целое число
 template <typename T>
-T sutil::strToInt_P(const char* str, uint8_t len = 0);
+T su::strToInt_P(const char* str, uint8_t len = 0);
 
 // Преобразовать float в строку с указанием кол-ва знаков после точки
-uint8_t sutil::floatToStr(double val, char* buf, uint8_t dec = 2);
+uint8_t su::floatToStr(double val, char* buf, uint8_t dec = 2);
 
 // Преобразовать HEX строку в целое число. Опционально длина
-uint32_t sutil::strToIntHex(const char* str, int8_t len = -1);
+uint32_t su::strToIntHex(const char* str, int8_t len = -1);
 
 // Длина символа в количестве байт
-uint8_t sutil::charSize(char sym);
+uint8_t su::charSize(char sym);
 
 // Конвертация числа в char* массив. Пишет от начала массива, добавляет '\0', вернёт длину строки
 // для int64 макс. длина буфера - 22 символа, для int32 - 12
-uint8_t sutil::uintToStr(uint32_t n, char* buf, uint8_t base = DEC);
-uint8_t sutil::intToStr(int32_t n, char* buf, uint8_t base = DEC);
-uint8_t sutil::uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC);
-uint8_t sutil::int64ToStr(int64_t n, char* buf, uint8_t base = DEC);
+uint8_t su::uintToStr(uint32_t n, char* buf, uint8_t base = DEC);
+uint8_t su::intToStr(int32_t n, char* buf, uint8_t base = DEC);
+uint8_t su::uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC);
+uint8_t su::int64ToStr(int64_t n, char* buf, uint8_t base = DEC);
 
 // конвертация из строки во float
-float sutil::strToFloat(const char* s);
+float su::strToFloat(const char* s);
 
 // конвертация из PROGEMEM строки во float
-float sutil::strToFloat_P(PGM_P s);
+float su::strToFloat_P(PGM_P s);
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
-uint8_t sutil::getLog10(uint32_t value);
-uint8_t sutil::getLog10(int32_t value);
+uint8_t su::getLog10(uint32_t value);
+uint8_t su::getLog10(int32_t value);
 
 // быстрое возведение 10 в степень
-uint32_t sutil::getPow10(uint8_t value);
+uint32_t su::getPow10(uint8_t value);
 ```
 
 <a id="versions"></a>
@@ -710,8 +746,9 @@ uint32_t sutil::getPow10(uint8_t value);
 - v1.3.1 - добавлен substring
 - v1.3.2 - поддержка ESP8266 версий 2.x
 - v1.3.5 - uintToStr: HEX теперь в нижнем регистре как у си-функций
-- v1.3.6 - в AnyText добавлены toInt32HEX(), count(), split() и getSub(). Добавлен парсер AnyTextList
+- v1.3.6 - в Text добавлены toInt32HEX(), count(), split() и getSub(). Добавлен парсер TextList
 - v1.3.7 - исправлены варнинги на AVR
+- v1.4.0 - AnyText переименован в Text, пространство имён sutil - в su, добавлены функции в Text, результат конвертации и substring приведены к Си и JS функциям
 
 <a id="install"></a>
 

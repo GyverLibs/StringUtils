@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-namespace sutil {
+namespace su {
 
 // Изменить раскладку (RU в QWERTY) - String
 String toQwerty(const String& ru);

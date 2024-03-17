@@ -157,7 +157,7 @@ v1.tostr (buf);
 Separation of the line into tips according to the separator in the cycle.** Changes ** the initial line, but after completing it returns the separators to the place.
 
 `` `CPP
-sutil :: Parser p (char* str, char div = ';');
+su :: Parser p (char* str, char div = ';');
 
 Bool Next ();// Parish the next tuning.Will return FALSE if Parsing is over
 uint8_t index ();// current tuning index
@@ -224,10 +224,10 @@ uint16_t Sutil :: list :: Parse (Anytext List, T* Buf, Uint16_t Len, Char Div = 
 
 #### Example
 `` `CPP
-Serial.println (sutil :: list :: Length ("123; 456; 333"));// 3
+Serial.println (su :: list :: Length ("123; 456; 333"));// 3
 Serial.println (Sutil :: List :: includes ("123; 456; 333", "456"));// True
 Serial.println (Sutil :: list :: indexof ("123; 456; 333", "333"));// 2
-Serial.println (sutil :: list :: get ("123; 456; 333", 1));// 456
+Serial.println (su :: list :: get ("123; 456; 333", 1));// 456
 
 // Parish in an array
 Float Arr [3];
@@ -293,7 +293,7 @@ Serial.println (PRS);
 String Sutil :: toqwerty (Const String & Ru);
 
 // Change the layout (ru in QWERTY) - Char* (QW length as ru + 1, the function will add '\ 0')
-Char* sutil :: toqwerty (const char* ru, char* qw);
+Char* su :: toqwerty (const char* ru, char* qw);
 `` `
 
 ### Base64

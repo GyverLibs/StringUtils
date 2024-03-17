@@ -1,6 +1,6 @@
 #include "url.h"
 
-namespace sutil {
+namespace su {
 namespace url {
 
 // символ должен быть urlencoded
@@ -82,4 +82,4 @@ String decode(const String& src) {
 }
 
 }  // namespace url
-}  // namespace sutil
+}  // namespace su

@@ -17,28 +17,9 @@ void LOG(const Args&... args) {
 #define TEST_TEXT_SH "1234.5abc"
 #define TEST_TEXT_LNG "1234.5abcde"
 
-void test(const sutil::AnyText& text, const char* type) {
+void test(const su::Text& text, const char* type) {
     LOG(F("============== TESTING =============="));
     LOG("text type:", type);
-
-    Serial.print("type:");
-    switch (text.type()) {
-        case sutil::AnyText::Type::constChar:
-            Serial.println("constChar");
-            break;
-        case sutil::AnyText::Type::pgmChar:
-            Serial.println("pgmChar");
-            break;
-        case sutil::AnyText::Type::StringDup:
-            Serial.println("StringDup");
-            break;
-        case sutil::AnyText::Type::StringRef:
-            Serial.println("StringRef");
-            break;
-        default:
-            break;
-    }
-
     LOG("pgm:", text.pgm());
     LOG("length:", text.length());
     LOG("readLen:", text.readLen());
@@ -47,7 +28,7 @@ void test(const sutil::AnyText& text, const char* type) {
     LOG("valid:", text.valid());
     LOG("terminated:", text.terminated());
 
-    sutil::PrintString pr;
+    su::PrintString pr;
     pr.print(text);
     LOG("print:", pr == TEST_TEXT);
 
@@ -55,9 +36,9 @@ void test(const sutil::AnyText& text, const char* type) {
         const char* cmpc = TEST_TEXT;
         const __FlashStringHelper* cmpf = F(TEST_TEXT);
         String cmps(TEST_TEXT);
-        const sutil::AnyText txtc(cmpc);
-        const sutil::AnyText txtf(cmpf);
-        const sutil::AnyText txts(cmps);
+        const su::Text txtc(cmpc);
+        const su::Text txtf(cmpf);
+        const su::Text txts(cmps);
 
         LOG("compare cstr:", text.compare(cmpc));
         LOG("compare f:", text.compare(cmpf));
@@ -77,9 +58,9 @@ void test(const sutil::AnyText& text, const char* type) {
         const char* cmpc = TEST_TEXT_SH;
         const __FlashStringHelper* cmpf = F(TEST_TEXT_SH);
         String cmps(TEST_TEXT_SH);
-        const sutil::AnyText txtc(cmpc);
-        const sutil::AnyText txtf(cmpf);
-        const sutil::AnyText txts(cmps);
+        const su::Text txtc(cmpc);
+        const su::Text txtf(cmpf);
+        const su::Text txts(cmps);
 
         LOG("compare SH cstr:", !text.compare(cmpc));
         LOG("compare SH f:", !text.compare(cmpf));
@@ -92,9 +73,9 @@ void test(const sutil::AnyText& text, const char* type) {
         const char* cmpc = TEST_TEXT_LNG;
         const __FlashStringHelper* cmpf = F(TEST_TEXT_LNG);
         String cmps(TEST_TEXT_LNG);
-        const sutil::AnyText txtc(cmpc);
-        const sutil::AnyText txtf(cmpf);
-        const sutil::AnyText txts(cmps);
+        const su::Text txtc(cmpc);
+        const su::Text txtf(cmpf);
+        const su::Text txts(cmps);
 
         LOG("compare LN cstr:", !text.compare(cmpc));
         LOG("compare LN f:", !text.compare(cmpf));
@@ -122,31 +103,50 @@ void test(const sutil::AnyText& text, const char* type) {
     // 1234.5abcd
     LOG("substring:", text.substring(0) == TEST_TEXT);
     LOG("substring:", text.substring(-2) == "cd");
-    LOG("substring:", text.substring(3, 5) == "4.5");
-    LOG("substring:", text.substring(3, -3) == "4.5ab");
-    LOG("substring:", text.substring(-3, 3) == "4.5ab");
+    LOG("substring:", text.substring(3, 6) == "4.5");
+    LOG("substring:", text.substring(3, -3) == "4.5a");
+    LOG("substring:", text.substring(-3, 3) == "4.5a");
 
-    LOG("count:", text.count('.') == 2);
-
-    sutil::AnyText arr[2];
+    su::Text arr[2];
     text.split(arr, 2, '.');
     LOG("split:", arr[0] == "1234");
     LOG("split:", arr[1] == "5abcd");
+    LOG("count:", text.count('.') == 2);
+
+    text.split(arr, 2, "4.5");
+    LOG("split:", arr[0] == "123");
+    LOG("split:", arr[1] == "abcd");
+    LOG("count:", text.count("4.5") == 2);
 
     LOG("getSub:", text.getSub(0, '.') == "1234");
     LOG("getSub:", text.getSub(1, '.') == "5abcd");
+
+    LOG("getSub:", text.getSub(0, "4.5") == "123");
+    LOG("getSub:", text.getSub(1, "4.5") == "abcd");
+
+    LOG("startsWith:", text.startsWith("1234.") == 1);
+    LOG("startsWith:", text.startsWith("abc") == 0);
+
+    LOG("endsWith:", text.endsWith("abcd") == 1);
+    LOG("endsWith:", text.endsWith("123") == 0);
+
+    LOG("indexOf:", text.indexOf(".5") == 4);
+    LOG("indexOf:", text.indexOf("ff") == -1);
+
+    LOG("lastIndexOf:", text.lastIndexOf(".5ab") == 4);
+    LOG("lastIndexOf:", text.lastIndexOf("ff") == -1);
 }
 
 void setup() {
     Serial.begin(115200);
-    test(sutil::AnyText(), "null");
+    test(su::Text(), "null");
     test("", "empty string");
 
     test(TEST_TEXT, "cstr");
-    test(sutil::AnyText(TEST_TEXT "plus", strlen(TEST_TEXT)), "long cstr");
+    test(su::Text(TEST_TEXT "plus", strlen(TEST_TEXT)), "long cstr");
 
     test(F(TEST_TEXT), "f str");
-    test(sutil::AnyText(F(TEST_TEXT "plus"), strlen(TEST_TEXT)), "long fstr");
+    test(su::Text(F(TEST_TEXT "plus"), strlen(TEST_TEXT)), "long fstr");
 
     String s(TEST_TEXT);
     test(s, "String");

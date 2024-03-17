@@ -6,37 +6,21 @@
 #include "convert/unicode.h"
 #include "hash.h"
 
-#ifndef AT_SAFE_STRING
-#define AT_SAFE_STRING 0
-#endif
+namespace su {
 
-namespace sutil {
-
-class AnyText : public Printable {
+class Text : public Printable {
    public:
     enum class Type : uint8_t {
         constChar,  // const char*
         pgmChar,    // PROGMEM
-        StringRef,  // ссылка на строку
-        StringDup,  // копия String-строки
-        value,      // буфер AnyValue
+        value,      // буфер Value
     };
 
     // ========================== CONSTRUCTOR ==========================
-    AnyText() {}
-    AnyText(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
-    AnyText(const char* str, int16_t len = -1, bool pgm = 0) : _str(str), _len(len >= 0 ? len : (pgm ? strlen_P(str) : strlen(str ? str : ""))), _type(pgm ? Type::pgmChar : Type::constChar) {}
-
-#if AT_SAFE_STRING == 1
-    AnyText(String& str) : _str(str.c_str()), _len(str.length()), _type(Type::StringRef), _sptr(&str) {}
-    AnyText(const String& str) : _str(strdup(str.c_str())), _len(str.length()), _type(Type::StringDup) {}
-    AnyText(const AnyText& s) : _str(s.valid() ? s.str() : nullptr), _len(s._len), _type(s._type == Type::StringDup ? Type::constChar : s._type), _sptr(s._sptr) {}
-    ~AnyText() {
-        if (_str && _type == Type::StringDup) free((char*)_str);
-    }
-#else
-    AnyText(const String& str) : _str(str.c_str()), _len(str.length()), _type(Type::constChar) {}
-#endif
+    Text() {}
+    Text(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
+    Text(const char* str, int16_t len = -1, bool pgm = 0) : _str(str), _len(len >= 0 ? len : (pgm ? strlen_P(str) : strlen(str ? str : ""))), _type(pgm ? Type::pgmChar : Type::constChar) {}
+    Text(const String& str) : _str(str.c_str()), _len(str.length()), _type(Type::constChar) {}
 
     // ========================== SYSTEM ==========================
     // Строка из Flash памяти
@@ -49,14 +33,24 @@ class AnyText : public Printable {
         return valid() ? _len : 0;
     }
 
+    // Длина строки с учётом unicode символов
+    uint16_t lengthUnicode() const {
+        if (!length()) return 0;
+        uint16_t count = 0;
+        for (uint16_t i = 0; i < _len; i++) {
+            if ((_charAt(i) & 0xc0) != 0x80) count++;
+        }
+        return count;
+    }
+
     // посчитать и вернуть длину строки (const)
     uint16_t readLen() const {
-        return valid() ? (pgm() ? strlen_P(_str) : strlen(str())) : 0;
+        return valid() ? (pgm() ? strlen_P(_str) : strlen(_str)) : 0;
     }
 
     // пересчитать и запомнить длину строки (non-const)
     void calcLen() {
-        if (valid()) _len = readLen();
+        _len = readLen();
     }
 
     // Тип строки
@@ -66,25 +60,17 @@ class AnyText : public Printable {
 
     // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
     const char* str() const {
-#if AT_SAFE_STRING == 1
-        return (_type == Type::StringRef) ? _sptr->c_str() : (_str ? _str : "");
-#else
-        return _str ? _str : "";
-#endif
+        return valid() ? _str : "";
     }
 
     // указатель на конец строки
     const char* end() const {
-        return valid() ? str() + _len : "";
+        return valid() ? (_str + _len) : "";
     }
 
     // Статус строки
-    bool valid() const {
-#if AT_SAFE_STRING == 1
-        return (_type == Type::StringRef) || _str;
-#else
+    inline bool valid() const {
         return _str;
-#endif
     }
 
     // строка валидна и оканчивается \0
@@ -103,18 +89,18 @@ class AnyText : public Printable {
                 for (uint16_t i = 0; i < _len; i++) ret += p.write(_charAt(i));
             }
         } else {
-            ret = p.write(str(), length());
+            ret = p.write(_str, _len);
         }
         return ret;
     }
 
-    // ========================== SEARCH ==========================
+    // ========================== COMPARE ==========================
 
     // Сравнить со строкой
-    bool operator==(const AnyText& s) const {
+    bool operator==(const Text& s) const {
         return compare(s);
     }
-    bool operator!=(const AnyText& s) const {
+    bool operator!=(const Text& s) const {
         return !compare(s);
     }
     bool operator==(const char* s) const {
@@ -130,16 +116,10 @@ class AnyText : public Printable {
         return !compare(s);
     }
     bool operator==(const String& s) const {
-        return compare(s.c_str());
+        return compare(s);
     }
     bool operator!=(const String& s) const {
-        return !compare(s.c_str());
-    }
-    bool operator==(String& s) const {
-        return compare(s.c_str());
-    }
-    bool operator!=(String& s) const {
-        return !compare(s.c_str());
+        return !compare(s);
     }
 
     /**
@@ -150,7 +130,8 @@ class AnyText : public Printable {
        @return false строки не совпадают
     */
     bool compare(const char* s) const {
-        return (pgm() ? !strncmp_P(s, _str, _len) : !strncmp(s, str(), _len)) && !s[_len];
+        if (!valid() || !s) return 0;
+        return (pgm() ? !strncmp_P(s, _str, _len) : !strncmp(s, _str, _len)) && !s[_len];
     }
 
     /**
@@ -160,7 +141,7 @@ class AnyText : public Printable {
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compare(const AnyText& s) const {
+    bool compare(const Text& s) const {
         return (s.length() == _len) ? compareN(s, _len) : 0;
     }
 
@@ -173,12 +154,30 @@ class AnyText : public Printable {
        @return true строки совпадают
        @return false строки не совпадают
     */
-    bool compareN(const AnyText& s, uint16_t amount, uint16_t from = 0) const {
-        if (!valid() || !s.valid() || !amount || amount > s.length() || from + amount > _len) return 0;
-        for (uint16_t i = 0; i < amount; i++) {
-            if (_charAt(from + i) != s._charAt(i)) return 0;
-        }
-        return 1;
+    bool compareN(const Text& txt, uint16_t amount, uint16_t from = 0) const {
+        if (!valid() || !txt.valid() || !amount || amount > txt._len || from + amount > _len) return 0;
+        return _compareN(txt, from, amount);
+    }
+
+    // ========================== SEARCH ==========================
+
+    // найти символ и получить указатель на первое вхождение
+    const char* find(char sym, uint16_t from = 0) const {
+        if (!length()) return nullptr;
+        int16_t idx = indexOf(sym, from);
+        return (idx < 0) ? nullptr : (_str + idx);
+    }
+
+    // начинается со строки
+    bool startsWith(const Text& txt) const {
+        if (!length() || !txt.length() || txt._len > _len) return 0;
+        return _compareN(txt, 0, txt._len);
+    }
+
+    // заканчивается строкой
+    bool endsWith(const Text& txt) const {
+        if (!length() || !txt.length() || txt._len > _len) return 0;
+        return _compareN(txt, _len - txt._len, txt._len);
     }
 
     /**
@@ -189,69 +188,180 @@ class AnyText : public Printable {
        @return int16_t позиция символа, -1 если не найден
     */
     int16_t indexOf(char sym, uint16_t from = 0) const {
-        if (!valid() || from > _len) return -1;
-        const char* p = str() + from;
-        if (pgm()) {
-#if defined(ESP8266) || defined(ESP32)
-            while (1) {
-                char b = pgm_read_byte(p);
-                if (b == sym) break;
-                if (!b) return -1;
-                p++;
-            }
-#else
-            p = strchr_P(p, sym);
-#endif
-        } else {
-            p = strchr(p, sym);
-        }
-        return p ? (p - str()) : -1;
-    }
-
-    // найти символ и получить указатель на первое вхождение
-    const char* find(char sym, uint16_t from = 0) const {
-        int16_t idx = indexOf(sym, from);
-        return (idx < 0) ? nullptr : (str() + idx);
-    }
-
-    // Посчитать количество подстрок, разделённых символом (количество символов +1)
-    uint16_t count(char sym, uint16_t from = 0) const {
-        if (!valid()) return 0;
-        uint16_t sum = 1;
+        if (!length() || from > _len) return -1;
         for (uint16_t i = from; i < _len; i++) {
+            if (_charAt(i) == sym) return i;
+        }
+        return -1;
+    }
+
+    /**
+       @brief Найти позицию строки в строке
+
+       @param str строка
+       @param from индекс начала поиска
+       @return int16_t позиция строки, -1 если не найдена
+    */
+    int16_t indexOf(const Text& txt, uint16_t from = 0) const {
+        if (!length() || !txt.length() || (from + txt._len) > _len) return -1;
+        for (uint16_t i = from; i < _len; i++) {
+            if (_compareN(txt, i, txt._len)) return i;
+        }
+        return -1;
+    }
+
+    /**
+     @brief Найти позицию символа в строке с конца
+
+    @param sym символ
+    @return int16_t позиция символа, -1 если не найден
+    */
+    int16_t lastIndexOf(char sym) const {
+        if (!length()) return -1;
+        for (int16_t i = _len - 1; i >= 0; i--) {
+            if (_charAt(i) == sym) return i;
+        }
+        return -1;
+    }
+
+    /**
+      @brief Найти позицию строки в строке с конца
+
+      @param str строка
+      @return int16_t позиция строки, -1 если не найдена
+    */
+    int16_t lastIndexOf(const Text& txt) const {
+        if (!length() || !txt.length() || txt._len > _len) return -1;
+        for (int16_t i = _len - txt._len; i >= 0; i--) {
+            if (_compareN(txt, i, txt._len)) return i;
+        }
+        return -1;
+    }
+
+    // ========================== SUB ==========================
+
+    // Посчитать количество подстрок, разделённых символом (количество разделителей +1)
+    uint16_t count(char sym) const {
+        if (!length()) return 0;
+        uint16_t sum = 1;
+        for (uint16_t i = 0; i < _len; i++) {
             if (_charAt(i) == sym) sum++;
         }
         return sum;
     }
 
-    // ========================== EXPORT ==========================
+    // Посчитать количество подстрок, разделённых строками (количество разделителей +1)
+    uint16_t count(const Text& txt) const {
+        if (!length() || !txt.length()) return 0;
+        uint16_t sum = 1;
+        int16_t pos = 0;
+        while (1) {
+            pos = indexOf(txt, pos);
+            if (pos < 0) break;
+            pos += txt._len;
+            sum++;
+        }
+        return sum;
+    }
+
+    /**
+       @brief Получить подстроку из списка по индексу
+
+       @param idx индекс
+       @param div символ-разделитель
+       @return Text подстрока
+    */
+    Text getSub(uint16_t idx, char div) const {
+        if (!length()) return Text();
+        int16_t start = 0, end = 0;
+        while (1) {
+            end = indexOf(div, end);
+            if (end < 0) end = _len;
+            if (!idx--) return Text(_str + start, end - start, pgm());
+            if ((uint16_t)end == _len) break;
+            end++;
+            start = end;
+        }
+        return Text();
+    }
+
+    /**
+      @brief Получить подстроку из списка по индексу
+
+      @param idx индекс
+      @param div строка-разделитель
+      @return Text подстрока
+    */
+    Text getSub(uint16_t idx, const Text& div) const {
+        if (!length() || !div.length() || div._len > _len) return Text();
+        int16_t start = 0, end = 0;
+        while (1) {
+            end = indexOf(div, end);
+            if (end < 0) end = _len;
+            if (!idx--) return Text(_str + start, end - start, pgm());
+            if ((uint16_t)end == _len) break;
+            end += div._len;
+            start = end;
+        }
+        return Text();
+    }
+
+    // ========================== SPLIT ==========================
 
     /**
        @brief Разделить по символу-разделителю
 
-       @param arr внешний массив строк
+       @param arr внешний массив любого типа (Text, числа)
        @param len размер массива
-       @param sym символ
+       @param div символ разделитель
        @return uint16_t количество найденных подстрок
     */
-    uint16_t split(AnyText* arr, uint16_t len, char div) const {
-        if (!len || !valid() || !length()) return 0;
+    template <typename T>
+    uint16_t split(T* arr, uint16_t len, char div) const {
+        if (!len || !length()) return 0;
         uint16_t i = 0;
-        int16_t start = 0, end = -1;
+        int16_t start = 0, end = 0;
 
         while (1) {
-            end = indexOf(div, end + 1);
-            if (end < 0 || i + 1 == len) end = length();
-            arr[i++] = AnyText(str() + start, end - start, pgm());
-            if (i == len || (uint16_t)end == length()) return i;
-            start = end + 1;
+            end = indexOf(div, end);
+            if (end < 0 || i + 1 == len) end = _len;
+            arr[i++] = Text(_str + start, end - start, pgm());
+            if (i == len || (uint16_t)end == _len) return i;
+            end++;
+            start = end;
         }
     }
 
+    /**
+      @brief Разделить по строке-разделителю
+
+      @param arr внешний массив любого типа (Text, числа)
+      @param len размер массива
+      @param div строка разделитель
+      @return uint16_t количество найденных подстрок
+    */
+    template <typename T>
+    uint16_t split(T* arr, uint16_t len, const Text& div) const {
+        if (!len || !length() || !div.length() || div._len > _len) return 0;
+        uint16_t i = 0;
+        int16_t start = 0, end = 0;
+
+        while (1) {
+            end = indexOf(div, end);
+            if (end < 0 || i + 1 == len) end = _len;
+            arr[i++] = Text(_str + start, end - start, pgm());
+            if (i == len || (uint16_t)end == _len) return i;
+            end += div._len;
+            start = end;
+        }
+    }
+
+    // ========================== EXPORT ==========================
+
     // вернёт новую строку с убранными пробельными символами с начала и конца
-    AnyText trim() const {
-        if (!length()) return AnyText();
-        AnyText txt(*this);
+    Text trim() const {
+        if (!length()) return Text();
+        Text txt(*this);
         while (txt._len) {
             uint8_t sym = txt._charAt(0);
             if (sym && (sym <= 0x0F || sym == ' ')) {
@@ -267,59 +377,25 @@ class AnyText : public Printable {
         return txt;
     }
 
-    /**
-     * @brief Получить подстроку из списка по индексу
-     *
-     * @param idx индекс
-     * @param div символ-разделитель
-     * @return AnyText подстрока
-     */
-    AnyText getSub(uint16_t idx, char div) const {
-        if (!valid() || !length()) return AnyText();
-        int16_t start = 0, end = -1;
-        while (1) {
-            end = indexOf(div, end + 1);
-            if (end < 0) end = length();
-            if (!idx--) return AnyText(str() + start, end - start, pgm());
-            if ((uint16_t)end == length()) break;
-            start = end + 1;
-        }
-        return AnyText();
-    }
-
-    // Получить символ по индексу
-    char charAt(uint16_t idx) const {
-        return (valid()) ? _charAt(idx) : 0;
-    }
-
-    // Получить символ по индексу
-    char operator[](int idx) const {
-        return charAt(idx);
-    }
-
-    // выделить подстроку. Отрицательные индексы работают с конца строки
-    AnyText substring(int16_t start, int16_t end = 0) const {
-        if (!length()) return AnyText();
+    // выделить подстроку (начало, конец не включая). Отрицательные индексы работают с конца строки
+    Text substring(int16_t start, int16_t end = 0) const {
+        if (!length()) return Text();
         if (start < 0) start += _len;
-        if (!end) end = _len - 1;
+        if (!end) end = _len;
         else if (end < 0) end += _len;
-        if (start > (int16_t)_len || end > (int16_t)_len) return AnyText();
+        if (start > (int16_t)_len || end > (int16_t)_len) return Text();
 
         if (end && end < start) {
             int16_t b = end;
             end = start;
             start = b;
         }
-
-        AnyText t(*this);
-        t._str += start;
-        t._len = end - start + 1;
-        return t;
+        return Text(_str + start, end - start, pgm());
     }
 
     // Добавить к String строке. Вернёт false при неудаче
     bool addString(String& s) const {
-        if (!valid() || !_len) return 0;
+        if (!length() || !_len) return 0;
         if (!s.reserve(s.length() + _len)) return 0;
         if (pgm()) {
             if (terminated()) {
@@ -329,12 +405,12 @@ class AnyText : public Printable {
             }
         } else {
 #if defined(ESP8266) || defined(ESP32)
-            s.concat(str(), _len);
+            s.concat(_str, _len);
 #else
             if (terminated()) {
-                s.concat(str());
+                s.concat(_str);
             } else {
-                const char* p = str();
+                const char* p = _str;
                 for (uint16_t i = 0; i < _len; i++) s += p[i];
             }
 #endif
@@ -353,13 +429,54 @@ class AnyText : public Printable {
                 str[_len] = 0;
                 s += unicode::decode(str, _len);
             } else {
-                s += unicode::decode(str(), _len);
+                s += unicode::decode(_str, _len);
             }
         } else {
             addString(s);
         }
         return 1;
     }
+
+    // Получить символ по индексу
+    char charAt(uint16_t idx) const {
+        return (valid() && idx < _len) ? _charAt(idx) : 0;
+    }
+
+    // Получить символ по индексу
+    char operator[](int idx) const {
+        return charAt(idx);
+    }
+
+    // ========================== B64 ==========================
+
+    // размер данных (байт), если они b64
+    size_t sizeB64() const {
+        if (!length()) return 0;
+        return b64::decodedLen(_str, _len);
+    }
+
+    // вывести в переменную из b64
+    bool decodeB64(void* var, size_t size) const {
+        if (sizeB64() == size) {
+            b64::decode((uint8_t*)var, _str, _len);
+            return 1;
+        }
+        return 0;
+    }
+
+    // ========================== HASH ==========================
+
+    // хэш строки, размер зависит от платформы (size_t)
+    size_t hash() const {
+        return valid() ? (pgm() ? su::hash_P(_str, _len) : su::hash(_str, _len)) : 0;
+    }
+
+    // хэш строки 32 бит
+    uint32_t hash32() const {
+        return valid() ? (pgm() ? su::hash32_P(_str, _len) : su::hash32(_str, _len)) : 0;
+    }
+
+    // ========================== CONVERT ==========================
 
     // Вывести в String строку. Вернёт false при неудаче
     bool toString(String& s, bool decodeUnicode = false) const {
@@ -383,23 +500,9 @@ class AnyText : public Printable {
             return 0;
         }
         if (bufsize > 0 && (int16_t)(_len + terminate) > bufsize) return 0;
-        pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, str(), _len);
+        pgm() ? strncpy_P(buf, _str, _len) : strncpy(buf, _str, _len);
         if (terminate) buf[_len] = 0;
         return _len;
-    }
-
-    // размер данных (байт), если они b64
-    size_t sizeB64() const {
-        return b64::decodedLen(str(), length());
-    }
-
-    // вывести в переменную из b64
-    bool decodeB64(void* var, size_t size) const {
-        if (sizeB64() == size) {
-            b64::decode((uint8_t*)var, str(), length());
-            return 1;
-        }
-        return 0;
     }
 
     // получить значение как bool
@@ -410,14 +513,14 @@ class AnyText : public Printable {
     // получить значение как int 16
     int16_t toInt16() const {
         if (!valid()) return 0;
-        return pgm() ? strToInt_P<int16_t>(_str, _len) : strToInt<int16_t>(str(), _len);
+        return pgm() ? strToInt_P<int16_t>(_str, _len) : strToInt<int16_t>(_str, _len);
     }
 
     // получить значение как int 32
     int32_t toInt32() const {
         if (!valid()) return 0;
         if (_len < 5) return toInt16();
-        return pgm() ? strToInt_P<int32_t>(_str, _len) : strToInt<int32_t>(str(), _len);
+        return pgm() ? strToInt_P<int32_t>(_str, _len) : strToInt<int32_t>(_str, _len);
     }
 
     // получить значение как uint 32 из HEX строки
@@ -438,35 +541,23 @@ class AnyText : public Printable {
     int64_t toInt64() const {
         if (!valid()) return 0;
         if (_len < 10) return toInt32();
-        return pgm() ? strToInt_P<int64_t>(_str, _len) : strToInt<int64_t>(str(), _len);
+        return pgm() ? strToInt_P<int64_t>(_str, _len) : strToInt<int64_t>(_str, _len);
     }
 
     // получить значение как float
     float toFloat() const {
         if (!valid()) return 0;
-        // if (pgm()) return strToFloat_P(str());
-        // else return strToFloat(str());
         if (pgm()) {
             char buf[_len + 1];
             strncpy_P(buf, _str, _len);
             buf[_len] = 0;
             return atof(buf);
         } else {
-            return atof(str());
+            return atof(_str);
         }
     }
 
-    // хэш строки, размер зависит от платформы (size_t)
-    size_t hash() const {
-        return valid() ? (pgm() ? sutil::hash_P(_str, _len) : sutil::hash(str(), _len)) : 0;
-    }
-
-    // хэш строки 32 бит
-    uint32_t hash32() const {
-        return valid() ? (pgm() ? sutil::hash32_P(_str, _len) : sutil::hash32(str(), _len)) : 0;
-    }
-
-    // ================= IMPLICIT =================
+    // ================= CAST =================
     // bool
     operator bool() const {
         return toBool();
@@ -610,10 +701,6 @@ class AnyText : public Printable {
         return toFloat() != v;
     }
 
-    // operator const char*() const {
-    //     return str();
-    // }
-
     operator String() const {
         return toString();
     }
@@ -623,14 +710,15 @@ class AnyText : public Printable {
     Type _type = Type::constChar;
 
    protected:
-#if AT_SAFE_STRING == 1
-    String* _sptr = nullptr;
-#endif
-
     char _charAt(uint16_t idx) const {
-        if (idx >= _len) return 0;
-        return pgm() ? (char)pgm_read_byte(_str + idx) : str()[idx];
+        return pgm() ? (char)pgm_read_byte(_str + idx) : *(_str + idx);
+    }
+    bool _compareN(const Text& txt, uint16_t from, uint16_t amount) const {
+        for (uint16_t i = 0; i < amount; i++) {
+            if (_charAt(from + i) != txt._charAt(i)) return 0;
+        }
+        return 1;
     }
 };
 
-}  // namespace sutil
+}  // namespace su

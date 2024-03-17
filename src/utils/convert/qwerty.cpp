@@ -1,6 +1,6 @@
 #include "qwerty.h"
 
-namespace sutil {
+namespace su {
 
 static const char _qwerty_ru[] PROGMEM = "F<DULT:PBQRKVYJGHCNEA{WXIO}SM\">Zf,dult;pbqrkvyjghcnea[wxio]sm'.z~`";
 
@@ -55,4 +55,4 @@ char* toQwerty(const char* ru, char* qw) {
     return qw;
 }
 
-}  // namespace sutil
+}  // namespace su

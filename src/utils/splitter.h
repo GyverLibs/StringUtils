@@ -1,12 +1,12 @@
 #pragma once
 #include <Arduino.h>
 
-#include "AnyText.h"
+#include "Text.h"
 #include "list.h"
 
 // парсинг по разделителям
 
-namespace sutil {
+namespace su {
 
 // передать размер буфера. -1 - динамический буфер
 template <int16_t cap>
@@ -60,13 +60,13 @@ class SplitterT {
         return (_str && idx < _len) ? _str[idx] : "";
     }
 
-    // получить подстроку по индексу как AnyText
-    AnyText get(uint16_t idx) {
+    // получить подстроку по индексу как Text
+    Text get(uint16_t idx) {
         return str(idx);
     }
 
-    // получить подстроку по индексу как AnyText
-    AnyText operator[](int idx) {
+    // получить подстроку по индексу как Text
+    Text operator[](int idx) {
         return str(idx);
     }
 
@@ -83,4 +83,4 @@ class Splitter : public SplitterT<-1> {
     using SplitterT<-1>::SplitterT;
 };
 
-}  // namespace sutil
+}  // namespace su

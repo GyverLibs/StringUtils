@@ -3,7 +3,7 @@
 
 // #define SU_B64_COMPACT
 
-namespace sutil {
+namespace su {
 namespace b64 {
 
 // размер закодированных данных по размеру исходных
@@ -25,4 +25,4 @@ void decode(uint8_t* data, const char* b64, size_t len);
 void decode(uint8_t* data, const String& b64);
 
 }  // namespace b64
-}  // namespace sutil
+}  // namespace su

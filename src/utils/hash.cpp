@@ -1,6 +1,6 @@
 #include "hash.h"
 
-namespace sutil {
+namespace su {
 
 // хэш строки, выполняется в рантайме. Размер зависит от платформы и соответствует size_t
 size_t hash(const char* str, int16_t len) {
@@ -110,4 +110,4 @@ constexpr Hash_t Hash(const char* str) {
 }
 */
 
-}  // namespace sutil
+}  // namespace su

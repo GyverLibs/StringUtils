@@ -1,14 +1,17 @@
 #pragma once
 #include <Arduino.h>
 
-#include "AnyText.h"
+#include "Text.h"
 
-namespace sutil {
+namespace su {
 
 template <int16_t cap>
-class AnyTextListT {
+class TextListT {
    public:
-    AnyTextListT(const AnyText& list, char div) {
+    TextListT(const Text& list, char div) {
+        len = list.split(arr, cap, div);
+    }
+    TextListT(const Text& list, const Text& div) {
         len = list.split(arr, cap, div);
     }
 
@@ -23,30 +26,35 @@ class AnyTextListT {
     }
 
     // получить подстроку под индексом
-    const AnyText& get(uint16_t idx) const {
-        return arr[idx < len ? idx : 0];
+    const Text& get(uint16_t idx) const {
+        return arr[idx < len ? idx : cap];
     }
 
     // получить подстроку под индексом
-    const AnyText& operator[](int idx) const {
+    const Text& operator[](int idx) const {
         return get(idx);
     }
 
    private:
-    AnyText arr[cap];
+    Text arr[cap + 1];  // + dummy
     uint16_t len;
 };
 
-class AnyTextList {
+class TextList {
    public:
-    AnyTextList(const AnyText& list, char div) {
+    TextList(const Text& list, char div) {
         len = list.count(div);
-        arr = (AnyText*)malloc(len * sizeof(AnyText));
+        arr = new Text[len];
+        list.split(arr, len, div);
+    }
+    TextList(const Text& list, const Text& div) {
+        len = list.count(div);
+        arr = new Text[len];
         list.split(arr, len, div);
     }
 
-    ~AnyTextList() {
-        if (arr) free(arr);
+    ~TextList() {
+        if (arr) delete[] arr;
     }
 
     // количество построк
@@ -55,18 +63,19 @@ class AnyTextList {
     }
 
     // получить подстроку под индексом
-    const AnyText get(uint16_t idx) const {
-        return (idx < len && arr) ? arr[idx] : AnyText();
+    const Text& get(uint16_t idx) const {
+        return (arr && idx < len) ? arr[idx] : dummy;
     }
 
     // получить подстроку под индексом
-    const AnyText operator[](int idx) const {
+    const Text& operator[](int idx) const {
         return get(idx);
     }
 
    private:
-    AnyText* arr = nullptr;
+    Text* arr = nullptr;
+    Text dummy;
     uint16_t len = 0;
 };
 
-}  // namespace sutil
+}  // namespace su

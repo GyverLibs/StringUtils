@@ -8,22 +8,22 @@
 
 StringUtils	KEYWORD1
 
-AnyText	KEYWORD1
-AnyValueT	KEYWORD1
-AnyValue	KEYWORD1
+Text	KEYWORD1
+ValueT	KEYWORD1
+Value	KEYWORD1
 List	KEYWORD1
 Parser	KEYWORD1
 PrintString	KEYWORD1
 SplitterT	KEYWORD1
 Splitter	KEYWORD1
-AnyTextList	KEYWORD1
-AnyTextListT	KEYWORD1
+TextList	KEYWORD1
+TextListT	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-sutil	KEYWORD2
+su	KEYWORD2
 b64	KEYWORD2
 list	KEYWORD2
 unicode	KEYWORD2
@@ -31,6 +31,7 @@ url	KEYWORD2
 
 pgm	KEYWORD2
 terminated	KEYWORD2
+lengthUnicode	KEYWORD2
 length	KEYWORD2
 calcLen	KEYWORD2
 readLen	KEYWORD2
@@ -41,7 +42,10 @@ printTo	KEYWORD2
 compare	KEYWORD2
 compareN	KEYWORD2
 substring	KEYWORD2
+startsWith	KEYWORD2
+endsWith	KEYWORD2
 indexOf	KEYWORD2
+lastIndexOf	KEYWORD2
 find	KEYWORD2
 charAt	KEYWORD2
 addString	KEYWORD2
@@ -115,5 +119,4 @@ SU_ANYVALUE_BUF_LEN	LITERAL1
 
 constChar	LITERAL1
 pgmChar	LITERAL1
-StringRef	LITERAL1
-StringDup	LITERAL1
+value	LITERAL1

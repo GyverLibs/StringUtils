@@ -4,7 +4,7 @@
 
 // строка, в которую можно печатать через print/println
 
-namespace sutil {
+namespace su {
 
 class PrintString : public String, public Print {
    public:
@@ -14,4 +14,4 @@ class PrintString : public String, public Print {
     }
 };
 
-}  // namespace sutil
+}  // namespace su

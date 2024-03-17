@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-namespace sutil {
+namespace su {
 
 // хэш строки, выполняется на этапе компиляции
 template <typename T>
@@ -57,4 +57,4 @@ size_t hash_P(PGM_P str, int16_t len = -1);
 // хэш PROGMEM строки, выполняется в рантайме. Размер 32 бит
 uint32_t hash32_P(PGM_P str, int16_t len = -1);
 
-}  // namespace sutil
+}  // namespace su

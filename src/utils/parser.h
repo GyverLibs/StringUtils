@@ -1,11 +1,11 @@
 #pragma once
 #include <Arduino.h>
 
-#include "AnyText.h"
+#include "Text.h"
 
 // парсинг по разделителям
 
-namespace sutil {
+namespace su {
 
 class Parser {
    public:
@@ -46,9 +46,9 @@ class Parser {
         return _str ? (_str + _st) : "";
     }
 
-    // получить подстроку как AnyText
-    AnyText get() {
-        return AnyText(str(), _end - _st);
+    // получить подстроку как Text
+    Text get() {
+        return Text(str(), _end - _st);
     }
 
    private:
@@ -59,4 +59,4 @@ class Parser {
     bool _stop = 0;
 };
 
-}  // namespace sutil
+}  // namespace su

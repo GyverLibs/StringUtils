@@ -1,6 +1,6 @@
 #include "list.h"
 
-namespace sutil {
+namespace su {
 namespace list {
 
 /**
@@ -10,7 +10,7 @@ namespace list {
  * @param div символ-разделитель (умолч. ';')
  * @return uint16_t
  */
-uint16_t length(const AnyText& list, char div) {
+uint16_t length(const Text& list, char div) {
     if (!list.valid() || !list.length()) return 0;
     uint16_t am = 0;
     int16_t p = -1;
@@ -29,7 +29,7 @@ uint16_t length(const AnyText& list, char div) {
  * @param div символ-разделитель (умолч. ';')
  * @return int16_t индекс в строке. -1 если не найдена
  */
-int16_t indexOf(const AnyText& list, const AnyText& str, char div) {
+int16_t indexOf(const Text& list, const Text& str, char div) {
     if (!list.valid() || !str.valid() || !list.length() || !str.length()) return -1;
     int16_t idx = 0;
     int16_t st = 0, end = -1;
@@ -56,7 +56,7 @@ int16_t indexOf(const AnyText& list, const AnyText& str, char div) {
  * @return true содержит
  * @return false не содержит
  */
-bool includes(const AnyText& list, AnyText str, char div) {
+bool includes(const Text& list, Text str, char div) {
     return indexOf(list, str, div) >= 0;
 }
 
@@ -66,10 +66,10 @@ bool includes(const AnyText& list, AnyText str, char div) {
  * @param list строка любого типа
  * @param idx индекс
  * @param div символ-разделитель (умолч. ';')
- * @return AnyText подстрока
+ * @return Text подстрока
  */
-AnyText get(const AnyText& list, uint16_t idx, char div) {
-    if (!list.valid() || !list.length()) return AnyText();
+Text get(const Text& list, uint16_t idx, char div) {
+    if (!list.valid() || !list.length()) return Text();
     int16_t spos = 0, epos = -1;
     bool stop = 0;
     while (1) {
@@ -78,12 +78,12 @@ AnyText get(const AnyText& list, uint16_t idx, char div) {
             epos = list.length();
             stop = 1;
         }
-        if (!idx--) return AnyText(list.str() + spos, epos - spos, list.pgm());
+        if (!idx--) return Text(list.str() + spos, epos - spos, list.pgm());
         if (stop) break;
         spos = epos + 1;
     }
-    return AnyText();
+    return Text();
 }
 
 }  // namespace list
-}  // namespace sutil
+}  // namespace su

@@ -24,7 +24,8 @@ bool needsEncode(char c) {
 void encode(const char* src, uint16_t len, String& dest) {
     if (!len) len = strlen(src);
     dest.reserve(len);
-    while (*src) {
+    const char* end = src + len;
+    while (src < end) {
         char c = *src++;
         if (needsEncode(c)) {
             dest += '%';
@@ -56,14 +57,15 @@ static uint8_t _decodeNibble(char c) {
 void decode(const char* src, uint16_t len, String& dest) {
     if (!len) len = strlen(src);
     dest.reserve(len);
-    while (*src) {
+    const char* end = src + len;
+    while (src < end) {
         char c = *src++;
         if (c != '%') {
             dest += (c == '+') ? ' ' : c;
         } else {
             char c1 = *src++;
             char c2 = *src++;
-            if (!c1 || !c2) return;
+            if (!c1 || !c2 || src >= end) return;
             dest += char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
         }
     }

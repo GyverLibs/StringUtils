@@ -451,7 +451,14 @@ const Text& get();
 
 Пример:
 ```cpp
+// for
 for (su::TextParser p("123;456", ';'); p.parse();) {
+    Serial.println(p);
+}
+
+// while
+su::TextParser p("123;456", ';');
+while (p.parse()) {
     Serial.println(p);
 }
 ```

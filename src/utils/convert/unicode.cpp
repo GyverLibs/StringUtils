@@ -8,9 +8,10 @@ String decode(const char* str, uint16_t len) {
     String out;
     if (!len) len = strlen(str);
     out.reserve(len);
+    const char* end = str + len;
     uint32_t ub = 0, buf = 0;
     const char* x0 = "\0x";
-    while (*str) {
+    while (str < end) {
         if (*str != '\\') {
             out += *str;
         } else {
@@ -30,7 +31,7 @@ String decode(const char* str, uint16_t len) {
                 case 'u':
                     ub = 0;
                     for (uint8_t i = 0; i < 4; i++) {
-                        if (!(*++str)) return out;
+                        if (++str >= end) return out;
                         ub <<= 4;
                         ub += (*str & 0xf) + (*str > '9' ? 9 : 0);
                     }

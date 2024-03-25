@@ -18,10 +18,24 @@ SplitterT	KEYWORD1
 Splitter	KEYWORD1
 TextList	KEYWORD1
 TextListT	KEYWORD1
+StringExt	KEYWORD1
+StringStatic	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
+# string
+terminate	KEYWORD2
+clear	KEYWORD2
+trunc	KEYWORD2
+concat	KEYWORD2
+assign	KEYWORD2
+
+# parser
+parse	KEYWORD2
+index	KEYWORD2
+get	KEYWORD2
 
 su	KEYWORD2
 b64	KEYWORD2

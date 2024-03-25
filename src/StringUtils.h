@@ -1,8 +1,10 @@
 #pragma once
 
 #include "utils/PrintString.h"
+#include "utils/String.h"
 #include "utils/Text.h"
 #include "utils/TextList.h"
+#include "utils/TextParser.h"
 #include "utils/Value.h"
 #include "utils/convert/b64.h"
 #include "utils/convert/convert.h"
@@ -14,9 +16,10 @@
 #include "utils/parser.h"
 #include "utils/splitter.h"
 
+// legacy
 namespace sutil = su;
 namespace su {
 using AnyText = Text;
 using AnyValue = Value;
 using AnyTextList = TextList;
-}
+}  // namespace su

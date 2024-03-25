@@ -108,11 +108,16 @@ uint16_t count(Text txt);
 
 // Разделить по символу-разделителю в массив любого типа
 uint16_t split(T* arr, uint16_t len, char div);
+uint16_t split(T** arr, uint16_t len, char div);
 
-// Получить подстроку из списка по индексу
+// Разделить по строке-разделителю в массив любого типа
+uint16_t split(T* arr, uint16_t len, Text div);
+uint16_t split(T** arr, uint16_t len, Text div);
+
+// Получить подстроку из списка по индексу и символу-разделителю
 Text getSub(uint16_t idx, char div);
 
-// Получить подстроку из списка по индексу
+// Получить подстроку из списка по индексу и строке-разделителю
 Text getSub(uint16_t idx, Text div);
 
 // выделить подстроку (начало, конец не включая). Отрицательные индексы работают с конца строки
@@ -425,6 +430,98 @@ uint16_t length();
 // получить подстроку под индексом
 const Text& get(uint16_t idx);
 const Text& operator[](int idx);
+```
+
+### su::TextParser
+"Потоковый" разделитель `Text` строки на подстроки для работы в цикле
+
+```cpp
+TextParser(const Text& txt, char div);
+TextParser(const Text& txt, const Text& div);
+
+// парсить. Вернёт true, если найдена подстрока
+bool parse();
+
+// индекс подстроки (всегда > 0)
+int index();
+
+// получить текущую подстроку
+const Text& get();
+```
+
+Пример:
+```cpp
+for (su::TextParser p("123;456", ';'); p.parse();) {
+    Serial.println(p);
+}
+```
+
+Пример с вложенными подстроками с разными разделителями:
+```cpp
+su::Text t("123;456\nabc;def;ghk\n333;444");
+
+for (su::TextParser row(t, '\n'); row.parse();) {
+    for (su::TextParser col(row, ';'); col.parse();) {
+        Serial.print(col);
+        Serial.print(',');
+    }
+    Serial.println();
+}
+
+// вывод:
+// 123,456,
+// abc,def,ghk,
+// 333,444,
+```
+
+### su::StringExt/StringStatic
+Статический стринг билдер на базе Text, замена [mString](https://github.com/GyverLibs/mString)
+```cpp
+template <uint16_t cap> StringStatic;
+StringExt(char* buf, uint16_t capacity);
+
+// очистить
+void clear();
+
+// завершить нулём
+void terminate();
+
+// автоматически завершать нулём (умолч. false)
+void terminateAuto(bool ter);
+
+// обрезать с from до конца
+void trunc(uint16_t from);
+
+// прибавить
+bool concat(const Value& txt);
+bool concat(const char* str, uint16_t len);
+bool concat(double val, uint8_t dec);
+
+// присвоить
+bool assign(const Value& txt);
+bool assign(const char* str, uint16_t len);
+bool assign(double val, uint8_t dec);
+
+// можно приравнивать и прибавлять любой тип через =, +=, +
+```
+
+Пример:
+```cpp
+su::StringStatic<50> s;
+
+// char str[20];
+// su::StringExt s(str, 20);
+
+s = F("abc");
+s += "def";
+s += 12345;
+s += 'a';
+Serial.println(s);
+Serial.println(s.length());
+
+s.clear();
+s = s + 123 + "abc" + F("FSTR") + 3.14;
+Serial.println(s);
 ```
 
 ### Устаревшие парсеры
@@ -750,6 +847,11 @@ uint32_t su::getPow10(uint8_t value);
 - v1.3.6 - в Text добавлены toInt32HEX(), count(), split() и getSub(). Добавлен парсер TextList
 - v1.3.7 - исправлены варнинги на AVR
 - v1.4.0 - AnyText переименован в Text, пространство имён sutil - в su, добавлены функции в Text, результат конвертации и substring приведены к Си и JS функциям
+- 1.4.1 
+  - оптимизирован split
+  - можно split-разделять в массив указателей на переменные
+  - добавлен TextParser
+  - добавлены стринг билдеры StringExt и StringStatic
 
 <a id="install"></a>
 

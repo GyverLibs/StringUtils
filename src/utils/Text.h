@@ -15,6 +15,12 @@ class Text : public Printable {
         pgmChar,    // PROGMEM
         value,      // буфер Value
     };
+    struct find_t {
+        int16_t count = 0;
+        int16_t start = 0;
+        int16_t end = 0;
+        bool last = 0;
+    };
 
     // ========================== CONSTRUCTOR ==========================
     Text() {}
@@ -80,7 +86,7 @@ class Text : public Printable {
 
     // Напечатать в Print
     size_t printTo(Print& p) const {
-        if (!valid()) return 0;
+        if (!length()) return 0;
         size_t ret = 0;
         if (pgm()) {
             if (terminated()) {
@@ -319,17 +325,17 @@ class Text : public Printable {
     template <typename T>
     uint16_t split(T* arr, uint16_t len, char div) const {
         if (!len || !length()) return 0;
-        uint16_t i = 0;
-        int16_t start = 0, end = 0;
+        find_t f;
+        while (!f.last) arr[f.count - 1] = _parse(div, 1, len, f);
+        return f.count;
+    }
 
-        while (1) {
-            end = indexOf(div, end);
-            if (end < 0 || i + 1 == len) end = _len;
-            arr[i++] = Text(_str + start, end - start, pgm());
-            if (i == len || (uint16_t)end == _len) return i;
-            end++;
-            start = end;
-        }
+    template <typename T>
+    uint16_t split(T** arr, uint16_t len, char div) const {
+        if (!len || !length()) return 0;
+        find_t f;
+        while (!f.last) *(arr[f.count - 1]) = _parse(div, 1, len, f);
+        return f.count;
     }
 
     /**
@@ -343,17 +349,17 @@ class Text : public Printable {
     template <typename T>
     uint16_t split(T* arr, uint16_t len, const Text& div) const {
         if (!len || !length() || !div.length() || div._len > _len) return 0;
-        uint16_t i = 0;
-        int16_t start = 0, end = 0;
+        find_t f;
+        while (!f.last) arr[f.count - 1] = _parse(div, div._len, len, f);
+        return f.count;
+    }
 
-        while (1) {
-            end = indexOf(div, end);
-            if (end < 0 || i + 1 == len) end = _len;
-            arr[i++] = Text(_str + start, end - start, pgm());
-            if (i == len || (uint16_t)end == _len) return i;
-            end += div._len;
-            start = end;
-        }
+    template <typename T>
+    uint16_t split(T** arr, uint16_t len, const Text& div) const {
+        if (!len || !length() || !div.length() || div._len > _len) return 0;
+        find_t f;
+        while (!f.last) *(arr[f.count - 1]) = _parse(div, div._len, len, f);
+        return f.count;
     }
 
     // ========================== EXPORT ==========================
@@ -495,8 +501,8 @@ class Text : public Printable {
     // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
     uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true) const {
         if (!bufsize) return 0;
-        if (!valid() || !_len) {
-            if (terminate) buf[_len] = 0;
+        if (!length()) {
+            if (terminate) buf[0] = 0;
             return 0;
         }
         if (bufsize > 0 && (int16_t)(_len + terminate) > bufsize) return 0;
@@ -709,16 +715,30 @@ class Text : public Printable {
     uint16_t _len = 0;
     Type _type = Type::constChar;
 
-   protected:
+    // получить символ по индексу (без проверок валидности)
     char _charAt(uint16_t idx) const {
         return pgm() ? (char)pgm_read_byte(_str + idx) : *(_str + idx);
     }
+
+    // сравнить со строкой (без проверок валидности)
     bool _compareN(const Text& txt, uint16_t from, uint16_t amount) const {
         for (uint16_t i = 0; i < amount; i++) {
             if (_charAt(from + i) != txt._charAt(i)) return 0;
         }
         return 1;
     }
+
+    template <typename T>
+    Text _parse(const T& div, uint16_t divlen, int16_t len, find_t& f) const {
+        if (f.count) f.start = f.end = f.end + divlen;
+        f.end = indexOf(div, f.end);
+        if (f.end < 0 || f.count + 1 == len) f.end = _len;
+        f.count++;
+        if (f.count == len || f.end == (int16_t)_len) f.last = 1;
+        return Text(_str + f.start, f.end - f.start, pgm());
+    }
+
+   protected:
 };
 
 }  // namespace su

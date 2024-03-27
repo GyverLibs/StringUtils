@@ -44,8 +44,9 @@
 // ====== КОНСТРУКТОР ======
 su::Text(String& str);
 su::Text(const String& str);
-su::Text(const __FlashStringHelper* str, int16_t len = 0);
+su::Text(const uint8_t* str, uint16_t len);
 su::Text(const char* str, int16_t len = 0, bool pgm = 0);
+su::Text(const __FlashStringHelper* str, int16_t len = 0);
 
 // ======== СИСТЕМА ========
 bool valid();           // Статус строки, существует или нет

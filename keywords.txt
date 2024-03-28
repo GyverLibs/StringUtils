@@ -122,6 +122,7 @@ hash32	KEYWORD2
 hash_P	KEYWORD2
 hash32_P	KEYWORD2
 SH	KEYWORD2
+SL	KEYWORD2
 SH32	KEYWORD2
 
 #######################################

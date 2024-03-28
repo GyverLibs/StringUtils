@@ -738,13 +738,19 @@ void su::url::decode(const String& src, String& dest);
 String su::url::decode(const String& src);
 ```
 
+### Length
+```cpp
+// StringLength длина строки, выполняется на этапе компиляции
+constexpr size_t su::SL(const char* str);
+```
+
 ### Hash
 Вместо сравнения строк можно сравнивать хэш этих строк, что делает программу компактнее, легче и в большинстве случаев быстрее. Функции, указанные ниже как "считается компилятором" - считаются компилятором, то есть **строка даже не попадает в код программы** - вместо неё подставляется хэш-число:
 
 ```cpp
 // считается компилятором
-constexpr su::size_t su::SH(const char* str);               // (String Hash) размер size_t
-constexpr su::size_t SH32(const char* str);             // (String Hash) размер 32 бит
+constexpr size_t su::SH(const char* str);               // (String Hash) размер size_t
+constexpr size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
 // считается в рантайме
 size_t su::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t

@@ -33,12 +33,17 @@ static T _hash_P(PGM_P str, int16_t len = -1) {
 
 // =====================================================
 
-// хэш строки, выполняется на этапе компиляции. Размер зависит от платформы и соответствует size_t
+// StringLength длина строки, выполняется на этапе компиляции
+constexpr size_t SL(char const* str, size_t len = 0) {
+    return *str ? SL(str + 1, len + 1) : len;
+}
+
+// StringHash хэш строки, выполняется на этапе компиляции. Размер зависит от платформы и соответствует size_t
 constexpr size_t SH(const char* str) {
     return _hash_c<size_t>(str);
 }
 
-// хэш строки, выполняется на этапе компиляции. Размер 32 бит
+// StringHash хэш строки, выполняется на этапе компиляции. Размер 32 бит
 constexpr uint32_t SH32(const char* str) {
     return _hash_c<uint32_t>(str);
 }

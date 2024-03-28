@@ -142,6 +142,18 @@ class Text : public Printable {
     }
 
     /**
+       @brief Сравнить с flash строкой
+
+       @param s
+       @return true строки совпадают
+       @return false строки не совпадают
+    */
+    bool compare(const __FlashStringHelper* s) const {
+        if (!valid() || !s) return 0;
+        return pgm() ? compareN(s, _len) : (!strncmp_P(_str, (PGM_P)s, _len) && !pgm_read_byte((PGM_P)s + _len));
+    }
+
+    /**
        @brief Сравнить со строкой
 
        @param s

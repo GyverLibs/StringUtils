@@ -866,6 +866,7 @@ uint32_t su::getPow10(uint8_t value);
   - можно split-разделять в массив указателей на переменные
   - добавлен TextParser
   - добавлены стринг билдеры StringExt и StringStatic
+- 1.4.3 - Оптимизация сравнения, добавлено constexpr измерение длины строки
 
 <a id="install"></a>
 

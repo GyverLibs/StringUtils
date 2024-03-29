@@ -142,7 +142,7 @@ class Text : public Printable {
         return (length() && s) ? !_compare(_str, (PGM_P)s, true, _len) : 0;
     }
     bool compare(const Text& txt) const {
-        return (txt.length() == _len) ? !_compare(_str, txt._str, txt.pgm(), _len) : 0;
+        return (txt.length() == _len) ? !_compareN(_str, txt._str, txt.pgm(), _len) : 0;
     }
 
     /**

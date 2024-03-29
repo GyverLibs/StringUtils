@@ -136,13 +136,13 @@ class Text : public Printable {
        @return false строки не совпадают
     */
     bool compare(const char* s) const {
-        return (length() && s) ? _compare(_str, s, false, _len) : 0;
+        return (length() && s) ? !_compare(_str, s, false, _len) : 0;
     }
     bool compare(const __FlashStringHelper* s) const {
-        return (length() && s) ? _compare(_str, (PGM_P)s, true, _len) : 0;
+        return (length() && s) ? !_compare(_str, (PGM_P)s, true, _len) : 0;
     }
     bool compare(const Text& txt) const {
-        return (txt.length() == _len) ? _compare(_str, txt._str, txt.pgm(), _len) : 0;
+        return (txt.length() == _len) ? !_compare(_str, txt._str, txt.pgm(), _len) : 0;
     }
 
     /**
@@ -156,13 +156,13 @@ class Text : public Printable {
     */
     bool compareN(const Text& txt, uint16_t amount, uint16_t from = 0) const {
         if (!valid() || !txt.valid() || !amount || amount > txt._len || from + amount > _len) return 0;
-        return _compareN(_str + from, txt._str, txt.pgm(), amount);
+        return !_compareN(_str + from, txt._str, txt.pgm(), amount);
     }
     bool compareN(const char* s, uint16_t amount, uint16_t from = 0) const {
-        return (valid() && from + amount <= _len) ? _compareN(_str + from, s, false, amount) : 0;
+        return (valid() && from + amount <= _len) ? !_compareN(_str + from, s, false, amount) : 0;
     }
     bool compareN(const __FlashStringHelper* s, uint16_t amount, uint16_t from = 0) const {
-        return (valid() && from + amount <= _len) ? _compareN(_str + from, (PGM_P)s, true, amount) : 0;
+        return (valid() && from + amount <= _len) ? !_compareN(_str + from, (PGM_P)s, true, amount) : 0;
     }
 
     // ========================== SEARCH ==========================
@@ -176,18 +176,18 @@ class Text : public Printable {
 
     // начинается со строки
     bool startsWith(const char* s) const {
-        return length() ? _compareEnd(_str, s, false, _len) : 0;
+        return length() ? !_compareEnd(_str, s, false, _len) : 0;
     }
     bool startsWith(const __FlashStringHelper* s) const {
-        return length() ? _compareEnd(_str, (PGM_P)s, true, _len) : 0;
+        return length() ? !_compareEnd(_str, (PGM_P)s, true, _len) : 0;
     }
     bool startsWith(const Text& txt) const {
-        return (length() && txt.length() && txt._len <= _len) ? _compareN(_str, txt._str, txt.pgm(), txt._len) : 0;
+        return (length() && txt.length() && txt._len <= _len) ? !_compareN(_str, txt._str, txt.pgm(), txt._len) : 0;
     }
 
     // заканчивается строкой
     bool endsWith(const Text& txt) const {
-        return (length() && txt.length() && txt._len <= _len) ? _compareN(_str + _len - txt._len, txt._str, txt.pgm(), txt._len) : 0;
+        return (length() && txt.length() && txt._len <= _len) ? !_compareN(_str + _len - txt._len, txt._str, txt.pgm(), txt._len) : 0;
     }
 
     // Найти позицию символа в строке
@@ -203,21 +203,21 @@ class Text : public Printable {
     int16_t indexOf(const Text& txt, uint16_t from = 0) const {
         if (!length() || !txt.length() || (from + txt._len) > _len) return -1;
         for (uint16_t i = from; i <= _len - txt._len; i++) {
-            if (_compareN(_str + i, txt._str, txt.pgm(), txt._len)) return i;
+            if (!_compareN(_str + i, txt._str, txt.pgm(), txt._len)) return i;
         }
         return -1;
     }
     int16_t indexOf(const char* s, uint16_t from = 0) const {
         if (!length()) return -1;
         for (uint16_t i = from; i < _len; i++) {
-            if (_compareEnd(_str + i, s, false, _len - i)) return i;
+            if (!_compareEnd(_str + i, s, false, _len - i)) return i;
         }
         return -1;
     }
     int16_t indexOf(const __FlashStringHelper* s, uint16_t from = 0) const {
         if (!length()) return -1;
         for (uint16_t i = from; i < _len; i++) {
-            if (_compareEnd(_str + i, (PGM_P)s, true, _len - i)) return i;
+            if (!_compareEnd(_str + i, (PGM_P)s, true, _len - i)) return i;
         }
         return -1;
     }
@@ -245,7 +245,7 @@ class Text : public Printable {
     int16_t lastIndexOf(const Text& txt) const {
         if (!length() || !txt.length() || txt._len > _len) return -1;
         for (int16_t i = _len - txt._len; i >= 0; i--) {
-            if (_compareN(_str + i, txt._str, txt.pgm(), txt._len)) return i;
+            if (!_compareN(_str + i, txt._str, txt.pgm(), txt._len)) return i;
         }
         return -1;
     }
@@ -737,24 +737,20 @@ class Text : public Printable {
     }
 
    protected:
-    bool _compareN(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
-        while (len--) {
-            if ((pgm() ? pgm_read_byte(s1++) : *s1++) != (pgm2 ? pgm_read_byte(s2++) : *s2++)) return 0;
-        }
-        return 1;
-    }
-    bool _compare(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
-        return _compareN(s1, s2, pgm2, len) && !(pgm2 ? pgm_read_byte(s2 + len) : *(s2 + len));
-    }
-    bool _compareEnd(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
-        if (pgm2 ? !pgm_read_byte(s2) : !*s2) return 0;
-        while (len--) {
-            char c1 = pgm() ? (char)pgm_read_byte(s1++) : *s1++;
-            char c2 = pgm2 ? (char)pgm_read_byte(s2++) : *s2++;
-            if (!c2) return 1;
-            if (c1 != c2) return 0;
+    uint16_t _compareN(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
+        while (len) {
+            if ((pgm() ? pgm_read_byte(s1++) : *s1++) != (pgm2 ? pgm_read_byte(s2++) : *s2++)) return len;
+            len--;
         }
         return 0;
+    }
+    uint16_t _compare(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
+        uint16_t left = _compareN(s1, s2, pgm2, len);
+        return left ? left : (pgm2 ? pgm_read_byte(s2 + len) : *(s2 + len));
+    }
+    bool _compareEnd(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
+        uint16_t left = _compareN(s1, s2, pgm2, len);
+        return pgm2 ? pgm_read_byte(s2 + len - left) : *(s2 + len - left);
     }
 };
 

@@ -124,6 +124,9 @@ void test(const su::Text& text, const char* type) {
     LOG("getSub:", text.getSub(0, "4.5") == "123");
     LOG("getSub:", text.getSub(1, "4.5") == "abcd");
 
+    LOG("startsWith:", text.startsWith(TEST_TEXT_LNG) == 0);
+    LOG("startsWith:", text.startsWith(TEST_TEXT) == 1);
+    LOG("startsWith:", text.startsWith(su::Text(TEST_TEXT)) == 1);
     LOG("startsWith:", text.startsWith("1234.") == 1);
     LOG("startsWith:", text.startsWith("abc") == 0);
     LOG("startsWith f:", text.startsWith(F("1234.")) == 1);
@@ -131,6 +134,9 @@ void test(const su::Text& text, const char* type) {
     LOG("startsWith t:", text.startsWith(su::Text("1234.")) == 1);
     LOG("startsWith t:", text.startsWith(su::Text("abc")) == 0);
 
+    LOG("endsWith:", text.endsWith(TEST_TEXT_LNG) == 0);
+    LOG("endsWith:", text.endsWith(TEST_TEXT) == 1);
+    LOG("endsWith:", text.endsWith(su::Text(TEST_TEXT)) == 1);
     LOG("endsWith:", text.endsWith("abcd") == 1);
     LOG("endsWith:", text.endsWith("123") == 0);
     LOG("endsWith f:", text.endsWith(F("abcd")) == 1);
@@ -138,6 +144,9 @@ void test(const su::Text& text, const char* type) {
     LOG("endsWith t:", text.endsWith(su::Text("abcd")) == 1);
     LOG("endsWith t:", text.endsWith(su::Text("123")) == 0);
 
+    LOG("indexOf:", text.indexOf(TEST_TEXT_LNG) == -1);
+    LOG("indexOf:", text.indexOf(TEST_TEXT) == 0);
+    LOG("indexOf:", text.indexOf(su::Text(TEST_TEXT)) == 0);
     LOG("indexOf:", text.indexOf(".5") == 4);
     LOG("indexOf:", text.indexOf("ff") == -1);
     LOG("indexOf f:", text.indexOf(F(".5")) == 4);
@@ -145,6 +154,9 @@ void test(const su::Text& text, const char* type) {
     LOG("indexOf t:", text.indexOf(su::Text(".5")) == 4);
     LOG("indexOf t:", text.indexOf(su::Text("ff")) == -1);
 
+    LOG("lastIndexOf:", text.lastIndexOf(TEST_TEXT_LNG) == -1);
+    LOG("lastIndexOf:", text.lastIndexOf(TEST_TEXT) == 0);
+    LOG("lastIndexOf:", text.lastIndexOf(su::Text(TEST_TEXT)) == 0);
     LOG("lastIndexOf:", text.lastIndexOf(".5ab") == 4);
     LOG("lastIndexOf:", text.lastIndexOf("ff") == -1);
     LOG("lastIndexOf f:", text.lastIndexOf(F(".5ab")) == 4);

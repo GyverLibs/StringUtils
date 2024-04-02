@@ -23,7 +23,7 @@ class ValueT : public Text {
     ValueT(const Text& value) : Text(value) {}
 
     ValueT(const bool& value) {
-        buf[0] = value + '0';
+        buf[0] = value ? '1' : '0';
         buf[1] = 0;
         _len = 1;
         _init();

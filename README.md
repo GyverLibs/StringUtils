@@ -749,7 +749,7 @@ constexpr size_t su::SL(const char* str);
 
 ```cpp
 // считается компилятором
-constexpr size_t su::SH(const char* str);               // (String Hash) размер size_t
+constexpr size_t su::SH(const char* str);           // (String Hash) размер size_t
 constexpr size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
 // считается в рантайме

@@ -332,7 +332,11 @@ class Text : public Printable {
     uint16_t split(T* arr, uint16_t len, char div) const {
         if (!len || !length()) return 0;
         find_t f;
-        while (!f.last) arr[f.count - 1] = _parse(div, 1, len, f);
+        
+        while (!f.last) {
+            Text txt = _parse(div, 1, len, f);
+            arr[f.count - 1] = txt;
+        }
         return f.count;
     }
 
@@ -340,7 +344,10 @@ class Text : public Printable {
     uint16_t split(T** arr, uint16_t len, char div) const {
         if (!len || !length()) return 0;
         find_t f;
-        while (!f.last) *(arr[f.count - 1]) = _parse(div, 1, len, f);
+        while (!f.last) {
+            Text txt = _parse(div, 1, len, f);
+            *(arr[f.count - 1]) = txt;
+        }
         return f.count;
     }
 
@@ -356,7 +363,10 @@ class Text : public Printable {
     uint16_t split(T* arr, uint16_t len, const Text& div) const {
         if (!len || !length() || !div.length() || div._len > _len) return 0;
         find_t f;
-        while (!f.last) arr[f.count - 1] = _parse(div, div._len, len, f);
+        while (!f.last) {
+            Text txt = _parse(div, div._len, len, f);
+            arr[f.count - 1] = txt;
+        }
         return f.count;
     }
 
@@ -364,7 +374,10 @@ class Text : public Printable {
     uint16_t split(T** arr, uint16_t len, const Text& div) const {
         if (!len || !length() || !div.length() || div._len > _len) return 0;
         find_t f;
-        while (!f.last) *(arr[f.count - 1]) = _parse(div, div._len, len, f);
+        while (!f.last) {
+            Text txt = _parse(div, div._len, len, f);
+            *(arr[f.count - 1]) = txt;
+        }
         return f.count;
     }
 

@@ -867,6 +867,7 @@ uint32_t su::getPow10(uint8_t value);
   - добавлен TextParser
   - добавлены стринг билдеры StringExt и StringStatic
 - 1.4.3 - Оптимизация сравнения, добавлено constexpr измерение длины строки
+- 1.4.7 - исправлен баг split для esp32
 
 <a id="install"></a>
 

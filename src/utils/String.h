@@ -6,10 +6,12 @@
 
 namespace su {
 
+// внешний буфер
 class StringExt : public Text {
    public:
-    StringExt(char* buf, uint16_t capacity) : capacity(capacity) {
+    StringExt(char* buf, uint16_t capacity, uint16_t len = 0) : capacity(capacity) {
         _str = buf;
+        _len = len;
     }
 
     // очистить
@@ -19,10 +21,7 @@ class StringExt : public Text {
 
     // завершить нулём
     void terminate() {
-        if (_len < capacity && !terminated()) {
-            concatChar(0);
-            _len--;
-        }
+        if (_str && !terminated() && _concatChar(0)) _len--;
     }
 
     // автоматически завершать нулём (умолч. false)
@@ -149,15 +148,15 @@ class StringExt : public Text {
     }
 
     StringExt& operator=(const bool& value) {
-        assignChar(value + '0');
+        assignChar(value ? '1' : '0');
         return *this;
     }
     StringExt& operator+=(const bool& value) {
-        concatChar(value + '0');
+        concatChar(value ? '1' : '0');
         return *this;
     }
     StringExt& operator+(const bool& value) {
-        concatChar(value + '0');
+        concatChar(value ? '1' : '0');
         return *this;
     }
 
@@ -295,24 +294,31 @@ class StringExt : public Text {
     uint16_t capacity = 0;
     bool autoter = false;
 
-    void concatChar(const char& sym) {
-        if (!_str || _len + 1 > capacity) return;
+    bool _concatChar(const char& sym) {
+        if (!_str || _len + 1 > capacity) return 0;
         ((char*)_str)[_len] = sym;
         _len++;
+        return 1;
+    }
+    void concatChar(const char& sym) {
+        _concatChar(sym);
+        if (autoter) terminate();
     }
     void assignChar(const char& sym) {
         if (!_str) return;
         _len = 0;
-        concat(sym);
+        concatChar(sym);
     }
 };
 
+// встроенный буфер
 template <uint16_t cap>
 class StringStatic : public StringExt {
    public:
     StringStatic() : StringExt(buf, cap) {}
 
     using StringExt::operator=;
+    using StringExt::operator+;
     using StringExt::operator+=;
 
    private:

@@ -486,7 +486,7 @@ for (su::TextParser row(t, '\n'); row.parse();) {
 Статический стринг билдер на базе Text, замена [mString](https://github.com/GyverLibs/mString)
 ```cpp
 template <uint16_t cap> StringStatic;
-StringExt(char* buf, uint16_t capacity);
+StringExt(char* buf, uint16_t capacity, uint16_t len = 0);
 
 // очистить
 void clear();
@@ -526,9 +526,17 @@ s += 12345;
 s += 'a';
 Serial.println(s);
 Serial.println(s.length());
-
 s.clear();
+
 s = s + 123 + "abc" + F("FSTR") + 3.14;
+Serial.println(s);
+```
+
+Можно дописать существующую строку:
+```cpp
+char str[20] = "hello"; // len 5
+su::StringExt s(str, 20, 5);
+s += F(" world!");
 Serial.println(s);
 ```
 

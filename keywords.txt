@@ -124,6 +124,9 @@ hash32_P	KEYWORD2
 SH	KEYWORD2
 SL	KEYWORD2
 SH32	KEYWORD2
+_SH	KEYWORD2
+_SH32	KEYWORD2
+_SL	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

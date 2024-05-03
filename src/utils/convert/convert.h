@@ -4,13 +4,13 @@
 namespace su {
 
 // быстрое возведение 10 в степень
-uint32_t getPow10(uint8_t value);
+uint32_t getPow10(const uint8_t value);
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
-uint8_t getLog10(const uint32_t& value);
+uint8_t getLog10(const uint32_t value);
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
-uint8_t getLog10(const int32_t& value);
+uint8_t getLog10(const int32_t value);
 
 /**
  * @brief Длина строки с русскими символами
@@ -26,7 +26,7 @@ uint16_t strlenRu(const char* str);
  * @param val
  * @return uint8_t
  */
-uint8_t intLen(const int32_t& val);
+uint8_t intLen(const int32_t val);
 
 /**
  * @brief Получить длину float числа (с учётом знака -)
@@ -35,7 +35,7 @@ uint8_t intLen(const int32_t& val);
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(const double& val, uint8_t dec);
+uint8_t floatLen(const double& val, const uint8_t dec);
 
 /**
  * @brief Преобразовать строку в целое число
@@ -46,7 +46,7 @@ uint8_t floatLen(const double& val, uint8_t dec);
  * @return T
  */
 template <typename T>
-T strToInt(const char* str, uint8_t len = 0) {
+T strToInt(const char* str, const uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;
@@ -68,7 +68,7 @@ T strToInt(const char* str, uint8_t len = 0) {
  * @return T
  */
 template <typename T>
-T strToInt_P(const char* str, uint8_t len = 0) {
+T strToInt_P(const char* str, const uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;
@@ -89,7 +89,7 @@ T strToInt_P(const char* str, uint8_t len = 0) {
  * @param dec кол-во знаков после точки
  * @return uint8_t длина полученной строки
  */
-uint8_t floatToStr(double val, char* buf, uint8_t dec);
+uint8_t floatToStr(double val, char* buf, const uint8_t dec);
 
 /**
  * @brief Преобразовать HEX строку в целое число
@@ -106,7 +106,7 @@ uint32_t strToIntHex(const char* str, int8_t len = -1);
  * @param sym символ utf-8
  * @return uint8_t 0 если некорректный символ или продолжение предыдущего
  */
-uint8_t charSize(char sym);
+uint8_t charSize(const char sym);
 
 /**
  * @brief Быстрая конвертация числа в char* массив (в 3-8 раз быстрее ltoa)
@@ -116,7 +116,7 @@ uint8_t charSize(char sym);
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uintToStr(uint32_t n, char* buf, uint8_t base = DEC);
+uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base = DEC);
 
 /**
  * @brief Быстрая конвертация числа в char* массив (в 3-8 раз быстрее ltoa)
@@ -126,7 +126,7 @@ uint8_t uintToStr(uint32_t n, char* buf, uint8_t base = DEC);
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t intToStr(int32_t n, char* buf, uint8_t base = DEC);
+uint8_t intToStr(int32_t n, char* buf, const uint8_t base = DEC);
 
 /**
  * @brief Конвертация числа в char* массив
@@ -136,7 +136,7 @@ uint8_t intToStr(int32_t n, char* buf, uint8_t base = DEC);
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC);
+uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base = DEC);
 
 /**
  * @brief Конвертация числа в char* массив
@@ -146,7 +146,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base = DEC);
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t int64ToStr(int64_t n, char* buf, uint8_t base = DEC);
+uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base = DEC);
 
 // конвертация из строки во float
 float strToFloat(const char* s);

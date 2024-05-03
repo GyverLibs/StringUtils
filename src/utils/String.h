@@ -134,158 +134,158 @@ class StringExt : public Text {
         return *this;
     }
 
-    StringExt& operator=(const char& value) {
+    StringExt& operator=(const char value) {
         assignChar(value);
         return *this;
     }
-    StringExt& operator+=(const char& value) {
+    StringExt& operator+=(const char value) {
         concatChar(value);
         return *this;
     }
-    StringExt& operator+(const char& value) {
+    StringExt& operator+(const char value) {
         concatChar(value);
         return *this;
     }
 
-    StringExt& operator=(const bool& value) {
+    StringExt& operator=(const bool value) {
         assignChar(value ? '1' : '0');
         return *this;
     }
-    StringExt& operator+=(const bool& value) {
+    StringExt& operator+=(const bool value) {
         concatChar(value ? '1' : '0');
         return *this;
     }
-    StringExt& operator+(const bool& value) {
+    StringExt& operator+(const bool value) {
         concatChar(value ? '1' : '0');
         return *this;
     }
 
-    StringExt& operator=(const double& value) {
+    StringExt& operator=(const double value) {
         assign(value, 2);
         return *this;
     }
-    StringExt& operator+=(const double& value) {
+    StringExt& operator+=(const double value) {
         concat(value, 2);
         return *this;
     }
-    StringExt& operator+(const double& value) {
+    StringExt& operator+(const double value) {
         concat(value, 2);
         return *this;
     }
 
-    StringExt& operator=(const unsigned char& value) {
+    StringExt& operator=(const unsigned char value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const unsigned char& value) {
+    StringExt& operator+=(const unsigned char value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const unsigned char& value) {
+    StringExt& operator+(const unsigned char value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const short& value) {
+    StringExt& operator=(const short value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const short& value) {
+    StringExt& operator+=(const short value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const short& value) {
+    StringExt& operator+(const short value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const unsigned short& value) {
+    StringExt& operator=(const unsigned short value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const unsigned short& value) {
+    StringExt& operator+=(const unsigned short value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const unsigned short& value) {
+    StringExt& operator+(const unsigned short value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const int& value) {
+    StringExt& operator=(const int value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const int& value) {
+    StringExt& operator+=(const int value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const int& value) {
+    StringExt& operator+(const int value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const unsigned int& value) {
+    StringExt& operator=(const unsigned int value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const unsigned int& value) {
+    StringExt& operator+=(const unsigned int value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const unsigned int& value) {
+    StringExt& operator+(const unsigned int value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const long& value) {
+    StringExt& operator=(const long value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const long& value) {
+    StringExt& operator+=(const long value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const long& value) {
+    StringExt& operator+(const long value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const unsigned long& value) {
+    StringExt& operator=(const unsigned long value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const unsigned long& value) {
+    StringExt& operator+=(const unsigned long value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const unsigned long& value) {
+    StringExt& operator+(const unsigned long value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const long long& value) {
+    StringExt& operator=(const long long value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const long long& value) {
+    StringExt& operator+=(const long long value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const long long& value) {
+    StringExt& operator+(const long long value) {
         concat(value);
         return *this;
     }
 
-    StringExt& operator=(const unsigned long long& value) {
+    StringExt& operator=(const unsigned long long value) {
         assign(value);
         return *this;
     }
-    StringExt& operator+=(const unsigned long long& value) {
+    StringExt& operator+=(const unsigned long long value) {
         concat(value);
         return *this;
     }
-    StringExt& operator+(const unsigned long long& value) {
+    StringExt& operator+(const unsigned long long value) {
         concat(value);
         return *this;
     }
@@ -294,17 +294,17 @@ class StringExt : public Text {
     uint16_t capacity = 0;
     bool autoter = false;
 
-    bool _concatChar(const char& sym) {
+    bool _concatChar(const char sym) {
         if (!_str || _len + 1 > capacity) return 0;
         ((char*)_str)[_len] = sym;
         _len++;
         return 1;
     }
-    void concatChar(const char& sym) {
+    void concatChar(const char sym) {
         _concatChar(sym);
         if (autoter) terminate();
     }
-    void assignChar(const char& sym) {
+    void assignChar(const char sym) {
         if (!_str) return;
         _len = 0;
         concatChar(sym);

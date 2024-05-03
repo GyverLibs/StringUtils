@@ -751,6 +751,13 @@ String su::url::decode(const String& src);
 ```cpp
 // StringLength длина строки, выполняется на этапе компиляции
 constexpr size_t su::SL(const char* str);
+constexpr size_t operator"" _SL;  // C++ 11
+```
+
+Примеры
+```cpp
+int L1 = su:SL("text");
+int L2 = "text"_SL;
 ```
 
 ### Hash
@@ -761,6 +768,9 @@ constexpr size_t su::SL(const char* str);
 constexpr size_t su::SH(const char* str);           // (String Hash) размер size_t
 constexpr size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
+constexpr size_t operator"" _SH;                    // C++ 11
+constexpr size_t operator"" _SH32;                  // C++ 11
+
 // считается в рантайме
 size_t su::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t
 uint32_t su::hash32(const char* str, int16_t len = -1); // Размер 32 бит
@@ -769,7 +779,7 @@ size_t su::hash_P(PGM_P str, int16_t len = -1);         // PROGMEM строка,
 uint32_t su::hash32_P(PGM_P str, int16_t len = -1);     // PROGMEM строка, размер 32 бит
 ```
 
-> На ESP-платах `SH`, `hash` и `hash_P` по умолчанию являются 32-битными!
+> На ESP-платах `_SH`, `SH`, `hash` и `hash_P` по умолчанию являются 32-битными!
 
 По проведённому тесту 32-битная версия хэша имеет 7 коллизий из 234450 английских слов, 16-битная версия - 170723 коллизий (что есть 73% - чисто статистическое количество коллизий из расчёта 16 бит - 65536 значений)
 
@@ -798,9 +808,9 @@ switch (hash(buf)) {
     case su::SH("abcdef"):      Serial.println(0); break;
     case su::SH("12345"):       Serial.println(1); break;
     case su::SH("wrong text"):  Serial.println(2); break;
-    case su::SH("some text"):   Serial.println(3); break;
-    case su::SH("hello"):       Serial.println(4); break;
-    case su::SH("some_text"):   Serial.println(5); break;
+    case "some text"_SH:        Serial.println(3); break;
+    case "hello"_SH:            Serial.println(4); break;
+    case "some_text"_SH:        Serial.println(5); break;
 }
 ```
 > Один расчёт хэша занимает чуть большее время, чем сравнение со строкой. Но итоговая конструкция из примера выполняется в 2 раза быстрее (на ESP).
@@ -877,6 +887,7 @@ uint32_t su::getPow10(uint8_t value);
   - добавлены стринг билдеры StringExt и StringStatic
 - 1.4.3 - Оптимизация сравнения, добавлено constexpr измерение длины строки
 - 1.4.7 - исправлен баг split для esp32
+- 1.4.9 - оптимизация, добавлены короткие функции хеширования
 
 <a id="install"></a>
 

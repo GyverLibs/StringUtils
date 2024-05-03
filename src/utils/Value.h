@@ -22,63 +22,63 @@ class ValueT : public Text {
 
     ValueT(const Text& value) : Text(value) {}
 
-    ValueT(const bool& value) {
+    ValueT(const bool value) {
         buf[0] = value ? '1' : '0';
         buf[1] = 0;
         _len = 1;
         _init();
     }
 
-    ValueT(const char& value) {
+    ValueT(const char value) {
         buf[0] = value;
         buf[1] = 0;
         _len = 1;
         _init();
     }
-    ValueT(const unsigned char& value, uint8_t base = DEC) {
+    ValueT(const unsigned char value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _init();
     }
 
-    ValueT(const short& value, uint8_t base = DEC) {
+    ValueT(const short value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _init();
     }
-    ValueT(const unsigned short& value, uint8_t base = DEC) {
+    ValueT(const unsigned short value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _init();
     }
 
-    ValueT(const int& value, uint8_t base = DEC) {
+    ValueT(const int value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _init();
     }
-    ValueT(const unsigned int& value, uint8_t base = DEC) {
+    ValueT(const unsigned int value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _init();
     }
 
-    ValueT(const long& value, uint8_t base = DEC) {
+    ValueT(const long value, uint8_t base = DEC) {
         _len = intToStr(value, buf, base);
         _init();
     }
-    ValueT(const unsigned long& value, uint8_t base = DEC) {
+    ValueT(const unsigned long value, uint8_t base = DEC) {
         _len = uintToStr(value, buf, base);
         _init();
     }
 
-    ValueT(const long long& value, uint8_t base = DEC) {
+    ValueT(const long long value, uint8_t base = DEC) {
         if (value >= 0 && value < UINT32_MAX) _len = uintToStr(value, buf, base);
         else if (value < 0 && value > -INT32_MAX) _len = intToStr(value, buf, base);
         else _len = int64ToStr(value, buf, base);
         _init();
     }
-    ValueT(const unsigned long long& value, uint8_t base = DEC) {
+    ValueT(const unsigned long long value, uint8_t base = DEC) {
         _len = (value <= UINT32_MAX) ? uintToStr(value, buf, base) : uint64ToStr(value, buf, base);
         _init();
     }
 
-    ValueT(const double& value, uint8_t dec = 2) {
+    ValueT(const double value, uint8_t dec = 2) {
         _len = floatToStr(value, buf, dec);
         _init();
     }

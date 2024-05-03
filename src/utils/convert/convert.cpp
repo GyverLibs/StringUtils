@@ -3,7 +3,7 @@
 namespace su {
 
 // быстрое возведение 10 в степень
-uint32_t getPow10(uint8_t value) {
+uint32_t getPow10(const uint8_t value) {
     switch (value) {
         case 0:
             return 0;
@@ -30,7 +30,7 @@ uint32_t getPow10(uint8_t value) {
 }
 
 // быстрый целочисленный логарифм 10 (длина числа в кол-ве символов)
-uint8_t getLog10(const uint32_t& value) {
+uint8_t getLog10(const uint32_t value) {
     switch (value) {
         case 0 ... 9:
             return 1;
@@ -56,7 +56,7 @@ uint8_t getLog10(const uint32_t& value) {
     return 1;
 }
 
-uint8_t getLog10(const int32_t& value) {
+uint8_t getLog10(const int32_t value) {
     return getLog10((value < 0) ? (uint32_t)(-value) : (uint32_t)value);
 }
 
@@ -81,7 +81,7 @@ uint16_t strlenRu(const char* str) {
  * @param val
  * @return uint8_t
  */
-uint8_t intLen(const int32_t& val) {
+uint8_t intLen(const int32_t val) {
     return getLog10(val) + (val < 0 ? 1 : 0);
 }
 
@@ -92,7 +92,7 @@ uint8_t intLen(const int32_t& val) {
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(const double& val, uint8_t dec) {
+uint8_t floatLen(const double& val, const uint8_t dec) {
     return intLen((int32_t)val) + (dec ? (dec + 1) : 0);
 }
 
@@ -104,7 +104,7 @@ uint8_t floatLen(const double& val, uint8_t dec) {
  * @param dec кол-во знаков после точки
  * @return uint8_t длина полученной строки
  */
-uint8_t floatToStr(double val, char* buf, uint8_t dec) {
+uint8_t floatToStr(double val, char* buf, const uint8_t dec) {
     dtostrf(val, dec + 2, dec, buf);
     return floatLen(val, dec);
 }
@@ -134,7 +134,7 @@ uint32_t strToIntHex(const char* str, int8_t len) {
  * @param sym символ utf-8
  * @return uint8_t 0 если некорректный символ или продолжение предыдущего
  */
-uint8_t charSize(char sym) {
+uint8_t charSize(const char sym) {
     if ((sym & 0x80) == 0x00) return 1;
     else if ((sym & 0xE0) == 0xC0) return 2;
     else if ((sym & 0xF0) == 0xE0) return 3;
@@ -166,7 +166,7 @@ struct _fdiv10 {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uintToStr(uint32_t n, char* buf, uint8_t base) {
+uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
     char* p = buf;
     if (base == DEC) {
         do {
@@ -202,7 +202,7 @@ uint8_t uintToStr(uint32_t n, char* buf, uint8_t base) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t intToStr(int32_t n, char* buf, uint8_t base) {
+uint8_t intToStr(int32_t n, char* buf, const uint8_t base) {
     char* p = buf;
     if (n < 0 && base == DEC) *p++ = '-';
     p += uintToStr((n < 0 && base == DEC) ? -n : n, p, base);
@@ -218,7 +218,7 @@ uint8_t intToStr(int32_t n, char* buf, uint8_t base) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base) {
+uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
     char* p = buf;
     if (base == DEC) {
         do {
@@ -254,7 +254,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, uint8_t base) {
  * @param base основание (DEC, HEX, OCT, BIN)
  * @return uint8_t длина числа
  */
-uint8_t int64ToStr(int64_t n, char* buf, uint8_t base) {
+uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base) {
     char* p = buf;
     if (n < 0) *p++ = '-';
     p += uint64ToStr((n < 0) ? -n : n, p, base);

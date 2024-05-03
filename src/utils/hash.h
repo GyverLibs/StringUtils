@@ -5,7 +5,7 @@ namespace su {
 
 // хэш строки, выполняется на этапе компиляции
 template <typename T>
-static constexpr T _hash_c(char const* str, T hash = 0) {
+static constexpr T _hash_c(char const* str, const T hash = 0) {
     return (*str ? _hash_c<T>(str + 1, hash + (hash << 5) + *str) : hash);
 }
 
@@ -63,3 +63,15 @@ size_t hash_P(PGM_P str, int16_t len = -1);
 uint32_t hash32_P(PGM_P str, int16_t len = -1);
 
 }  // namespace su
+
+#if (__cplusplus >= 201103L)
+constexpr size_t operator"" _SH(const char* str, size_t len) {
+    return su::_hash_c<size_t>(str);
+}
+constexpr uint32_t operator"" _SH32(const char* str, size_t len) {
+    return su::_hash_c<uint32_t>(str);
+}
+constexpr size_t operator"" _SL(const char* str, size_t len) {
+    return len;
+}
+#endif

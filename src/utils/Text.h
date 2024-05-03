@@ -587,10 +587,10 @@ class Text : public Printable {
     operator bool() const {
         return toBool();
     }
-    bool operator==(const bool& v) const {
+    bool operator==(const bool v) const {
         return toBool() == v;
     }
-    bool operator!=(const bool& v) const {
+    bool operator!=(const bool v) const {
         return toBool() != v;
     }
 
@@ -598,10 +598,10 @@ class Text : public Printable {
     operator signed char() const {
         return (char)toInt16();
     }
-    bool operator==(const signed char& v) const {
+    bool operator==(const signed char v) const {
         return toInt16() == v;
     }
-    bool operator!=(const signed char& v) const {
+    bool operator!=(const signed char v) const {
         return toInt16() != v;
     }
 
@@ -609,10 +609,10 @@ class Text : public Printable {
     operator unsigned char() const {
         return toInt16();
     }
-    bool operator==(const unsigned char& v) const {
+    bool operator==(const unsigned char v) const {
         return (unsigned char)toInt16() == v;
     }
-    bool operator!=(const unsigned char& v) const {
+    bool operator!=(const unsigned char v) const {
         return (unsigned char)toInt16() != v;
     }
 
@@ -620,10 +620,10 @@ class Text : public Printable {
     operator short() const {
         return toInt16();
     }
-    bool operator==(const short& v) const {
+    bool operator==(const short v) const {
         return toInt16() == v;
     }
-    bool operator!=(const short& v) const {
+    bool operator!=(const short v) const {
         return toInt16() != v;
     }
 
@@ -631,10 +631,10 @@ class Text : public Printable {
     operator unsigned short() const {
         return toInt16();
     }
-    bool operator==(const unsigned short& v) const {
+    bool operator==(const unsigned short v) const {
         return (unsigned short)toInt16() == v;
     }
-    bool operator!=(const unsigned short& v) const {
+    bool operator!=(const unsigned short v) const {
         return (unsigned short)toInt16() != v;
     }
 
@@ -642,10 +642,10 @@ class Text : public Printable {
     operator int() const {
         return (sizeof(int) == 2) ? toInt16() : toInt32();
     }
-    bool operator==(const int& v) const {
+    bool operator==(const int v) const {
         return toInt16() == v;
     }
-    bool operator!=(const int& v) const {
+    bool operator!=(const int v) const {
         return toInt16() != v;
     }
 
@@ -653,10 +653,10 @@ class Text : public Printable {
     operator unsigned int() const {
         return (sizeof(int) == 2) ? toInt16() : toInt32();
     }
-    bool operator==(const unsigned int& v) const {
+    bool operator==(const unsigned int v) const {
         return (unsigned int)toInt16() == v;
     }
-    bool operator!=(const unsigned int& v) const {
+    bool operator!=(const unsigned int v) const {
         return (unsigned int)toInt16() != v;
     }
 
@@ -664,10 +664,10 @@ class Text : public Printable {
     operator long() const {
         return toInt32();
     }
-    bool operator==(const long& v) const {
+    bool operator==(const long v) const {
         return toInt32() == v;
     }
-    bool operator!=(const long& v) const {
+    bool operator!=(const long v) const {
         return toInt32() != v;
     }
 
@@ -675,10 +675,10 @@ class Text : public Printable {
     operator unsigned long() const {
         return toInt32();
     }
-    bool operator==(const unsigned long& v) const {
+    bool operator==(const unsigned long v) const {
         return (unsigned long)toInt32() == v;
     }
-    bool operator!=(const unsigned long& v) const {
+    bool operator!=(const unsigned long v) const {
         return (unsigned long)toInt32() != v;
     }
 
@@ -686,10 +686,10 @@ class Text : public Printable {
     operator long long() const {
         return toInt64();
     }
-    bool operator==(const long long& v) const {
+    bool operator==(const long long v) const {
         return toInt64() == v;
     }
-    bool operator!=(const long long& v) const {
+    bool operator!=(const long long v) const {
         return toInt64() != v;
     }
 
@@ -708,10 +708,10 @@ class Text : public Printable {
     operator float() const {
         return toFloat();
     }
-    bool operator==(const float& v) const {
+    bool operator==(const float v) const {
         return toFloat() == v;
     }
-    bool operator!=(const float& v) const {
+    bool operator!=(const float v) const {
         return toFloat() != v;
     }
 

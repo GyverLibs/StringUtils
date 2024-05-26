@@ -513,16 +513,28 @@ class Text : public Printable {
     // ========================== CONVERT ==========================
 
     // Вывести в String строку. Вернёт false при неудаче
-    bool toString(String& s, bool decodeUnicode = false) const {
+    bool toString(String& s) const {
+        s = "";
+        return addString(s);
+    }
+
+    // Вывести в String строку. Вернёт false при неудаче
+    bool toString(String& s, bool decodeUnicode) const {
         s = "";
         return addString(s, decodeUnicode);
     }
 
     // Получить как String строку
-    String toString(bool decodeUnicode = false) const {
-        if (!valid() || !_len) return String();
+    String toString() const {
         String s;
-        toString(s, decodeUnicode);
+        addString(s);
+        return s;
+    }
+
+    // Получить как String строку
+    String toString(bool decodeUnicode) const {
+        String s;
+        addString(s, decodeUnicode);
         return s;
     }
 

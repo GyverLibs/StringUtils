@@ -4,6 +4,7 @@
 #include "convert/b64.h"
 #include "convert/convert.h"
 #include "convert/unicode.h"
+#include "convert/url.h"
 #include "hash.h"
 
 namespace su {
@@ -332,7 +333,7 @@ class Text : public Printable {
     uint16_t split(T* arr, uint16_t len, char div) const {
         if (!len || !length()) return 0;
         find_t f;
-        
+
         while (!f.last) {
             Text txt = _parse(div, 1, len, f);
             arr[f.count - 1] = txt;
@@ -440,26 +441,30 @@ class Text : public Printable {
             }
 #endif
         }
-
         return 1;
     }
 
     // Добавить к String строке. Вернёт false при неудаче
     bool addString(String& s, bool decodeUnicode) const {
-        if (!valid() || !_len) return 0;
+        if (!length() || pgm()) return 0;
         if (decodeUnicode) {
-            if (pgm()) {
-                char str[_len + 1];
-                strncpy_P(str, _str, _len);
-                str[_len] = 0;
-                s += unicode::decode(str, _len);
-            } else {
-                s += unicode::decode(_str, _len);
-            }
+            s += unicode::decode(_str, _len);
         } else {
             addString(s);
         }
         return 1;
+    }
+
+    // получить как строку, раскодировать unicode
+    String decodeUnicode() const {
+        if (!length() || pgm()) return String();
+        return unicode::decode(_str, _len);
+    }
+
+    // получить как строку, раскодировать urlencode
+    String decodeUrl() const {
+        if (!length() || pgm()) return String();
+        return url::decode(_str, _len);
     }
 
     // Получить символ по индексу

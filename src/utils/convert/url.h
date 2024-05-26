@@ -20,6 +20,9 @@ String encode(const String& src);
 void decode(const char* src, uint16_t len, String& dest);
 
 // раскодировать url
+String decode(const char* src, uint16_t len);
+
+// раскодировать url
 void decode(const String& src, String& dest);
 
 // раскодировать url

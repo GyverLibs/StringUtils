@@ -141,6 +141,12 @@ bool addString(String& s, bool decodeUnicode = false);
 // Вывести в char массив. Вернёт длину строки. terminate - завершить строку нулём
 uint16_t toStr(char* buf, int16_t bufsize = -1, bool terminate = true);
 
+// получить как строку, раскодировать unicode
+String decodeUnicode();
+
+// получить как строку, раскодировать urlencode
+String decodeUrl();
+
 // ======== ВЫВОД. B64 ========
 // размер данных (байт), если они b64
 size_t sizeB64();
@@ -744,6 +750,7 @@ String su::url::encode(const String& src);
 // раскодировать url
 void su::url::decode(const char* src, uint16_t len, String& dest);
 void su::url::decode(const String& src, String& dest);
+String su::url::decode(const char* src, uint16_t len);
 String su::url::decode(const String& src);
 ```
 
@@ -888,6 +895,7 @@ uint32_t su::getPow10(uint8_t value);
 - 1.4.3 - Оптимизация сравнения, добавлено constexpr измерение длины строки
 - 1.4.7 - исправлен баг split для esp32
 - 1.4.9 - оптимизация, добавлены короткие функции хеширования
+- 1.4.10 - в Text добавлены decodeUrl и decodeUnicode
 
 <a id="install"></a>
 

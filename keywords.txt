@@ -63,6 +63,8 @@ lastIndexOf	KEYWORD2
 find	KEYWORD2
 charAt	KEYWORD2
 addString	KEYWORD2
+decodeUrl	KEYWORD2
+decodeUnicode	KEYWORD2
 toString	KEYWORD2
 toStr	KEYWORD2
 toBool	KEYWORD2

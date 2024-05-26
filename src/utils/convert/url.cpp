@@ -79,7 +79,14 @@ void decode(const String& src, String& dest) {
 // раскодировать url
 String decode(const String& src) {
     String dest;
-    decode(src, dest);
+    decode(src.c_str(), src.length(), dest);
+    return dest;
+}
+
+// раскодировать url
+String decode(const char* src, uint16_t len) {
+    String dest;
+    decode(src, len, dest);
     return dest;
 }
 

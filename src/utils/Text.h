@@ -81,6 +81,10 @@ class Text : public Printable {
         return _str;
     }
 
+    explicit inline operator bool() const {
+        return valid();
+    };
+
     // строка валидна и оканчивается \0
     bool terminated() const {
         return (valid()) ? (_charAt(_len) == 0) : 0;
@@ -589,9 +593,9 @@ class Text : public Printable {
 
     // ================= CAST =================
     // bool
-    operator bool() const {
-        return toBool();
-    }
+    // operator bool() const {
+    //     return toBool();
+    // }
     bool operator==(const bool v) const {
         return toBool() == v;
     }
@@ -731,9 +735,9 @@ class Text : public Printable {
         return toFloat() != v;
     }
 
-    operator String() const {
-        return toString();
-    }
+    // operator String() const {
+    //     return toString();
+    // }
 
     const char* _str = nullptr;
     uint16_t _len = 0;

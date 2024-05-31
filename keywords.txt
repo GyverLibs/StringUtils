@@ -43,9 +43,12 @@ list	KEYWORD2
 unicode	KEYWORD2
 url	KEYWORD2
 
+#text
 pgm	KEYWORD2
 terminated	KEYWORD2
 lengthUnicode	KEYWORD2
+unicodeToPos	KEYWORD2
+posToUnicode	KEYWORD2
 length	KEYWORD2
 calcLen	KEYWORD2
 readLen	KEYWORD2
@@ -56,10 +59,13 @@ printTo	KEYWORD2
 compare	KEYWORD2
 compareN	KEYWORD2
 substring	KEYWORD2
+substringUnicode	KEYWORD2
 startsWith	KEYWORD2
 endsWith	KEYWORD2
 indexOf	KEYWORD2
+indexOfUnicode	KEYWORD2
 lastIndexOf	KEYWORD2
+lastIndexOfUnicode	KEYWORD2
 find	KEYWORD2
 charAt	KEYWORD2
 addString	KEYWORD2

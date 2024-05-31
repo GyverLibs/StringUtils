@@ -50,16 +50,25 @@ su::Text(const char* str, int16_t len = 0, bool pgm = 0);
 su::Text(const __FlashStringHelper* str, int16_t len = 0);
 
 // ======== СИСТЕМА ========
-bool valid();           // Статус строки, существует или нет
-bool pgm();             // Строка из Flash памяти
-uint16_t length();      // Длина строки
-uint16_t lengthUnicode();// Длина строки с учётом unicode символов
-uint16_t readLen();     // посчитать и вернуть длину строки (const)
-void calcLen();         // пересчитать и запомнить длину строки (non-const)
-Type type();            // Тип строки
-const char* str();      // Получить указатель на строку. Всегда вернёт ненулевой указатель
-const char* end();      // указатель на конец строки. Всегда вернёт ненулевой указатель
-bool terminated();      // строка валидна и оканчивается \0
+bool valid();                       // Статус строки, существует или нет
+bool pgm();                         // Строка из Flash памяти
+uint16_t length();                  // Длина строки
+uint16_t readLen();                 // посчитать и вернуть длину строки (const)
+void calcLen();                     // пересчитать и запомнить длину строки (non-const)
+Type type();                        // Тип строки
+const char* str();                  // Получить указатель на строку. Всегда вернёт ненулевой указатель
+const char* end();                  // указатель на конец строки. Всегда вернёт ненулевой указатель
+bool terminated();                  // строка валидна и оканчивается \0
+
+// ======== UNICODE ========
+// Длина строки с учётом unicode символов
+uint16_t lengthUnicode();
+
+// получить позицию юникод символа в строке, если она содержит юникод
+uint16_t posToUnicode(uint16_t pos);
+
+// получить реальную позицию символа в строке, если она содержит юникод
+uint16_t unicodeToPos(uint16_t pos);
 
 // ======== ХЭШ ========
 size_t hash();              // хэш строки size_t
@@ -83,20 +92,28 @@ int16_t indexOf(char sym, uint16_t from = 0);
 // Найти позицию строки в строке
 int16_t indexOf(Text txt, uint16_t from = 0);
 
+// Найти позицию строки в строке
+int16_t indexOfUnicode(Text txt, uint16_t from = 0);
+
 // Найти позицию символа в строке с конца
 int16_t lastIndexOf(char sym);
 
 // Найти позицию строки в строке с конца
 int16_t lastIndexOf(Text txt);
 
+// Найти позицию строки в строке с конца
+int16_t lastIndexOfUnicode(Text txt);
+
 // найти символ и получить указатель на первое вхождение
 const char* find(char sym, uint16_t from = 0);
 
 // начинается со строки
 bool startsWith(const Text& txt);
+bool startsWith(char c);
 
 // заканчивается строкой
 bool endsWith(const Text& txt);
+bool endsWith(char c);
 
 // ======== РАЗДЕЛЕНИЕ И ПАРСИНГ ========
 // вернёт новую строку с убранными пробельными символами с начала и конца
@@ -124,6 +141,9 @@ Text getSub(uint16_t idx, Text div);
 
 // выделить подстроку (начало, конец не включая). Отрицательные индексы работают с конца строки
 Text substring(int16_t start, int16_t end = 0);
+
+// выделить подстроку с содержанием юникода (начало, конец не включая). Отрицательные индексы работают с конца строки
+Text substringUnicode(int16_t start, int16_t end = 0);
 
 // Получить символ по индексу
 char charAt(uint16_t idx);
@@ -163,7 +183,6 @@ uint32_t toInt32HEX();      // получить значение как uint 32 
 float toFloat();            // получить значение как float
 
 // также автоматически конвертируется и сравнивается с
-bool
 char + unsigned
 short + unsigned
 int + unsigned
@@ -195,7 +214,11 @@ v1 == -123456;
 
 // авто конвертация
 int v = v0;
-String s2 = v2;
+
+// вывод в String
+String s = v0;
+s = v0.toString();
+v0.toString(s);
 
 // вывод в массив
 char buf[20];
@@ -896,6 +919,7 @@ uint32_t su::getPow10(uint8_t value);
 - 1.4.7 - исправлен баг split для esp32
 - 1.4.9 - оптимизация, добавлены короткие функции хеширования
 - 1.4.10 - в Text добавлены decodeUrl и decodeUnicode
+- 1.4.12 - в Text добавлены инструменты для Unicode (substring, indexOf)
 
 <a id="install"></a>
 

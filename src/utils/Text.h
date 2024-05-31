@@ -51,6 +51,30 @@ class Text : public Printable {
         return count;
     }
 
+    // получить реальную позицию символа в строке, если она содержит юникод
+    uint16_t unicodeToPos(uint16_t upos) const {
+        if (!length() || upos > length()) return 0;
+
+        for (uint16_t i = 0; i < _len; i++) {
+            if ((_charAt(i) & 0xc0) != 0x80) {
+                if (!upos) return i;
+                else upos--;
+            }
+        }
+        return 0;
+    }
+
+    // получить позицию юникод символа в строке, если она содержит юникод
+    uint16_t posToUnicode(uint16_t pos) const {
+        if (!length() || pos > length()) return 0;
+
+        uint16_t u = 0;
+        for (uint16_t i = 0; i < pos; i++) {
+            if ((_charAt(i) & 0xc0) != 0x80) u++;
+        }
+        return u;
+    }
+
     // посчитать и вернуть длину строки (const)
     uint16_t readLen() const {
         return valid() ? (pgm() ? strlen_P(_str) : strlen(_str)) : 0;
@@ -179,6 +203,11 @@ class Text : public Printable {
         return (idx < 0) ? nullptr : (_str + idx);
     }
 
+    // начинается с
+    bool startsWith(char c) const {
+        return length() ? (_charAt(0) == c) : 0;
+    }
+
     // начинается со строки
     bool startsWith(const char* s) const {
         return length() ? !_compareEnd(_str, s, false, _len) : 0;
@@ -193,6 +222,9 @@ class Text : public Printable {
     // заканчивается строкой
     bool endsWith(const Text& txt) const {
         return (length() && txt.length() && txt._len <= _len) ? !_compareN(_str + _len - txt._len, txt._str, txt.pgm(), txt._len) : 0;
+    }
+    bool endsWith(char c) {
+        return length() ? (_charAt(_len - 1) == c) : 0;
     }
 
     // Найти позицию символа в строке
@@ -227,6 +259,20 @@ class Text : public Printable {
         return -1;
     }
 
+    // Найти позицию строки в строке, результат в юникод-позиции
+    int16_t indexOfUnicode(const Text& txt, uint16_t from = 0) const {
+        int16_t pos = indexOf(txt, from);
+        return pos > 0 ? posToUnicode(pos) : pos;
+    }
+    int16_t indexOfUnicode(const char* s, uint16_t from = 0) const {
+        int16_t pos = indexOf(s, from);
+        return pos > 0 ? posToUnicode(pos) : pos;
+    }
+    int16_t indexOfUnicode(const __FlashStringHelper* s, uint16_t from = 0) const {
+        int16_t pos = indexOf(s, from);
+        return pos > 0 ? posToUnicode(pos) : pos;
+    }
+
     /**
      @brief Найти позицию символа в строке с конца
 
@@ -253,6 +299,12 @@ class Text : public Printable {
             if (!_compareN(_str + i, txt._str, txt.pgm(), txt._len)) return i;
         }
         return -1;
+    }
+
+    // Найти позицию строки в строке с конца, результат в юникод-позиции
+    int16_t lastIndexOfUnicode(const Text& txt) const {
+        int16_t pos = lastIndexOf(txt);
+        return pos > 0 ? posToUnicode(pos) : pos;
     }
 
     // ========================== SUB ==========================
@@ -421,6 +473,17 @@ class Text : public Printable {
             start = b;
         }
         return Text(_str + start, end - start, pgm());
+    }
+
+    // выделить подстроку с содержанием юникода (начало, конец не включая). Отрицательные индексы работают с конца строки
+    Text substringUnicode(int16_t start, int16_t end = 0) const {
+        if (start < 0 || end < 0) {
+            uint16_t ulen = lengthUnicode();
+            if (start < 0) start += ulen;
+            if (end < 0) end += ulen;
+        }
+        if (start < 0 || end < 0 || start > _len || end > _len) return Text();
+        return substring(unicodeToPos(start), end ? unicodeToPos(end) : 0);
     }
 
     // Добавить к String строке. Вернёт false при неудаче
@@ -747,9 +810,9 @@ class Text : public Printable {
         return toFloat() != v;
     }
 
-    // operator String() const {
-    //     return toString();
-    // }
+    operator String() const {
+        return toString();
+    }
 
     const char* _str = nullptr;
     uint16_t _len = 0;

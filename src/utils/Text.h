@@ -105,7 +105,7 @@ class Text : public Printable {
         return _str;
     }
 
-    explicit inline operator bool() const {
+    inline operator bool() const {
         return valid();
     };
 

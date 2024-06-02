@@ -482,7 +482,7 @@ class Text : public Printable {
             if (start < 0) start += ulen;
             if (end < 0) end += ulen;
         }
-        if (start < 0 || end < 0 || start > _len || end > _len) return Text();
+        if (start < 0 || end < 0 || start > (int16_t)_len || end > (int16_t)_len) return Text();
         return substring(unicodeToPos(start), end ? unicodeToPos(end) : 0);
     }
 

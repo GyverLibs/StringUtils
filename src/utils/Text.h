@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <limits.h>
 
 #include "convert/b64.h"
 #include "convert/convert.h"
@@ -11,6 +12,77 @@ namespace su {
 
 class Text : public Printable {
    public:
+    class Cstr {
+       public:
+        Cstr(Cstr& val) {
+            move(val);
+        }
+        Cstr& operator=(Cstr& val) {
+            move(val);
+            return *this;
+        }
+
+#if __cplusplus >= 201103L
+        Cstr(Cstr&& rval) noexcept {
+            move(rval);
+        }
+        Cstr& operator=(Cstr&& rval) noexcept {
+            move(rval);
+            return *this;
+        }
+#endif
+
+        Cstr(const Text& t) {
+            if (!t.length()) return;
+            if (!t.pgm() && t.terminated()) {
+                str = t.str();
+                len = t.length();
+                return;
+            }
+            char* tstr = new char[t.length() + 1];
+            if (!tstr) return;
+            t.toStr(tstr);
+            str = tstr;
+            len = t.length();
+            del = true;
+        }
+
+        ~Cstr() {
+            reset();
+        }
+
+        operator const char*() const {
+            return str;
+        }
+
+        operator bool() const {
+            return len;
+        }
+
+        void reset() {
+            if (del) delete[] str;
+            str = "";
+            len = 0;
+            del = false;
+        }
+
+       private:
+        const char* str = "";
+        uint16_t len = 0;
+        bool del = false;
+
+        void move(Cstr& val) noexcept {
+            if (this == &val) return;
+            reset();
+            str = val.str;
+            len = val.len;
+            del = val.del;
+            val.str = "";
+            val.del = 0;
+            val.len = 0;
+        }
+    };
+
     enum class Type : uint8_t {
         constChar,  // const char*
         pgmChar,    // PROGMEM
@@ -105,7 +177,7 @@ class Text : public Printable {
         return _str;
     }
 
-    inline operator bool() const {
+    explicit inline operator bool() const {
         return valid();
     };
 
@@ -115,7 +187,7 @@ class Text : public Printable {
     }
 
     // Напечатать в Print
-    size_t printTo(Print& p) const {
+    virtual size_t printTo(Print& p) const {
         if (!length()) return 0;
         size_t ret = 0;
         if (pgm()) {
@@ -487,7 +559,7 @@ class Text : public Printable {
     }
 
     // Добавить к String строке. Вернёт false при неудаче
-    bool addString(String& s) const {
+    virtual bool addString(String& s) const {
         if (!length() || !_len) return 0;
         if (!s.reserve(s.length() + _len)) return 0;
         if (pgm()) {
@@ -575,6 +647,11 @@ class Text : public Printable {
 
     // ========================== CONVERT ==========================
 
+    // получить const char* копию (Cstr конвертируется в const char*). Всегда валидна и терминирована. Если Text из PGM или не терминирован - будет создана временная копия
+    Cstr c_str() const {
+        return Cstr(*this);
+    }
+
     // Вывести в String строку. Вернёт false при неудаче
     bool toString(String& s) const {
         s = "";
@@ -617,6 +694,15 @@ class Text : public Printable {
     // получить значение как bool
     bool toBool() const {
         return valid() && (charAt(0) == 't' || charAt(0) == '1');
+    }
+
+    // получить значение как int
+    int toInt() const {
+#if (UINT_MAX == UINT32_MAX)
+        return toInt32();
+#else
+        return toInt16();
+#endif
     }
 
     // получить значение как int 16
@@ -671,12 +757,12 @@ class Text : public Printable {
     // operator bool() const {
     //     return toBool();
     // }
-    bool operator==(const bool v) const {
-        return toBool() == v;
-    }
-    bool operator!=(const bool v) const {
-        return toBool() != v;
-    }
+    // bool operator==(const bool v) const {
+    //     return toBool() == v;
+    // }
+    // bool operator!=(const bool v) const {
+    //     return toBool() != v;
+    // }
 
     // signed char
     operator signed char() const {
@@ -724,24 +810,24 @@ class Text : public Printable {
 
     // int
     operator int() const {
-        return (sizeof(int) == 2) ? toInt16() : toInt32();
+        return toInt();
     }
     bool operator==(const int v) const {
-        return toInt16() == v;
+        return toInt() == v;
     }
     bool operator!=(const int v) const {
-        return toInt16() != v;
+        return toInt() != v;
     }
 
     // unsigned int
     operator unsigned int() const {
-        return (sizeof(int) == 2) ? toInt16() : toInt32();
+        return toInt();
     }
     bool operator==(const unsigned int v) const {
-        return (unsigned int)toInt16() == v;
+        return (unsigned int)toInt() == v;
     }
     bool operator!=(const unsigned int v) const {
-        return (unsigned int)toInt16() != v;
+        return (unsigned int)toInt() != v;
     }
 
     // long
@@ -813,6 +899,9 @@ class Text : public Printable {
     operator String() const {
         return toString();
     }
+    // operator const char*() const {
+    //     return c_str();
+    // }
 
     const char* _str = nullptr;
     uint16_t _len = 0;

@@ -25,7 +25,7 @@
 <a id="docs"></a>
 
 ## Документация
-### su::Text
+### `Text`
 Класс-обёртка для всех типов строк. Может быть создана в конструкторе из:
 - `"const char"` - строки
 - `char[]` - строки
@@ -43,13 +43,14 @@
 
 ```cpp
 // ====== КОНСТРУКТОР ======
-su::Text(String& str);
-su::Text(const String& str);
-su::Text(const uint8_t* str, uint16_t len);
-su::Text(const char* str, int16_t len = 0, bool pgm = 0);
-su::Text(const __FlashStringHelper* str, int16_t len = 0);
+Text(String& str);
+Text(const String& str);
+Text(const uint8_t* str, uint16_t len);
+Text(const char* str, int16_t len = 0, bool pgm = 0);
+Text(const __FlashStringHelper* str, int16_t len = 0);
 
 // ======== СИСТЕМА ========
+operator bool();                    // Статус строки, существует или нет
 bool valid();                       // Статус строки, существует или нет
 bool pgm();                         // Строка из Flash памяти
 uint16_t length();                  // Длина строки
@@ -149,6 +150,9 @@ Text substringUnicode(int16_t start, int16_t end = 0);
 char charAt(uint16_t idx);
 
 // ======== ВЫВОД. СТРОКИ ========
+// получить const char* копию (Cstr конвертируется в const char*). Всегда валидна и терминирована. Если Text из PGM или не терминирован - будет создана временная копия
+Cstr c_str();
+
 // Получить как String строку
 String toString(bool decodeUnicode = false);
 
@@ -176,6 +180,7 @@ bool decodeB64(void* var, size_t size);
 
 // ======== ВЫВОД. ЧИСЛА ========
 bool toBool();              // получить значение как bool
+int toInt();                // получить значение как int
 int16_t toInt16();          // получить значение как int16
 int32_t toInt32();          // получить значение как int32
 int64_t toInt64();          // получить значение как int64
@@ -200,11 +205,11 @@ uint16_t _len;              // длина
 #### Пример
 ```cpp
 // конструктор
-su::Text v0("-123456");
-su::Text v1 = "-123456";
+Text v0("-123456");
+Text v1 = "-123456";
 v1 = F("-123456");
 String s("abcd");
-su::Text v2(s);
+Text v2(s);
 v2 = s;
 
 // сравнение
@@ -225,13 +230,13 @@ char buf[20];
 v1.toStr(buf);
 
 // парсинг и разделение
-su::Text list("abc/123/def");
+Text list("abc/123/def");
 Serial.println(list.getSub(0, '/')); // abc
 Serial.println(list.getSub(2, '/')); // def
 
 Serial.println(list.substring(4, 6));   // 123
 
-su::Text arr[3];
+Text arr[3];
 list.split(arr, 3, '/');
 Serial.println(arr[0]);
 Serial.println(arr[1]);
@@ -303,16 +308,23 @@ switch (txt.getSub(0, '/').hash()) {
 }
 ```
 
-### su::Value
+#### Вывод как C-строка
+Часто бывает нужно передать `Text` строку в функцию, которая принимает `const char*`. Метод `str()` вернёт указатель на начало строки, но случаях, когда `Text` создан
+- Из PROGMEM строки
+- Из обычной строки с указанием размера, меньшего чем размер оригинальной строки (например любой элемент JSON при парсинге библиотекой GSON)
+
+Такая "строка" не будет являться корректной, потому что имеет несоответствующую длину или область памяти! Для корректной передачи используйте метод `c_str()`: он создаст временную корректную копию строки в тех случаях, когда это нужно (PGM или неполная длина). Например `foo(text.c_str())`. Примечание: этот указатель является **временным** - нельзя передавать строку в функции, которые запоминают указатель на строку вместо того, чтобы скопировать её себе! Примеры: `WiFi.begin(text.c_str())` - можно, функция копирует строку себе. Для библиотеки `PubSubClient` - `client.setServer(text.c_str())` - нельзя, нужно выводить в char буфер или String строку и оставить существовать в области определения клиента. Как это понять: изучать исходник!
+
+### `Value`
 Добавка к `Text`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
 ```cpp
-su::Value(bool value);
-su::Value(char + unsigned value, uint8_t base = DEC);
-su::Value(short + unsigned value, uint8_t base = DEC);
-su::Value(int + unsigned value, uint8_t base = DEC);
-su::Value(long + unsigned value, uint8_t base = DEC);
-su::Value(long long + unsigned value, uint8_t base = DEC);
-su::Value(double value, uint8_t dec = 2);
+Value(bool value);
+Value(char + unsigned value, uint8_t base = DEC);
+Value(short + unsigned value, uint8_t base = DEC);
+Value(int + unsigned value, uint8_t base = DEC);
+Value(long + unsigned value, uint8_t base = DEC);
+Value(long long + unsigned value, uint8_t base = DEC);
+Value(double value, uint8_t dec = 2);
 
 // аналогично с ручным размером буфера
 su::ValueT<размер буфера>();
@@ -320,10 +332,10 @@ su::ValueT<размер буфера>();
 
 #### Пример
 ```cpp
-su::Value v0("-123456");   // все строки также можно
-su::Value v1(123);
-su::Value v2(3.14);
-su::Value v3((uint64_t)12345678987654321);
+Value v0("-123456");   // все строки также можно
+Value v1(123);
+Value v2(3.14);
+Value v3((uint64_t)12345678987654321);
 
 // конвертируется из числа в текст
 v1 = 10;
@@ -334,7 +346,7 @@ Serial.println(v0);         // печатается в Serial
 Serial.println(v1 == v2);   // сравнивается
 
 // сравнивается с любыми строками
-su::Text s("123");
+Text s("123");
 String ss = "123";
 Serial.println(s == "123");
 Serial.println(s == F("123"));
@@ -353,12 +365,17 @@ char buf[v1.length() + 1];  // +1 для '\0'
 v1.toStr(buf);
 ```
 
+> `Text` автоматически сравнивается и конвертируется во все типы, кроме `bool`. Используй `toBool()`. Преобразование к bool показывает существование строки
+
 #### Использование в библиотеках
 На базе `Text` построены следующие библиотеки:
 - [GSON](https://github.com/GyverLibs/GSON)
 - [GyverHub](https://github.com/GyverLibs/GyverHub)
+- [Settings](https://github.com/GyverLibs/Settings)
 - [Pairs](https://github.com/GyverLibs/Pairs)
 - [FastBot2](https://github.com/GyverLibs/FastBot2)
+- [GyverHTTP](https://github.com/GyverLibs/GyverHTTP)
+- [GyverDB](https://github.com/GyverLibs/GyverDB)
 
 ##### Передача текста в функцию
 - Строки любого типа
@@ -400,8 +417,8 @@ void setText(const Text& str) {
 ```cpp
 class MyClass {
     public:
-    su::Text get() {
-        return su::Text(buffer, len);
+    Text get() {
+        return Text(buffer, len);
     }
 
     private:
@@ -415,11 +432,11 @@ Serial.println(s.get());
 
 Вариант с наследованием:
 ```cpp
-class MyClass : public su::Text {
+class MyClass : public Text {
     public:
     void foo() {
-        su::Text::_str = buffer;
-        su::Text::_len = somelen;
+        Text::_str = buffer;
+        Text::_len = somelen;
     }
 
     private:
@@ -432,7 +449,7 @@ Serial.println(s);
 
 Если вместо `Text` использовать `Value` - функция сможет принимать также любые численные данные.
 
-### su::TextList
+### `TextList`
 Разделитель `Text` списков на `Text` подстроки.
 
 #### Статический
@@ -463,7 +480,7 @@ const Text& get(uint16_t idx);
 const Text& operator[](int idx);
 ```
 
-### su::TextParser
+### `TextParser`
 "Потоковый" разделитель `Text` строки на подстроки для работы в цикле
 
 ```cpp
@@ -483,12 +500,12 @@ const Text& get();
 Пример:
 ```cpp
 // for
-for (su::TextParser p("123;456", ';'); p.parse();) {
+for (TextParser p("123;456", ';'); p.parse();) {
     Serial.println(p);
 }
 
 // while
-su::TextParser p("123;456", ';');
+TextParser p("123;456", ';');
 while (p.parse()) {
     Serial.println(p);
 }
@@ -496,10 +513,10 @@ while (p.parse()) {
 
 Пример с вложенными подстроками с разными разделителями:
 ```cpp
-su::Text t("123;456\nabc;def;ghk\n333;444");
+Text t("123;456\nabc;def;ghk\n333;444");
 
-for (su::TextParser row(t, '\n'); row.parse();) {
-    for (su::TextParser col(row, ';'); col.parse();) {
+for (TextParser row(t, '\n'); row.parse();) {
+    for (TextParser col(row, ';'); col.parse();) {
         Serial.print(col);
         Serial.print(',');
     }
@@ -512,7 +529,7 @@ for (su::TextParser row(t, '\n'); row.parse();) {
 // 333,444,
 ```
 
-### su::StringExt/StringStatic
+### `StringExt`/`StringStatic`
 Статический стринг билдер на базе Text, замена [mString](https://github.com/GyverLibs/mString)
 ```cpp
 template <uint16_t cap> StringStatic;
@@ -545,10 +562,10 @@ bool assign(double val, uint8_t dec);
 
 Пример:
 ```cpp
-su::StringStatic<50> s;
+StringStatic<50> s;
 
 // char str[20];
-// su::StringExt s(str, 20);
+// StringExt s(str, 20);
 
 s = F("abc");
 s += "def";
@@ -565,7 +582,7 @@ Serial.println(s);
 Можно дописать существующую строку:
 ```cpp
 char str[20] = "hello"; // len 5
-su::StringExt s(str, 20, 5);
+StringExt s(str, 20, 5);
 s += F(" world!");
 Serial.println(s);
 ```
@@ -574,7 +591,7 @@ Serial.println(s);
 <details>
 <summary>Развернуть</summary>
 
-### su::Parser
+### `su::Parser`
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку, но после завершения возвращает разделители на место.
 
 ```cpp
@@ -599,14 +616,14 @@ while (p.next()) {
 }
 ```
 
-### su::Splitter
+### `Splitter`
 Разделение строки на подстроки по разделителю в цикле. **Изменяет** исходную строку! После удаления объекта строка восстанавливается, либо вручную вызвать `restore()`
 ```cpp
-su::SplitterT<макс. подстрок> spl(String& str, char div = ';');
-su::SplitterT<макс. подстрок> spl(const char* str, char div = ';');
+SplitterT<макс. подстрок> spl(String& str, char div = ';');
+SplitterT<макс. подстрок> spl(const char* str, char div = ';');
 
-su::Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
-su::Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
+Splitter spl(String& str, char div = ';');       // авто-размер (выделяется в heap)
+Splitter spl(const char* str, char div = ';');   // авто-размер (выделяется в heap)
 
 void setDiv(char div);          // установить разделитель
 void restore();                 // восстановить строку (вернуть разделители)
@@ -619,7 +636,7 @@ Text get(uint16_t idx);      // получить подстроку по инд�
 ```cpp
 char buf[] = "123;456;abc";
 
-su::Splitter spl(buf);
+Splitter spl(buf);
 for (uint8_t i = 0; i < spl.length(); i++) {
     Serial.print(i);
     Serial.print(": ");
@@ -629,7 +646,7 @@ for (uint8_t i = 0; i < spl.length(); i++) {
 spl.restore();
 ```
 
-### su::list функции
+### `su::list` функции
 ```cpp
 // Получить количество подстрок в списке
 uint16_t su::list::length(Text list, char div = ';');
@@ -660,7 +677,7 @@ float arr[3];
 su::list::parse(F("3.14;2.54;15.15"), arr, 3);
 ```
 
-### su::List класс
+### `su::List` класс
 Получение подстрок по разделителям **без модификации исходной строки**, работает также с PROGMEM строками.
 ```cpp
 List(Text);
@@ -798,8 +815,8 @@ int L2 = "text"_SL;
 constexpr size_t su::SH(const char* str);           // (String Hash) размер size_t
 constexpr size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
-constexpr size_t operator"" _SH;                    // C++ 11
-constexpr size_t operator"" _SH32;                  // C++ 11
+constexpr size_t operator"" _h;                     // C++ 11
+constexpr size_t operator"" _h32;                   // C++ 11
 
 // считается в рантайме
 size_t su::hash(const char* str, int16_t len = -1);     // Размер зависит от платформы и соответствует size_t
@@ -835,17 +852,17 @@ using su::hash;
 char buf[] = "some_text";
 
 switch (hash(buf)) {
-    case su::SH("abcdef"):      Serial.println(0); break;
-    case su::SH("12345"):       Serial.println(1); break;
-    case su::SH("wrong text"):  Serial.println(2); break;
-    case "some text"_SH:        Serial.println(3); break;
-    case "hello"_SH:            Serial.println(4); break;
-    case "some_text"_SH:        Serial.println(5); break;
+    case SH("abcdef"):      Serial.println(0); break;
+    case SH("12345"):       Serial.println(1); break;
+    case SH("wrong text"):  Serial.println(2); break;
+    case "some text"_h:     Serial.println(3); break;
+    case "hello"_h:         Serial.println(4); break;
+    case "some_text"_h:     Serial.println(5); break;
 }
 ```
 > Один расчёт хэша занимает чуть большее время, чем сравнение со строкой. Но итоговая конструкция из примера выполняется в 2 раза быстрее (на ESP).
 
-> `SH("строки")` в данном примере вообще не попадают в код программы - вместо них подставляется их хэш
+> `SH("строки")` и `"строки"_h` в данном примере вообще не попадают в код программы - вместо них подставляется их хэш
 
 ### Прочие утилиты
 ```cpp
@@ -920,6 +937,7 @@ uint32_t su::getPow10(uint8_t value);
 - 1.4.9 - оптимизация, добавлены короткие функции хеширования
 - 1.4.10 - в Text добавлены decodeUrl и decodeUnicode
 - 1.4.12 - в Text добавлены инструменты для Unicode (substring, indexOf)
+- 1.4.15 - мелкие улучшения, частично "убран" префикс su, в Text добавлен корректный вывод в си-строки с временным буфером
 
 <a id="install"></a>
 

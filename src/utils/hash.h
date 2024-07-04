@@ -74,4 +74,14 @@ constexpr uint32_t operator"" _SH32(const char* str, size_t len) {
 constexpr size_t operator"" _SL(const char* str, size_t len) {
     return len;
 }
+
+constexpr size_t operator"" _h(const char* str, size_t len) {
+    return su::_hash_c<size_t>(str);
+}
+constexpr uint32_t operator"" _h32(const char* str, size_t len) {
+    return su::_hash_c<uint32_t>(str);
+}
+constexpr size_t operator"" _len(const char* str, size_t len) {
+    return len;
+}
 #endif

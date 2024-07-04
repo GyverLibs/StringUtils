@@ -752,149 +752,44 @@ class Text : public Printable {
         }
     }
 
-    // ================= CAST =================
-    // bool
-    // operator bool() const {
-    //     return toBool();
-    // }
-    // bool operator==(const bool v) const {
-    //     return toBool() == v;
-    // }
-    // bool operator!=(const bool v) const {
-    //     return toBool() != v;
-    // }
-
-    // signed char
-    operator signed char() const {
-        return (char)toInt16();
-    }
-    bool operator==(const signed char v) const {
-        return toInt16() == v;
-    }
-    bool operator!=(const signed char v) const {
-        return toInt16() != v;
-    }
-
-    // unsigned char
-    operator unsigned char() const {
-        return toInt16();
-    }
-    bool operator==(const unsigned char v) const {
-        return (unsigned char)toInt16() == v;
-    }
-    bool operator!=(const unsigned char v) const {
-        return (unsigned char)toInt16() != v;
+// ================= CAST =================
+#define T_MAKE_OPERATOR(type, func)       \
+    operator type() const {               \
+        return (type)func();              \
+    }                                     \
+    bool operator==(const type v) const { \
+        return (type)func() == v;         \
+    }                                     \
+    bool operator!=(const type v) const { \
+        return (type)func() != v;         \
+    }                                     \
+    bool operator>(const type v) const {  \
+        return (type)func() > v;          \
+    }                                     \
+    bool operator<(const type v) const {  \
+        return (type)func() < v;          \
+    }                                     \
+    bool operator>=(const type v) const { \
+        return (type)func() >= v;         \
+    }                                     \
+    bool operator<=(const type v) const { \
+        return (type)func() <= v;         \
     }
 
-    // short
-    operator short() const {
-        return toInt16();
-    }
-    bool operator==(const short v) const {
-        return toInt16() == v;
-    }
-    bool operator!=(const short v) const {
-        return toInt16() != v;
-    }
-
-    // unsigned short
-    operator unsigned short() const {
-        return toInt16();
-    }
-    bool operator==(const unsigned short v) const {
-        return (unsigned short)toInt16() == v;
-    }
-    bool operator!=(const unsigned short v) const {
-        return (unsigned short)toInt16() != v;
-    }
-
-    // int
-    operator int() const {
-        return toInt();
-    }
-    bool operator==(const int v) const {
-        return toInt() == v;
-    }
-    bool operator!=(const int v) const {
-        return toInt() != v;
-    }
-
-    // unsigned int
-    operator unsigned int() const {
-        return toInt();
-    }
-    bool operator==(const unsigned int v) const {
-        return (unsigned int)toInt() == v;
-    }
-    bool operator!=(const unsigned int v) const {
-        return (unsigned int)toInt() != v;
-    }
-
-    // long
-    operator long() const {
-        return toInt32();
-    }
-    bool operator==(const long v) const {
-        return toInt32() == v;
-    }
-    bool operator!=(const long v) const {
-        return toInt32() != v;
-    }
-
-    // unsigned long
-    operator unsigned long() const {
-        return toInt32();
-    }
-    bool operator==(const unsigned long v) const {
-        return (unsigned long)toInt32() == v;
-    }
-    bool operator!=(const unsigned long v) const {
-        return (unsigned long)toInt32() != v;
-    }
-
-    // long long
-    operator long long() const {
-        return toInt64();
-    }
-    bool operator==(const long long v) const {
-        return toInt64() == v;
-    }
-    bool operator!=(const long long v) const {
-        return toInt64() != v;
-    }
-
-    // unsigned long long
-    operator unsigned long long() const {
-        return toInt64();
-    }
-    bool operator==(const unsigned long long& v) const {
-        return (unsigned long long)toInt64() == v;
-    }
-    bool operator!=(const unsigned long long& v) const {
-        return (unsigned long long)toInt64() != v;
-    }
-
-    // float
-    operator float() const {
-        return toFloat();
-    }
-    bool operator==(const float v) const {
-        return toFloat() == v;
-    }
-    bool operator!=(const float v) const {
-        return toFloat() != v;
-    }
-
-    // double
-    operator double() const {
-        return toFloat();
-    }
-    bool operator==(const double& v) const {
-        return toFloat() == v;
-    }
-    bool operator!=(const double& v) const {
-        return toFloat() != v;
-    }
+    // T_MAKE_OPERATOR(bool, toBool)
+    T_MAKE_OPERATOR(char, toInt16)
+    T_MAKE_OPERATOR(signed char, toInt16)
+    T_MAKE_OPERATOR(unsigned char, toInt16)
+    T_MAKE_OPERATOR(short, toInt16)
+    T_MAKE_OPERATOR(unsigned short, toInt16)
+    T_MAKE_OPERATOR(int, toInt)
+    T_MAKE_OPERATOR(unsigned int, toInt)
+    T_MAKE_OPERATOR(long, toInt32)
+    T_MAKE_OPERATOR(unsigned long, toInt32)
+    T_MAKE_OPERATOR(long long, toInt64)
+    T_MAKE_OPERATOR(unsigned long long, toInt64)
+    T_MAKE_OPERATOR(float, toFloat)
+    T_MAKE_OPERATOR(double, toFloat)
 
     operator String() const {
         return toString();

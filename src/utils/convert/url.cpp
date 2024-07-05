@@ -63,9 +63,8 @@ void decode(const char* src, uint16_t len, String& dest) {
         if (c != '%') {
             dest += (c == '+') ? ' ' : c;
         } else {
-            if (src == end) return;
+            if (end - src < 2) return;
             char c1 = *src++;
-            if (src == end) return;
             char c2 = *src++;
             dest += char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
         }

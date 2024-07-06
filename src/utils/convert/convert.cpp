@@ -117,9 +117,18 @@ uint8_t floatToStr(double val, char* buf, const uint8_t dec) {
  * @return uint32_t
  */
 uint32_t strToIntHex(const char* str, int8_t len) {
+    if (!str || !*str) return 0;
     uint32_t v = 0;
     if (str[0] == '0' && str[1] == 'x') str += 2;
     while (*str && len) {
+        switch (*str) {
+            case '0' ... '9':
+            case 'a' ... 'f':
+            case 'A' ... 'F':
+                break;
+            default:
+                return v;
+        }
         v <<= 4;
         v += (*str & 0xf) + (*str > '9' ? 9 : 0);
         str++;

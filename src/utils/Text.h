@@ -178,8 +178,8 @@ class Text : public Printable {
     }
 
     explicit inline operator bool() const {
-        return valid();
-    };
+        return _str;
+    }
 
     // строка валидна и оканчивается \0
     bool terminated() const {
@@ -726,6 +726,14 @@ class Text : public Printable {
         if (_len > 2 && _charAt(0) == '0' && _charAt(1) == 'x') i += 2;
         for (; i < _len; i++) {
             char sym = _charAt(i);
+            switch (sym) {
+                case '0' ... '9':
+                case 'a' ... 'f':
+                case 'A' ... 'F':
+                    break;
+                default:
+                    return v;
+            }
             v <<= 4;
             v += (sym & 0xf) + (sym > '9' ? 9 : 0);
         }

@@ -92,23 +92,32 @@ size_t encode(char* out, uint8_t* data, size_t len, bool pgm) {
     return p - out;
 }
 
-void decode(uint8_t* out, const char* data, size_t len) {
-    if (!decodedLen(data, len)) return;
+size_t decode(uint8_t* out, const char* b64, size_t len) {
+    size_t declen = decodedLen(b64, len);
+    if (!declen) return 0;
     size_t val = 0, idx = 0;
     int8_t valb = -8;
     for (size_t i = 0; i < len; i++) {
-        if (data[i] == '=') break;
-        val = (val << 6) + _getByte(data[i]);
+        if (b64[i] == '=') break;
+        val = (val << 6) + _getByte(b64[i]);
         valb += 6;
         if (valb >= 0) {
             out[idx++] = (uint8_t)((val >> valb) & 0xFF);
             valb -= 8;
         }
     }
+    return declen;
 }
 
-void decode(uint8_t* out, const String& data) {
-    decode(out, data.c_str(), data.length());
+size_t decode(char* b64, size_t len) {
+    if (!len) return 0;
+    size_t declen = decode((uint8_t*)b64, b64, len);
+    b64[declen] = 0;
+    return declen;
+}
+
+size_t decode(uint8_t* out, const String& b64) {
+    return decode(out, b64.c_str(), b64.length());
 }
 
 }  // namespace b64

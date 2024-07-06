@@ -745,20 +745,25 @@ char* su::toQwerty(const char* ru, char* qw);
 ### Base64
 ```cpp
 // размер закодированных данных по размеру исходных
-size_t su::b64::encodedLen(size_t len);
+size_t encodedLen(size_t len);
 
 // будущий размер декодированных данных по строке b64 и её длине
-size_t su::b64::decodedLen(const char* b64, size_t len);
+size_t decodedLen(const char* b64, size_t len);
 
 // закодировать данные в String
-void su::b64::encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
+size_t encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
 
 // закодировать данные в char[] (библиотека не добавляет '\0' в конец)
-void su::b64::encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
+size_t encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
+
+// раскодировать данные из строки b64 длиной len в буфер data
+size_t decode(uint8_t* data, const char* b64, size_t len);
+
+// раскодировать данные из строки b64 длиной len в саму себя, добавит 0 на конце
+size_t decode(char* b64, size_t len);
 
 // раскодировать данные из строки b64 в буфер data
-void su::b64::decode(uint8_t* data, const char* b64, size_t len);
-void su::b64::decode(uint8_t* data, const String& b64);
+size_t decode(uint8_t* data, const String& b64);
 ```
 
 ### Unicode

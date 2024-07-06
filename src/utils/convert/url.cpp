@@ -72,6 +72,31 @@ void decode(const char* src, uint16_t len, String& dest) {
 }
 
 // раскодировать url
+size_t decode(char* dest, const char* url, uint16_t len) {
+    if (!len) len = strlen(url);
+    char* out = dest;
+    const char* end = url + len;
+    while (url < end) {
+        char c = *url++;
+        if (c != '%') {
+            *out++ = (c == '+') ? ' ' : c;
+        } else {
+            if (end - url < 2) break;
+            char c1 = *url++;
+            char c2 = *url++;
+            *out++ = char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
+        }
+    }
+    if (url <= end) *out = 0;
+    return out - dest;
+}
+
+// раскодировать url саму в себя
+size_t decode(char* url, uint16_t len) {
+    return decode(url, url, len);
+}
+
+// раскодировать url
 void decode(const String& src, String& dest) {
     decode(src.c_str(), src.length(), dest);
 }

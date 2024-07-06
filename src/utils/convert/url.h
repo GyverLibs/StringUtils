@@ -17,6 +17,12 @@ void encode(const String& src, String& dest);
 String encode(const String& src);
 
 // раскодировать url
+size_t decode(char* dest, const char* url, uint16_t len = 0);
+
+// раскодировать url саму в себя
+size_t decode(char* url, uint16_t len = 0);
+
+// раскодировать url
 void decode(const char* src, uint16_t len, String& dest);
 
 // раскодировать url

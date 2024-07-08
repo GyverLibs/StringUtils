@@ -101,7 +101,6 @@ class Text : public Printable {
     Text(const char* str, int16_t len = -1, bool pgm = 0) : _str(str), _len(len >= 0 ? len : (pgm ? strlen_P(str) : strlen(str ? str : ""))), _type(pgm ? Type::pgmChar : Type::constChar) {}
     Text(const uint8_t* str, uint16_t len) : _str((const char*)str), _len(len) {}
     Text(const String& str) : _str(str.c_str()), _len(str.length()) {}
-    // Text(const String&& str) = delete;
 
     // ========================== SYSTEM ==========================
     // Строка из Flash памяти
@@ -762,6 +761,29 @@ class Text : public Printable {
     }
 
 // ================= CAST =================
+#define T_MAKE_OPERATOR_EXPL(type, func)  \
+    explicit operator type() const {      \
+        return (type)func();              \
+    }                                     \
+    bool operator==(const type v) const { \
+        return (type)func() == v;         \
+    }                                     \
+    bool operator!=(const type v) const { \
+        return (type)func() != v;         \
+    }                                     \
+    bool operator>(const type v) const {  \
+        return (type)func() > v;          \
+    }                                     \
+    bool operator<(const type v) const {  \
+        return (type)func() < v;          \
+    }                                     \
+    bool operator>=(const type v) const { \
+        return (type)func() >= v;         \
+    }                                     \
+    bool operator<=(const type v) const { \
+        return (type)func() <= v;         \
+    }
+
 #define T_MAKE_OPERATOR(type, func)       \
     operator type() const {               \
         return (type)func();              \
@@ -786,7 +808,7 @@ class Text : public Printable {
     }
 
     // T_MAKE_OPERATOR(bool, toBool)
-    T_MAKE_OPERATOR(char, toInt16)
+    T_MAKE_OPERATOR_EXPL(char, toInt16)
     T_MAKE_OPERATOR(signed char, toInt16)
     T_MAKE_OPERATOR(unsigned char, toInt16)
     T_MAKE_OPERATOR(short, toInt16)

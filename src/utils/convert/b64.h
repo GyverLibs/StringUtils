@@ -6,6 +6,9 @@
 namespace su {
 namespace b64 {
 
+char getChar(uint8_t n);
+uint8_t getByte(char b);
+
 // размер закодированных данных по размеру исходных
 size_t encodedLen(size_t len);
 

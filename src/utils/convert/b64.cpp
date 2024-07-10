@@ -17,7 +17,7 @@ static const uint8_t _b64_byte[] PROGMEM = {
     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};
 #endif
 
-static char _getChar(uint8_t n) {
+char getChar(uint8_t n) {
 #ifdef SU_B64_COMPACT
     if (n < 26) return (n + 'A');
     else if (n < 52) return (n - 26 + 'a');
@@ -29,7 +29,7 @@ static char _getChar(uint8_t n) {
 #endif
 }
 
-static uint8_t _getByte(char b) {
+uint8_t getByte(char b) {
 #ifdef SU_B64_COMPACT
     if (b < 43) return 0;
     else if (b == 43) return 62;
@@ -66,11 +66,11 @@ size_t encode(String* out, uint8_t* data, size_t len, bool pgm) {
         val = (val << 8) + (pgm ? pgm_read_byte(&data[i]) : data[i]);
         valb += 8;
         while (valb >= 0) {
-            *out += _getChar((val >> valb) & 0x3F);
+            *out += getChar((val >> valb) & 0x3F);
             valb -= 6;
         }
     }
-    if (valb > -6) *out += _getChar(((val << 8) >> (valb + 8)) & 0x3F);
+    if (valb > -6) *out += getChar(((val << 8) >> (valb + 8)) & 0x3F);
     while ((out->length() - slen) & 3) *out += '=';  // & 3 == % 4
     return out->length() - slen;
 }
@@ -83,11 +83,11 @@ size_t encode(char* out, uint8_t* data, size_t len, bool pgm) {
         val = (val << 8) + (pgm ? pgm_read_byte(&data[i]) : data[i]);
         valb += 8;
         while (valb >= 0) {
-            *p++ = _getChar((val >> valb) & 0x3F);
+            *p++ = getChar((val >> valb) & 0x3F);
             valb -= 6;
         }
     }
-    if (valb > -6) *p++ = _getChar(((val << 8) >> (valb + 8)) & 0x3F);
+    if (valb > -6) *p++ = getChar(((val << 8) >> (valb + 8)) & 0x3F);
     while ((p - out) & 3) *p++ = '=';  // & 3 == % 4
     return p - out;
 }
@@ -99,7 +99,7 @@ size_t decode(uint8_t* out, const char* b64, size_t len) {
     int8_t valb = -8;
     for (size_t i = 0; i < len; i++) {
         if (b64[i] == '=') break;
-        val = (val << 6) + _getByte(b64[i]);
+        val = (val << 6) + getByte(b64[i]);
         valb += 6;
         if (valb >= 0) {
             out[idx++] = (uint8_t)((val >> valb) & 0xFF);

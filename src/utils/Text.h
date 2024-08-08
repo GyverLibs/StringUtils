@@ -32,9 +32,9 @@ class Text : public Printable {
         }
 #endif
 
-        Cstr(const Text& t) {
+        Cstr(const Text& t, bool forceDup = false) {
             if (!t.length()) return;
-            if (!t.pgm() && t.terminated()) {
+            if (!t.pgm() && t.terminated() && !forceDup) {
                 str = t.str();
                 len = t.length();
                 return;
@@ -64,6 +64,10 @@ class Text : public Printable {
             str = "";
             len = 0;
             del = false;
+        }
+
+        uint16_t length() {
+            return len;
         }
 
        private:
@@ -648,8 +652,8 @@ class Text : public Printable {
     // ========================== CONVERT ==========================
 
     // получить const char* копию (Cstr конвертируется в const char*). Всегда валидна и терминирована. Если Text из PGM или не терминирован - будет создана временная копия
-    Cstr c_str() const {
-        return Cstr(*this);
+    Cstr c_str(bool forceDup = false) const {
+        return Cstr(*this, forceDup);
     }
 
     // Вывести в String строку. Вернёт false при неудаче

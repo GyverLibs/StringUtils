@@ -610,12 +610,14 @@ class Text : public Printable {
         return url::decode(_str, _len);
     }
 
-    // Получить символ по индексу
-    char charAt(uint16_t idx) const {
+    // Получить символ по индексу. Допускаются отрицательные
+    char charAt(int idx) const {
+        if (idx < 0) idx += length();
+        if (idx < 0) return 0;
         return (valid() && idx < _len) ? _charAt(idx) : 0;
     }
 
-    // Получить символ по индексу
+    // Получить символ по индексу. Допускаются отрицательные
     char operator[](int idx) const {
         return charAt(idx);
     }

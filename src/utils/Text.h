@@ -55,7 +55,7 @@ class Text : public Printable {
             return str;
         }
 
-        operator bool() const {
+        explicit operator bool() const {
             return len;
         }
 

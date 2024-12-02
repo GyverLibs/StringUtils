@@ -170,6 +170,11 @@ class Text : public Printable {
     const char* str() const {
         return valid() ? _str : "";
     }
+    
+    // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
+    const uint8_t* bytes() const {
+        return (const uint8_t*)(valid() ? _str : "");
+    }
 
     // указатель на конец строки
     const char* end() const {

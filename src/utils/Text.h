@@ -614,7 +614,7 @@ class Text : public Printable {
     char charAt(int idx) const {
         if (idx < 0) idx += length();
         if (idx < 0) return 0;
-        return (valid() && idx < _len) ? _charAt(idx) : 0;
+        return (valid() && (uint16_t)idx < _len) ? _charAt(idx) : 0;
     }
 
     // Получить символ по индексу. Допускаются отрицательные

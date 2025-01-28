@@ -849,6 +849,11 @@ size_t su::hash_P(PGM_P str, int16_t len = -1);         // PROGMEM строка,
 uint32_t su::hash32_P(PGM_P str, int16_t len = -1);     // PROGMEM строка, размер 32 бит
 ```
 
+Новый макрос (начиная с библиотеки v1.4.30)
+```cpp
+H(key);  // равносильно SH("key") и "key"_h
+```
+
 > На ESP-платах `_SH`, `SH`, `hash` и `hash_P` по умолчанию являются 32-битными!
 
 По проведённому тесту 32-битная версия хэша имеет 7 коллизий из 234450 английских слов, 16-битная версия - 170723 коллизий (что есть 73% - чисто статистическое количество коллизий из расчёта 16 бит - 65536 значений)
@@ -869,9 +874,6 @@ else if (!strcmp_P(buf, PSTR("some_text"))) Serial.println(5);
 
 Способ с хэшем строки:
 ```cpp
-using su::SH;
-using su::hash;
-
 char buf[] = "some_text";
 
 switch (hash(buf)) {
@@ -880,7 +882,7 @@ switch (hash(buf)) {
     case SH("wrong text"):  Serial.println(2); break;
     case "some text"_h:     Serial.println(3); break;
     case "hello"_h:         Serial.println(4); break;
-    case "some_text"_h:     Serial.println(5); break;
+    case H(some_text):      Serial.println(5); break;
 }
 ```
 > Один расчёт хэша занимает чуть большее время, чем сравнение со строкой. Но итоговая конструкция из примера выполняется в 2 раза быстрее (на ESP).

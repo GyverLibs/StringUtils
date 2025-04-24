@@ -2,10 +2,10 @@
 #include <Arduino.h>
 #include <limits.h>
 
-#include "convert/b64.h"
-#include "convert/convert.h"
-#include "convert/unicode.h"
-#include "convert/url.h"
+#include "./convert/b64.h"
+#include "./convert/convert.h"
+#include "./convert/unicode.h"
+#include "./convert/url.h"
 #include "hash.h"
 
 namespace su {

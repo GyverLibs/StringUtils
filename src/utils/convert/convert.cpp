@@ -2,6 +2,8 @@
 
 namespace su {
 
+uint8_t _swapBuf(char* p, char* buf);
+
 // быстрое возведение 10 в степень
 uint32_t getPow10(const uint8_t value) {
     switch (value) {
@@ -70,7 +72,7 @@ uint16_t strlenRu(const char* str) {
     uint16_t count = 0;
     while (*str) {
         if ((*str & 0xc0) != 0x80) count++;
-        str++;
+        ++str;
     }
     return count;
 }
@@ -131,8 +133,8 @@ uint32_t strToIntHex(const char* str, int8_t len) {
         }
         v <<= 4;
         v += (*str & 0xf) + (*str > '9' ? 9 : 0);
-        str++;
-        if (len > 0) len--;
+        ++str;
+        if (len > 0) --len;
     }
     return v;
 }
@@ -161,7 +163,7 @@ struct _fdiv10 {
         uint32_t qq = quot;
         quot >>= 3;
         rem = uint8_t(num - ((quot << 1) + (qq & ~7ul)));
-        if (rem > 9) rem -= 10, quot++;
+        if (rem > 9) rem -= 10, ++quot;
     }
     uint32_t quot;
     uint8_t rem;
@@ -190,17 +192,8 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
-    uint8_t len = p - buf;
-    p--;
-    char b;
-    while (p > buf) {
-        b = *buf;
-        *buf = *p;
-        *p = b;
-        buf++;
-        p--;
-    }
-    return len;
+
+    return _swapBuf(p, buf);
 }
 
 /**
@@ -228,6 +221,8 @@ uint8_t intToStr(int32_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
+    if (n <= UINT32_MAX) return uintToStr(n, buf, base);
+
     char* p = buf;
     if (base == DEC) {
         do {
@@ -242,17 +237,8 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
-    uint8_t len = p - buf;
-    p--;
-    char b;
-    while (p > buf) {
-        b = *buf;
-        *buf = *p;
-        *p = b;
-        buf++;
-        p--;
-    }
-    return len;
+
+    return _swapBuf(p, buf);
 }
 
 /**
@@ -264,6 +250,11 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base) {
+    switch (n) {
+        case INT32_MIN ...(-1): return intToStr(n, buf, base);
+        case 0 ... UINT32_MAX: return uintToStr(n, buf, base);
+    }
+    
     char* p = buf;
     if (n < 0) *p++ = '-';
     p += uint64ToStr((n < 0) ? -n : n, p, base);
@@ -289,6 +280,20 @@ float strToFloat_P(PGM_P s) {
         f += (float)strToInt_P<int32_t>(d + 1) / getPow10(strchr(d, 0) - d - 1);
     }
     return f;
+}
+
+uint8_t _swapBuf(char* p, char* buf) {
+    uint8_t len = p - buf;
+    p--;
+    char b;
+    while (p > buf) {
+        b = *buf;
+        *buf = *p;
+        *p = b;
+        ++buf;
+        --p;
+    }
+    return len;
 }
 
 }  // namespace su

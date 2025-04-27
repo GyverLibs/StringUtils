@@ -12,169 +12,182 @@
 
 namespace su {
 
-// с указанием размера буфера
-template <uint8_t bufsize = SU_ANYVALUE_BUF_LEN>
-class ValueT : public Text {
+class Value : public Text {
    public:
     using Text::Text;
 
-    ValueT() {
-        _str = buf;
-        _type = Type::value;
+    Value() {
+        _init();
     }
 
-    ValueT(const Text& value) : Text(value) {}
+    Value(const Text& value) : Text(value) {}
 
-    ValueT(bool value) : ValueT() {
+    Value(bool value) : Value() {
         buf[0] = value ? '1' : '0';
         buf[1] = 0;
         _len = 1;
     }
 
-    ValueT(char value) : ValueT() {
+    Value(char value) : Value() {
         buf[0] = value;
         buf[1] = 0;
         _len = 1;
     }
-    ValueT(unsigned char value, uint8_t base = DEC) : ValueT() {
+    Value(unsigned char value, uint8_t base = DEC) : Value() {
         _len = intToStr(value, buf, base);
     }
 
-    ValueT(short value, uint8_t base = DEC) : ValueT() {
+    Value(short value, uint8_t base = DEC) : Value() {
         _len = intToStr(value, buf, base);
     }
-    ValueT(unsigned short value, uint8_t base = DEC) : ValueT() {
+    Value(unsigned short value, uint8_t base = DEC) : Value() {
         _len = uintToStr(value, buf, base);
     }
 
-    ValueT(int value, uint8_t base = DEC) : ValueT() {
+    Value(int value, uint8_t base = DEC) : Value() {
         _len = intToStr(value, buf, base);
     }
-    ValueT(unsigned int value, uint8_t base = DEC) : ValueT() {
+    Value(unsigned int value, uint8_t base = DEC) : Value() {
         _len = uintToStr(value, buf, base);
     }
 
-    ValueT(long value, uint8_t base = DEC) : ValueT() {
+    Value(long value, uint8_t base = DEC) : Value() {
         _len = intToStr(value, buf, base);
     }
-    ValueT(unsigned long value, uint8_t base = DEC) : ValueT() {
+    Value(unsigned long value, uint8_t base = DEC) : Value() {
         _len = uintToStr(value, buf, base);
     }
 
-    ValueT(long long value, uint8_t base = DEC) : ValueT() {
-        switch (value) {
-            case INT32_MIN ...(-1): _len = intToStr(value, buf, base); break;
-            case 0 ... UINT32_MAX: _len = uintToStr(value, buf, base); break;
-            default: _len = int64ToStr(value, buf, base); break;
-        }
+    Value(long long value, uint8_t base = DEC) : Value() {
+        _len = int64ToStr(value, buf, base);
     }
-    ValueT(unsigned long long value, uint8_t base = DEC) : ValueT() {
-        switch (value) {
-            case 0 ... UINT32_MAX: _len = uintToStr(value, buf, base); break;
-            default: _len = uint64ToStr(value, buf, base); break;
-        }
+    Value(unsigned long long value, uint8_t base = DEC) : Value() {
+        _len = uint64ToStr(value, buf, base);
     }
 
-    ValueT(double value, uint8_t dec = 2) : ValueT() {
+    Value(double value, uint8_t dec = 2) : Value() {
         _len = floatToStr(value, buf, dec);
     }
 
     // assign
-    ValueT& operator=(bool value) {
+    Value& operator=(const Text& v) {
+        _len = v._len;
+        _type = v._type;
+        _str = v._str;
+        return *this;
+    }
+
+    Value& operator=(bool value) {
         buf[0] = value ? '1' : '0';
         buf[1] = 0;
         _len = 1;
+        _init();
         return *this;
     }
 
-    ValueT& operator=(char value) {
+    Value& operator=(char value) {
         buf[0] = value;
         buf[1] = 0;
         _len = 1;
+        _init();
         return *this;
     }
-    ValueT& operator=(unsigned char value) {
+    Value& operator=(unsigned char value) {
         _len = intToStr(value, buf, DEC);
+        _init();
         return *this;
     }
 
-    ValueT& operator=(short value) {
+    Value& operator=(short value) {
         _len = intToStr(value, buf, DEC);
+        _init();
         return *this;
     }
-    ValueT& operator=(unsigned short value) {
+    Value& operator=(unsigned short value) {
         _len = uintToStr(value, buf, DEC);
+        _init();
         return *this;
     }
 
-    ValueT& operator=(int value) {
+    Value& operator=(int value) {
         _len = intToStr(value, buf, DEC);
+        _init();
         return *this;
     }
-    ValueT& operator=(unsigned int value) {
+    Value& operator=(unsigned int value) {
         _len = uintToStr(value, buf, DEC);
+        _init();
         return *this;
     }
 
-    ValueT& operator=(long value) {
+    Value& operator=(long value) {
         _len = intToStr(value, buf, DEC);
+        _init();
         return *this;
     }
-    ValueT& operator=(unsigned long value) {
+    Value& operator=(unsigned long value) {
         _len = uintToStr(value, buf, DEC);
+        _init();
         return *this;
     }
 
-    ValueT& operator=(long long value) {
-        switch (value) {
-            case INT32_MIN ...(-1): _len = intToStr(value, buf, DEC); break;
-            case 0 ... UINT32_MAX: _len = uintToStr(value, buf, DEC); break;
-            default: _len = int64ToStr(value, buf, DEC); break;
-        }
+    Value& operator=(long long value) {
+        _len = int64ToStr(value, buf, DEC);
+        _init();
         return *this;
     }
-    ValueT& operator=(unsigned long long value) {
-        switch (value) {
-            case 0 ... UINT32_MAX: _len = uintToStr(value, buf, DEC); break;
-            default: _len = uint64ToStr(value, buf, DEC); break;
-        }
+    Value& operator=(unsigned long long value) {
+        _len = uint64ToStr(value, buf, DEC);
+        _init();
         return *this;
     }
 
-    ValueT& operator=(double value) {
+    Value& operator=(double value) {
         _len = floatToStr(value, buf, 2);
+        _init();
         return *this;
     }
 
     // copy
-    ValueT(const ValueT& v) : ValueT() {
+    Value(const Value& v) : Value() {
         _copy(v);
     }
-    ValueT(ValueT&& v) : ValueT() {
+    Value(Value&& v) : Value() {
         _copy(v);
     }
-    ValueT& operator=(const ValueT& v) {
+    Value& operator=(const Value& v) {
         _copy(v);
         return *this;
     }
-    ValueT& operator=(ValueT&& v) {
+    Value& operator=(Value&& v) {
         _copy(v);
         return *this;
     }
 
    protected:
-    char buf[bufsize] = {0};
+    char buf[SU_ANYVALUE_BUF_LEN] = {0};
 
    private:
-    void _copy(const ValueT& v) {
-        memcpy(buf, v.buf, v._len);
+    void _copy(const Value& v) {
+        if (v._type == Type::value) {
+            memcpy(buf, v.buf, v._len);
+            _init();
+        } else {
+            _type = v._type;
+            _str = v._str;
+        }
         _len = v._len;
+    }
+    void _init() {
+        _str = buf;
+        _type = Type::value;
     }
 };
 
-// размер буфера общий для всех экземпляров и задаётся дефайном SU_ANYVALUE_BUF_LEN
-class Value : public ValueT<> {
-    using ValueT<SU_ANYVALUE_BUF_LEN>::ValueT;
-};
+// // размер буфера общий для всех экземпляров и задаётся дефайном SU_ANYVALUE_BUF_LEN
+// class Value : public Value<SU_ANYVALUE_BUF_LEN> {
+//    public:
+//     using Value<SU_ANYVALUE_BUF_LEN>::Value;
+// };
 
 }  // namespace su

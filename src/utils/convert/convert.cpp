@@ -94,8 +94,11 @@ uint8_t intLen(const int32_t val) {
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(const double& val, const uint8_t dec) {
+uint8_t floatLen(float val, const uint8_t dec) {
     return intLen((int32_t)val) + (dec ? (dec + 1) : 0);
+}
+uint8_t floatLenNanInf(float val, const uint8_t dec) {
+    return (isnan(val) || isinf(val)) ? 3 : floatLen(val, dec);
 }
 
 /**
@@ -106,9 +109,31 @@ uint8_t floatLen(const double& val, const uint8_t dec) {
  * @param dec кол-во знаков после точки
  * @return uint8_t длина полученной строки
  */
-uint8_t floatToStr(double val, char* buf, const uint8_t dec) {
-    dtostrf(val, dec + 2, dec, buf);
+uint8_t floatToStr(float val, char* buf, const uint8_t dec) {
+    dtostrf(val, dec ? dec + 2 : 1, dec, buf);
     return floatLen(val, dec);
+}
+
+uint8_t floatToStrFast(float val, char* buf, uint8_t dec) {
+    char* p = buf;
+    if (val < 0) {
+        *p++ = '-';
+        val = -val;
+    }
+    p += uintToStr(val, p);
+    if (dec) {
+        *p++ = '.';
+        p += dec;
+        char* pp = p;
+        uint32_t f = (val - uint32_t(val)) * getPow10(dec);
+        fdiv10 div;
+        while (dec--) {
+            f = div.div10(f);
+            *(--pp) = div.rem + '0';
+        }
+    }
+    *p = 0;
+    return p - buf;
 }
 
 /**
@@ -152,23 +177,6 @@ uint8_t charSize(const char sym) {
     else return 0;
 }
 
-// http://we.easyelectronics.ru/Soft/preobrazuem-v-stroku-chast-1-celye-chisla.html
-struct _fdiv10 {
-    _fdiv10(uint32_t num) {
-        quot = num >> 1;
-        quot += quot >> 1;
-        quot += quot >> 4;
-        quot += quot >> 8;
-        quot += quot >> 16;
-        uint32_t qq = quot;
-        quot >>= 3;
-        rem = uint8_t(num - ((quot << 1) + (qq & ~7ul)));
-        if (rem > 9) rem -= 10, ++quot;
-    }
-    uint32_t quot;
-    uint8_t rem;
-};
-
 /**
  * @brief Быстрая конвертация числа в char* массив (в 3-8 раз быстрее ltoa)
  *
@@ -180,10 +188,10 @@ struct _fdiv10 {
 uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
     char* p = buf;
     if (base == DEC) {
+        fdiv10 div;
         do {
-            _fdiv10 res(n);
-            n = res.quot;
-            *p++ = res.rem + '0';
+            n = div.div10(n);
+            *p++ = div.rem + '0';
         } while (n);
     } else {
         do {
@@ -192,7 +200,7 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
-
+    *p = 0;
     return _swapBuf(p, buf);
 }
 
@@ -205,11 +213,8 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t intToStr(int32_t n, char* buf, const uint8_t base) {
-    char* p = buf;
-    if (n < 0 && base == DEC) *p++ = '-';
-    p += uintToStr((n < 0 && base == DEC) ? -n : n, p, base);
-    *p = 0;
-    return p - buf;
+    if (n < 0 && base == DEC) *buf++ = '-';
+    return uintToStr((n < 0 && base == DEC) ? -n : n, buf, base) + (n < 0);
 }
 
 /**
@@ -237,7 +242,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
-
+    *p = 0;
     return _swapBuf(p, buf);
 }
 
@@ -254,12 +259,9 @@ uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base) {
         case INT32_MIN ...(-1): return intToStr(n, buf, base);
         case 0 ... UINT32_MAX: return uintToStr(n, buf, base);
     }
-    
-    char* p = buf;
-    if (n < 0) *p++ = '-';
-    p += uint64ToStr((n < 0) ? -n : n, p, base);
-    *p = 0;
-    return p - buf;
+
+    if (n < 0 && base == DEC) *buf++ = '-';
+    return uint64ToStr((n < 0) ? -n : n, buf, base) + (n < 0);
 }
 
 // конвертация из строки во float
@@ -284,7 +286,7 @@ float strToFloat_P(PGM_P s) {
 
 uint8_t _swapBuf(char* p, char* buf) {
     uint8_t len = p - buf;
-    p--;
+    --p;
     char b;
     while (p > buf) {
         b = *buf;

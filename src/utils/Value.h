@@ -33,8 +33,11 @@ class Value : public Text {
         buf[1] = 0;
         _len = 1;
     }
-    Value(unsigned char value, uint8_t base = DEC) : Value() {
+    Value(signed char value, uint8_t base = DEC) : Value() {
         _len = intToStr(value, buf, base);
+    }
+    Value(unsigned char value, uint8_t base = DEC) : Value() {
+        _len = uintToStr(value, buf, base);
     }
 
     Value(short value, uint8_t base = DEC) : Value() {
@@ -92,8 +95,13 @@ class Value : public Text {
         _init();
         return *this;
     }
-    Value& operator=(unsigned char value) {
+    Value& operator=(signed char value) {
         _len = intToStr(value, buf, DEC);
+        _init();
+        return *this;
+    }
+    Value& operator=(unsigned char value) {
+        _len = uintToStr(value, buf, DEC);
         _init();
         return *this;
     }

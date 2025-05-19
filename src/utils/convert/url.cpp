@@ -3,7 +3,15 @@
 namespace su {
 namespace url {
 
-// символ должен быть urlencoded
+static inline char _encodeNibble(uint8_t b) {
+    return b + ((b > 9) ? 55 : '0');
+}
+static inline uint8_t _decodeNibble(char c) {
+    return c - ((c <= '9') ? '0' : ((c <= 'F') ? 55 : 87));
+}
+
+// ====================
+
 bool needsEncode(char c) {
     switch (c) {
         case '0' ... '9':
@@ -15,104 +23,179 @@ bool needsEncode(char c) {
         case '~':
             // case '!': case '+': case ',':
             // case '*': case ':': case '@':
-            return 0;
+            return false;
     }
-    return 1;
+    return true;
 }
 
-// закодировать в url. Можно указать len = 0, если неизвестна
-void encode(const char* src, uint16_t len, String& dest) {
-    if (!len) len = strlen(src);
-    dest.reserve(len);
-    const char* end = src + len;
-    while (src < end) {
-        char c = *src++;
+// ====================
+
+size_t encodedLen(const char* str) {
+    return encodedLen(str, strlen(str));
+}
+size_t encodedLen(const char* str, size_t len) {
+    size_t elen = 0;
+    while (len--) elen += needsEncode(*str++) ? 3 : 1;
+    return elen;
+}
+
+// ====================
+
+size_t encode(char* url, const char* str, size_t len) {
+    char* w = url;
+    while (len--) {
+        char c = *str++;
         if (needsEncode(c)) {
-            dest += '%';
-            dest += (char)((c >> 4) + (((c >> 4) > 9) ? 55 : '0'));
-            dest += (char)((c & 0xF) + (((c & 0xF) > 9) ? 55 : '0'));
+            *w++ = '%';
+            *w++ = _encodeNibble(c >> 4);
+            *w++ = _encodeNibble(c & 0xF);
         } else {
-            dest += c;
+            *w++ = c;
+        }
+    }
+    return w - url;
+}
+size_t encode(char* url, const char* str) {
+    return encode(url, str, strlen(str));
+}
+
+//
+
+void encode(String& url, const char* str, size_t len) {
+    url.reserve(url.length() + len);
+    while (len--) {
+        char c = *str++;
+        if (needsEncode(c)) {
+            url += '%';
+            url += _encodeNibble(c >> 4);
+            url += _encodeNibble(c & 0xF);
+        } else {
+            url += c;
         }
     }
 }
-
-// закодировать в url
-void encode(const String& src, String& dest) {
-    encode(src.c_str(), src.length(), dest);
+void encode(String& url, const char* str) {
+    encode(url, str, strlen(str));
+}
+void encode(String* url, const char* str) {
+    encode(*url, str);
+}
+void encode(String* url, const char* str, size_t len) {
+    encode(*url, str, len);
 }
 
-// закодировать в url
-String encode(const String& src) {
-    String dest;
-    encode(src, dest);
-    return dest;
+String encode(const char* str, size_t len) {
+    String url;
+    encode(url, str, len);
+    return url;
+}
+String encode(const char* str) {
+    return encode(str, strlen(str));
 }
 
-static uint8_t _decodeNibble(char c) {
-    return c - ((c <= '9') ? '0' : ((c <= 'F') ? 55 : 87));
+String encode(const String& str) {
+    String url;
+    encode(url, str.c_str(), str.length());
+    return url;
 }
 
-// раскодировать url
-void decode(const char* src, uint16_t len, String& dest) {
-    if (!len) len = strlen(src);
-    dest.reserve(len);
-    const char* end = src + len;
-    while (src < end) {
-        char c = *src++;
-        if (c != '%') {
-            dest += (c == '+') ? ' ' : c;
-        } else {
-            if (end - src < 2) return;
-            char c1 = *src++;
-            char c2 = *src++;
-            dest += char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
-        }
+// ====================
+
+size_t decodedLen(const char* url) {
+    return decodedLen(url, strlen(url));
+}
+size_t decodedLen(const char* url, size_t len) {
+    size_t dlen = 0;
+    while (len > 0) {
+        if (*url == '%') len -= 3, url += 3;
+        else --len, ++url;
+        ++dlen;
     }
+    return dlen;
 }
 
-// раскодировать url
-size_t decode(char* dest, const char* url, uint16_t len) {
-    if (!len) len = strlen(url);
-    char* out = dest;
-    const char* end = url + len;
-    while (url < end) {
+// ====================
+
+size_t decode(char* str, const char* url, size_t len) {
+    char* w = str;
+    while (len-- > 0) {
         char c = *url++;
         if (c != '%') {
-            *out++ = (c == '+') ? ' ' : c;
+            *w++ = (c == '+') ? ' ' : c;
         } else {
-            if (end - url < 2) break;
-            char c1 = *url++;
-            char c2 = *url++;
-            *out++ = char(_decodeNibble(c2) | (_decodeNibble(c1) << 4));
+            if (len < 2) break;
+            *w++ = char(_decodeNibble(url[1]) | (_decodeNibble(url[0]) << 4));
+            url += 2;
+            len -= 2;
         }
     }
-    if (url <= end) *out = 0;
-    return out - dest;
+    return w - str;
+}
+size_t decode(char* str, const char* url) {
+    return decode(str, url, strlen(url));
 }
 
-// раскодировать url саму в себя
-size_t decode(char* url, uint16_t len) {
+//
+
+size_t decode(String& str, const char* url, size_t len) {
+    if (len < 0) len = strlen(url);
+    str.reserve(len);
+    while (len-- > 0) {
+        char c = *url++;
+        if (c != '%') {
+            str += (c == '+') ? ' ' : c;
+        } else {
+            if (len < 2) break;
+            str += char(_decodeNibble(url[1]) | (_decodeNibble(url[0]) << 4));
+            url += 2;
+            len -= 2;
+        }
+    }
+    return str.length();
+}
+size_t decode(String& str, const char* url) {
+    return decode(str, url, strlen(url));
+}
+size_t decode(String* str, const char* url) {
+    return decode(*str, url);
+}
+size_t decode(String* str, const char* url, size_t len) {
+    return decode(*str, url, len);
+}
+
+String decode(const char* url, size_t len) {
+    String str;
+    decode(str, url, len);
+    return str;
+}
+String decode(const char* url) {
+    return decode(url, strlen(url));
+}
+String decode(const String& url) {
+    String str;
+    decode(str, url.c_str(), url.length());
+    return str;
+}
+
+size_t decodeSelf(char* url) {
+    return decode(url, url, strlen(url));
+}
+size_t decodeSelf(char* url, size_t len) {
     return decode(url, url, len);
 }
 
-// раскодировать url
+/////////////////////////////////////////
+size_t decode(const char* url, int16_t len, String& str) {
+    return decode(str, url, len);
+}
 void decode(const String& src, String& dest) {
     decode(src.c_str(), src.length(), dest);
 }
-
-// раскодировать url
-String decode(const String& src) {
-    String dest;
-    decode(src.c_str(), src.length(), dest);
-    return dest;
+void encode(const char* str, uint16_t len, String& url) {
+    encode(url, str, len);
 }
-
-// раскодировать url
-String decode(const char* src, uint16_t len) {
-    String dest;
-    decode(src, len, dest);
-    return dest;
+void encode(const String& str, String& url) {
+    encode(str.c_str(), str.length(), url);
 }
 
 }  // namespace url

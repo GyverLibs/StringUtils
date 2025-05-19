@@ -82,7 +82,7 @@ void testCast(const char* str) {
     uint32_t u32 = txt;
     // int64_t i64 = txt;
     // uint64_t u64 = txt;
-    bool b = txt;
+    // bool b = txt;
     float f = txt;
     double d = txt;
     String S = txt;
@@ -95,7 +95,7 @@ void testCast(const char* str) {
     Serial.println(String("uint32_t: ") + u32);
     // Serial.println(String("int64_t: ") + i64);
     // Serial.println(String("uint64_t: ") + u64);
-    Serial.println(String("bool: ") + b);
+    // Serial.println(String("bool: ") + b);
     Serial.println(String("float: ") + f);
     Serial.println(String("double: ") + d);
     Serial.println(String("String: ") + S);

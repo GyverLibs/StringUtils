@@ -3,6 +3,26 @@
 
 namespace su {
 
+// быстрое деление на 10
+// http://we.easyelectronics.ru/Soft/preobrazuem-v-stroku-chast-1-celye-chisla.html
+struct fdiv10 {
+    uint32_t div10(uint32_t num) {
+        quot = num >> 1;
+        quot += quot >> 1;
+        quot += quot >> 4;
+        quot += quot >> 8;
+        quot += quot >> 16;
+        uint32_t qq = quot;
+        quot >>= 3;
+        rem = uint8_t(num - ((quot << 1) + (qq & ~7ul)));
+        if (rem > 9) rem -= 10, ++quot;
+        return quot;
+    }
+
+    uint32_t quot = 0;
+    uint8_t rem = 0;
+};
+
 // быстрое возведение 10 в степень
 uint32_t getPow10(const uint8_t value);
 
@@ -35,7 +55,8 @@ uint8_t intLen(const int32_t val);
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(const double& val, const uint8_t dec);
+uint8_t floatLen(float val, const uint8_t dec);
+uint8_t floatLenNanInf(float val, const uint8_t dec);
 
 /**
  * @brief Преобразовать строку в целое число
@@ -50,11 +71,11 @@ T strToInt(const char* str, const uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;
-    if (*p == '-') n = 1, p++;
+    if (*p == '-') n = 1, ++p;
     while (1) {
         if (!*p || *p < '0' || *p > '9' || (len && p - str >= len)) break;
         v = v * 10 + (*p & 0xF);
-        p++;
+        ++p;
     }
     return n ? -v : v;
 }
@@ -72,7 +93,7 @@ T strToInt_P(const char* str, const uint8_t len = 0) {
     T v = 0;
     bool n = 0;
     const char* p = str;
-    if ((char)pgm_read_byte(p) == '-') n = 1, p++;
+    if ((char)pgm_read_byte(p) == '-') n = 1, ++p;
     while (1) {
         char c = (char)pgm_read_byte(p++);
         if (!c || c < '0' || c > '9' || (len && p - str > len)) break;
@@ -89,7 +110,9 @@ T strToInt_P(const char* str, const uint8_t len = 0) {
  * @param dec кол-во знаков после точки
  * @return uint8_t длина полученной строки
  */
-uint8_t floatToStr(double val, char* buf, const uint8_t dec);
+uint8_t floatToStr(float val, char* buf, const uint8_t dec);
+
+uint8_t floatToStrFast(float val, char* buf, uint8_t dec);
 
 /**
  * @brief Преобразовать HEX строку в целое число

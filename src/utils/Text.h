@@ -6,7 +6,7 @@
 #include "./convert/convert.h"
 #include "./convert/unicode.h"
 #include "./convert/url.h"
-#include "hash.h"
+#include "./hash.h"
 
 namespace su {
 
@@ -122,7 +122,7 @@ class Text : public Printable {
         if (!length()) return 0;
         uint16_t count = 0;
         for (uint16_t i = 0; i < _len; i++) {
-            if ((_charAt(i) & 0xc0) != 0x80) count++;
+            if ((_charAt(i) & 0xc0) != 0x80) ++count;
         }
         return count;
     }
@@ -134,7 +134,7 @@ class Text : public Printable {
         for (uint16_t i = 0; i < _len; i++) {
             if ((_charAt(i) & 0xc0) != 0x80) {
                 if (!upos) return i;
-                else upos--;
+                else --upos;
             }
         }
         return 0;
@@ -146,7 +146,7 @@ class Text : public Printable {
 
         uint16_t u = 0;
         for (uint16_t i = 0; i < pos; i++) {
-            if ((_charAt(i) & 0xc0) != 0x80) u++;
+            if ((_charAt(i) & 0xc0) != 0x80) ++u;
         }
         return u;
     }
@@ -170,7 +170,7 @@ class Text : public Printable {
     const char* str() const {
         return valid() ? _str : "";
     }
-    
+
     // Получить указатель на строку. Всегда вернёт указатель, отличный от nullptr!
     const uint8_t* bytes() const {
         return (const uint8_t*)(valid() ? _str : "");
@@ -395,7 +395,7 @@ class Text : public Printable {
         if (!length()) return 0;
         uint16_t sum = 1;
         for (uint16_t i = 0; i < _len; i++) {
-            if (_charAt(i) == sym) sum++;
+            if (_charAt(i) == sym) ++sum;
         }
         return sum;
     }
@@ -409,7 +409,7 @@ class Text : public Printable {
             pos = indexOf(txt, pos);
             if (pos < 0) break;
             pos += txt._len;
-            sum++;
+            ++sum;
         }
         return sum;
     }
@@ -429,7 +429,7 @@ class Text : public Printable {
             if (end < 0) end = _len;
             if (!idx--) return Text(_str + start, end - start, pgm());
             if ((uint16_t)end == _len) break;
-            end++;
+            ++end;
             start = end;
         }
         return Text();
@@ -454,6 +454,43 @@ class Text : public Printable {
             start = end;
         }
         return Text();
+    }
+
+    /**
+      @brief Получить индекс подстроки
+
+      @param sub подстрока
+      @param div разделитель
+      @return int индекс, -1 если не найдено
+    */
+    int findSub(const Text& sub, char div) const {
+        if (!length()) return -1;
+        int16_t start = 0, end = 0, i = 0;
+        while (1) {
+            end = indexOf(div, end);
+            if (end < 0) end = _len;
+            if (Text(_str + start, end - start, pgm()) == sub) return i;
+            if ((uint16_t)end == _len) break;
+            ++end;
+            start = end;
+            ++i;
+        }
+        return -1;
+    }
+
+    int findSub(const Text& sub, const Text& div) const {
+        if (!length() || !div.length() || div._len > _len) return -1;
+        int16_t start = 0, end = 0, i = 0;
+        while (1) {
+            end = indexOf(div, end);
+            if (end < 0) end = _len;
+            if (Text(_str + start, end - start, pgm()) == sub) return i;
+            if ((uint16_t)end == _len) break;
+            end += div._len;
+            start = end;
+            ++i;
+        }
+        return -1;
     }
 
     // ========================== SPLIT ==========================
@@ -482,6 +519,7 @@ class Text : public Printable {
     uint16_t split(T** arr, uint16_t len, char div) const {
         if (!len || !length()) return 0;
         find_t f;
+
         while (!f.last) {
             Text txt = _parse(div, 1, len, f);
             *(arr[f.count - 1]) = txt;
@@ -528,13 +566,13 @@ class Text : public Printable {
         while (txt._len) {
             uint8_t sym = txt._charAt(0);
             if (sym && (sym <= 0x0F || sym == ' ')) {
-                txt._str++;
-                txt._len--;
+                ++txt._str;
+                --txt._len;
             } else break;
         }
         while (txt._len) {
             uint8_t sym = txt._charAt(txt._len - 1);
-            if (sym <= 0x0F || sym == ' ') txt._len--;
+            if (sym <= 0x0F || sym == ' ') --txt._len;
             else break;
         }
         return txt;
@@ -704,7 +742,7 @@ class Text : public Printable {
 
     // получить значение как bool
     bool toBool() const {
-        return valid() && (charAt(0) == 't' || charAt(0) == '1');
+        return length() && (_charAt(0) == 't' || _charAt(0) == '1');
     }
 
     // получить значение как int
@@ -772,53 +810,39 @@ class Text : public Printable {
     }
 
 // ================= CAST =================
-#define T_MAKE_OPERATOR_EXPL(type, func)  \
-    explicit operator type() const {      \
-        return (type)func();              \
-    }                                     \
-    bool operator==(const type v) const { \
-        return (type)func() == v;         \
-    }                                     \
-    bool operator!=(const type v) const { \
-        return (type)func() != v;         \
-    }                                     \
-    bool operator>(const type v) const {  \
-        return (type)func() > v;          \
-    }                                     \
-    bool operator<(const type v) const {  \
-        return (type)func() < v;          \
-    }                                     \
-    bool operator>=(const type v) const { \
-        return (type)func() >= v;         \
-    }                                     \
-    bool operator<=(const type v) const { \
-        return (type)func() <= v;         \
+#define T_MAKE_COMPARE(T, func)        \
+    bool operator==(const T v) const { \
+        return (T)func() == v;         \
+    }                                  \
+    bool operator!=(const T v) const { \
+        return (T)func() != v;         \
+    }                                  \
+    bool operator>(const T v) const {  \
+        return (T)func() > v;          \
+    }                                  \
+    bool operator<(const T v) const {  \
+        return (T)func() < v;          \
+    }                                  \
+    bool operator>=(const T v) const { \
+        return (T)func() >= v;         \
+    }                                  \
+    bool operator<=(const T v) const { \
+        return (T)func() <= v;         \
     }
 
-#define T_MAKE_OPERATOR(type, func)       \
-    operator type() const {               \
-        return (type)func();              \
-    }                                     \
-    bool operator==(const type v) const { \
-        return (type)func() == v;         \
-    }                                     \
-    bool operator!=(const type v) const { \
-        return (type)func() != v;         \
-    }                                     \
-    bool operator>(const type v) const {  \
-        return (type)func() > v;          \
-    }                                     \
-    bool operator<(const type v) const {  \
-        return (type)func() < v;          \
-    }                                     \
-    bool operator>=(const type v) const { \
-        return (type)func() >= v;         \
-    }                                     \
-    bool operator<=(const type v) const { \
-        return (type)func() <= v;         \
-    }
+#define T_MAKE_OPERATOR_EXPL(T, func) \
+    explicit operator T() const {     \
+        return (T)func();             \
+    }                                 \
+    T_MAKE_COMPARE(T, func)
 
-    // T_MAKE_OPERATOR(bool, toBool)
+#define T_MAKE_OPERATOR(T, func) \
+    operator T() const {         \
+        return (T)func();        \
+    }                            \
+    T_MAKE_COMPARE(T, func)
+
+    //
     T_MAKE_OPERATOR_EXPL(char, toInt16)
     T_MAKE_OPERATOR(signed char, toInt16)
     T_MAKE_OPERATOR(unsigned char, toInt16)
@@ -832,6 +856,13 @@ class Text : public Printable {
     T_MAKE_OPERATOR(unsigned long long, toInt64)
     T_MAKE_OPERATOR(float, toFloat)
     T_MAKE_OPERATOR(double, toFloat)
+
+    bool operator==(const bool v) const {
+        return length() && (v ? (_charAt(0) == 't' || _charAt(0) == '1') : (_charAt(0) == 'f' || _charAt(0) == '0'));
+    }
+    bool operator!=(const bool v) const {
+        return *this == !v;
+    }
 
     operator String() const {
         return toString();
@@ -854,7 +885,7 @@ class Text : public Printable {
         if (f.count) f.start = f.end = f.end + divlen;
         f.end = indexOf(div, f.end);
         if (f.end < 0 || f.count + 1 == len) f.end = _len;
-        f.count++;
+        ++f.count;
         if (f.count == len || f.end == (int16_t)_len) f.last = 1;
         return Text(_str + f.start, f.end - f.start, pgm());
     }
@@ -863,7 +894,7 @@ class Text : public Printable {
     uint16_t _compareN(const char* s1, const char* s2, bool pgm2, uint16_t len) const {
         while (len) {
             if ((pgm() ? pgm_read_byte(s1++) : *s1++) != (pgm2 ? pgm_read_byte(s2++) : *s2++)) return len;
-            len--;
+            --len;
         }
         return 0;
     }

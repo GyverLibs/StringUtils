@@ -135,11 +135,13 @@ uint16_t split(T** arr, uint16_t len, char div);
 uint16_t split(T* arr, uint16_t len, Text div);
 uint16_t split(T** arr, uint16_t len, Text div);
 
-// Получить подстроку из списка по индексу и символу-разделителю
+// Получить подстроку из списка по индексу и разделителю
 Text getSub(uint16_t idx, char div);
-
-// Получить подстроку из списка по индексу и строке-разделителю
 Text getSub(uint16_t idx, Text div);
+
+// Найти индекс подстроки по разделителю. Вернёт -1 если не найдено
+int findSub(Text sub, char div);
+int findSub(Text sub, Text div);
 
 // выделить подстроку (начало, конец не включая). Отрицательные индексы работают с конца строки
 Text substring(int16_t start, int16_t end = 0);
@@ -195,6 +197,7 @@ short + unsigned
 int + unsigned
 long + unsigned
 long long + unsigned
+bool
 float
 double
 String
@@ -204,110 +207,76 @@ const char* _str;           // указатель на строку
 uint16_t _len;              // длина
 ```
 
-#### Пример
+#### Конвертация в целочисленные
+`Text` может конвертироваться во все стандартные целочисленные типы вручную и автоматически (implicit и explicit):
+
 ```cpp
-// конструктор
-Text v0("-123456");
-Text v1 = "-123456";
-v1 = F("-123456");
-String s("abcd");
-Text v2(s);
-v2 = s;
+Text t("1234");
 
-// сравнение
-v2 == v1;
-v2 == F("text");
-v1 == -123456;
+int v = t;
+(int)t;
+t.toInt();
+```
 
-// авто конвертация
-int v = v0;
+#### Сравнение
+`Text` может сравниваться со всеми стандартными типами (автоматически преобразуется):
 
-// вывод в String
-String s = v0;
-s = v0.toString();
-v0.toString(s);
+```cpp
+Text t("1234");
 
-// вывод в массив
+t == 1234;
+t >= 1234;
+t == "1234";
+t == F("1234");
+```
+
+#### Конвертация в bool
+Приведение Text к `bool` проверяет **валидность** строки (корректная или нет), это конструкции вида:
+
+```cpp
+Text t;
+
+(bool)t;
+!t;
+!!t;
+if (t);
+```
+
+Для конвертации в `bool` как **значение** нужно использовать метод преобразования `toBool()`, а лучше - сравнение (учитывает валидность):
+
+```cpp
+Text t;
+
+t.toBool();
+if (t == true);
+if (t == false);
+```
+
+Если строка невалидна - сравнение с `bool` вернёт `false` независимо от значения.
+
+#### Вывод в строку
+`Text` можно вывести в новую `String`-строку:
+
+```cpp
+t.toString();      // вернёт String
+String s = t;      // запишется в s
+t.toString(s);     // запишется в s
+t.addString(s);    // прибавится к s
+```
+
+Можно вывести в строку с декодированием:
+
+```cpp
+String s = t.decodeUnicode();   // декодировать UCN символы (вида \uxxx\uxxx)
+String s = t.decodeUrl();       // декодировать urlencoded символы (вида %AB)
+```
+
+#### Вывод в массив
+`Text` можно вывести в массив `char` (можно указать размер буфера и терминировать ли строку):
+
+```cpp
 char buf[20];
-v1.toStr(buf);
-
-// парсинг и разделение
-Text list("abc/123/def");
-Serial.println(list.getSub(0, '/')); // abc
-Serial.println(list.getSub(2, '/')); // def
-
-Serial.println(list.substring(4, 6));   // 123
-
-Text arr[3];
-list.split(arr, 3, '/');
-Serial.println(arr[0]);
-Serial.println(arr[1]);
-Serial.println(arr[2]);
-
-// парсить можно в любой тип
-int arr2[3];    // float, byte...
-list.split(arr2, 3, '/');
-Serial.println(arr2[0]);
-Serial.println(arr2[1]);
-Serial.println(arr2[2]);
-
-// так делать НЕЛЬЗЯ
-Text t1(String("123"));  // строка будет выгружена из памяти!
-// t1.... программа сломается
-
-String s;
-Text t1(s);
-s += String("123");     // адрес строки изменится!
-// t1.... программа сломается
-
-// в то же время вот так - можно
-void foo(const Text& text) {
-    // String существует тут
-    print(text);
-}
-foo(String("123"));
-```
-
-Встроенный разделитель и хэш-функции позволяют очень просто и эффективно разбирать различные текстовые протоколы. Например пакет вида `key=value`, где `key` может отсылать к переменной в коде. Пакет можно разделить, ключ хешировать и опросить через switch для присвоения н ужной переменной:
-```cpp
-Text txt("key1=1234");
-int val = txt.getSub(1, '=');   // значение в int
-
-switch (txt.getSub(0, '=').hash()) {    // хэш ключа
-    case su::SH("key1"):
-        var1 = val;
-        break;
-    case su::SH("key2"):
-        var2 = val;
-        break;
-    case su::SH("key3"):
-        var2 = val;
-        break;
-}
-```
-
-или протокол вида `name/index/value`, где `name` - текстовый ключ, `index` - порядковый номер:
-```cpp
-Text txt("key/3/1234");
-
-int val = txt.getSub(2, '/');
-
-switch (txt.getSub(0, '/').hash()) {
-    case su::SH("key"):
-        switch(txt.getSub(1, '/').toInt16()) {
-            case 0: break;
-            case 1: break;
-            case 2: break;
-            //.....
-        }
-        break;
-    case su::SH("keykey"):
-        //...
-        break;
-    case su::SH("anotherKey"):
-        //...
-        break;
-}
+t.toStr(buf);
 ```
 
 #### Вывод как C-строка
@@ -316,6 +285,101 @@ switch (txt.getSub(0, '/').hash()) {
 - Из обычной строки с указанием размера, меньшего чем размер оригинальной строки (например любой элемент JSON при парсинге библиотекой GSON)
 
 Такая "строка" не будет являться корректной, потому что имеет несоответствующую длину или область памяти! Для корректной передачи используйте метод `c_str()`: он создаст временную корректную копию строки в тех случаях, когда это нужно (PGM или неполная длина). Например `foo(text.c_str())`. Примечание: этот указатель является **временным** - нельзя передавать строку в функции, которые запоминают указатель на строку вместо того, чтобы скопировать её себе! Примеры: `WiFi.begin(text.c_str())` - можно, функция копирует строку себе. Для библиотеки `PubSubClient` - `client.setServer(text.c_str())` - нельзя, нужно выводить в char буфер или String строку и оставить существовать в области определения клиента. Как это понять: изучать исходник!
+
+#### Создание из `String`
+`Text` хранит указатель на строку, поэтому строка должна существовать в памяти на время существования `Text`:
+
+```cpp
+// 1. так делать НЕЛЬЗЯ
+Text t1(String("123"));  // строка будет выгружена из памяти!
+// t1.... программа сломается
+
+// 2. так делать НЕЛЬЗЯ
+String s;
+Text t1(s);
+s += String("123");     // адрес строки изменится!
+// t1.... программа сломается
+
+// 3. так делать МОЖНО
+void foo(const Text& text) {
+    // String существует тут
+    // text...
+}
+foo(String("123"));
+```
+
+#### Подстроки
+
+```cpp
+Text list("abc/123/def");
+Serial.println(list.getSub(0, '/')); // abc
+Serial.println(list.getSub(2, '/')); // def
+
+Serial.println(list.substring(4, 6));   // 123
+```
+
+#### Парсинг в массив
+
+```cpp
+// парсинг в массив строк Text
+Text arr[3];
+list.split(arr, 3, '/');
+Serial.println(arr[0]);
+Serial.println(arr[1]);
+Serial.println(arr[2]);
+
+// парсинг в массив чисел
+int arr2[3];    // float, long...
+list.split(arr2, 3, '/');
+Serial.println(arr2[0]);
+Serial.println(arr2[1]);
+Serial.println(arr2[2]);
+```
+
+#### Парсинг протоколов
+Встроенный разделитель и хэш-функции позволяют очень просто и эффективно разбирать различные текстовые протоколы. Например пакет вида `key=value`, где `key` может отсылать к переменной в коде. Пакет можно разделить, ключ хешировать и опросить через switch для присвоения н ужной переменной:
+
+```cpp
+Text txt("key1=1234");
+int val = txt.getSub(1, '=');   // значение в int
+
+switch (txt.getSub(0, '=').hash()) {    // хэш ключа
+    case SH("key1"):
+        var1 = val;
+        break;
+    case SH("key2"):
+        var2 = val;
+        break;
+    case SH("key3"):
+        var2 = val;
+        break;
+}
+```
+
+или протокол вида `name/index/value`, где `name` - текстовый ключ, `index` - порядковый номер:
+
+```cpp
+Text txt("key/3/1234");
+
+int val = txt.getSub(2, '/');
+
+switch (txt.getSub(0, '/').hash()) {
+    case SH("key"):
+        switch(txt.getSub(1, '/').toInt16()) {
+            case 0: break;
+            case 1: break;
+            case 2: break;
+            //.....
+        }
+        break;
+    case SH("keykey"):
+        //...
+        break;
+    case SH("anotherKey"):
+        //...
+        break;
+}
+```
 
 ### `Value`
 Добавка к `Text`, поддерживает все остальные стандартные типы данных. Имеет буфер 22 байта, при создании конвертирует число в него:
@@ -327,9 +391,6 @@ Value(int + unsigned value, uint8_t base = DEC);
 Value(long + unsigned value, uint8_t base = DEC);
 Value(long long + unsigned value, uint8_t base = DEC);
 Value(double value, uint8_t dec = 2);
-
-// аналогично с ручным размером буфера
-su::ValueT<размер буфера>();
 ```
 
 #### Пример
@@ -746,42 +807,58 @@ char* su::toQwerty(const char* ru, char* qw);
 
 ### Base64
 ```cpp
+// закодировать в b64
+char encodeByte(uint8_t n);
+
 // размер закодированных данных по размеру исходных
 size_t encodedLen(size_t len);
 
+// закодировать в char[encodedLen()] (не добавляет '\0' в конец)
+size_t encode(char* b64, const void* data, size_t len, bool pgm = false);
+
+// закодировать в String
+size_t encode(String* b64, const void* data, size_t len, bool pgm = false);
+size_t encode(String& b64, const void* data, size_t len, bool pgm = false);
+
+
+// раскодировать из b64
+uint8_t decodeChar(char b);
+
 // будущий размер декодированных данных по строке b64 и её длине
-size_t decodedLen(const char* b64, size_t len);
-
-// закодировать данные в String
-size_t encode(String* b64, uint8_t* data, size_t len, bool pgm = false);
-
-// закодировать данные в char[] (библиотека не добавляет '\0' в конец)
-size_t encode(char* b64, uint8_t* data, size_t len, bool pgm = false);
+size_t decodedLen(const void* b64);
+size_t decodedLen(const void* b64, size_t len);
 
 // раскодировать данные из строки b64 длиной len в буфер data
-size_t decode(uint8_t* data, const char* b64, size_t len);
-
-// раскодировать данные из строки b64 длиной len в саму себя, добавит 0 на конце
-size_t decode(char* b64, size_t len);
+size_t decode(void* data, const void* b64);
+size_t decode(void* data, const void* b64, size_t len);
 
 // раскодировать данные из строки b64 в буфер data
-size_t decode(uint8_t* data, const String& b64);
+size_t decode(void* data, const String& b64);
+
+// раскодировать данные из строки b64 длиной len в саму себя
+size_t decode(void* b64);
+size_t decode(void* b64, size_t len);
 ```
 
 ### Unicode
 Декодер строки, содержащей unicode символы вида `\u0abc`. Также делает unescape символов `\t\r\n`!
 ```cpp
-// декодировать строку.Зарезервировать строку на длину len. Иначе - по длине строки
-String su::unicode::decode(const char* str, uint16_t len = 0);
+// декодировать строку с unicode символами саму в себя (не добавляет '\0' в конец)
+size_t decodeSelf(char* str);
+size_t decodeSelf(char* str, size_t len);
 
-// декодировать строку
-String su::unicode::decode(const String& str);
+// декодировать строку с unicode символами
+String decode(const char* str);
+String decode(const char* str, size_t len);
+
+// декодировать строку с unicode символами
+String decode(const String& str);
 
 // кодировать unicode символ по его коду. В массиве должно быть 5 ячеек
-void su::unicode::encode(char* str, uint32_t c);
+void encode(char* str, uint32_t c);
 
 // кодировать unicode символ по его коду
-String su::unicode::encode(uint32_t code);
+String encode(uint32_t code);
 ```
 
 ### URL
@@ -789,44 +866,58 @@ String su::unicode::encode(uint32_t code);
 // символ должен быть urlencoded
 bool needsEncode(char c);
 
-// закодировать в url. Можно указать len = 0, если неизвестна
-void encode(const char* src, uint16_t len, String& dest);
+// длина urlencoded строки
+size_t encodedLen(const char* str);
+size_t encodedLen(const char* str, size_t len);
 
-// закодировать в url
-void encode(const String& src, String& dest);
+// закодировать в char[encodedLen()] (не добавляет '\0' в конец)
+size_t encode(char* url, const char* str);
+size_t encode(char* url, const char* str, size_t len);
 
-// закодировать в url
-String encode(const String& src);
+// закодировать в String
+void encode(String* url, const char* str);
+void encode(String* url, const char* str, size_t len);
+void encode(String& url, const char* str);
+void encode(String& url, const char* str, size_t len);
 
-// раскодировать url
-size_t decode(char* dest, const char* url, uint16_t len = 0);
+String encode(const char* str);
+String encode(const char* str, size_t len);
+
+String encode(const String& str);
+
+// длина urldecoded строки
+size_t decodedLen(const char* url);
+size_t decodedLen(const char* url, size_t len);
+
+// раскодировать url (не добавляет '\0' в конец)
+size_t decode(char* str, const char* url);
+size_t decode(char* str, const char* url, size_t len);
+
+// раскодировать в String
+size_t decode(String* str, const char* url);
+size_t decode(String* str, const char* url, size_t len);
+size_t decode(String& str, const char* url);
+size_t decode(String& str, const char* url, size_t len);
+
+String decode(const char* url);
+String decode(const char* url, size_t len);
+String decode(const String& url);
 
 // раскодировать url саму в себя
-size_t decode(char* url, uint16_t len = 0);
-
-// раскодировать url
-void decode(const char* src, uint16_t len, String& dest);
-
-// раскодировать url
-String decode(const char* src, uint16_t len);
-
-// раскодировать url
-void decode(const String& src, String& dest);
-
-// раскодировать url
-String decode(const String& src);
+size_t decodeSelf(char* url);
+size_t decodeSelf(char* url, size_t len);
 ```
 
 ### Length
 ```cpp
 // StringLength длина строки, выполняется на этапе компиляции
-constexpr size_t su::SL(const char* str);
+constexpr size_t SL(const char* str);
 constexpr size_t operator"" _SL;  // C++ 11
 ```
 
 Примеры
 ```cpp
-int L1 = su:SL("text");
+int L1 = SL("text");
 int L2 = "text"_SL;
 ```
 
@@ -835,7 +926,7 @@ int L2 = "text"_SL;
 
 ```cpp
 // считается компилятором
-constexpr size_t su::SH(const char* str);           // (String Hash) размер size_t
+constexpr size_t SH(const char* str);           // (String Hash) размер size_t
 constexpr size_t SH32(const char* str);             // (String Hash) размер 32 бит
 
 constexpr size_t operator"" _h;                     // C++ 11

@@ -7,32 +7,54 @@ namespace url {
 // символ должен быть urlencoded
 bool needsEncode(char c);
 
-// закодировать в url. Можно указать len = 0, если неизвестна
-void encode(const char* src, uint16_t len, String& dest);
+// длина urlencoded строки
+size_t encodedLen(const char* str);
+size_t encodedLen(const char* str, size_t len);
 
-// закодировать в url
-void encode(const String& src, String& dest);
+// закодировать в char[encodedLen()] (не добавляет '\0' в конец)
+size_t encode(char* url, const char* str);
+size_t encode(char* url, const char* str, size_t len);
 
-// закодировать в url
-String encode(const String& src);
+// закодировать в String
+void encode(String* url, const char* str);
+void encode(String* url, const char* str, size_t len);
+void encode(String& url, const char* str);
+void encode(String& url, const char* str, size_t len);
 
-// раскодировать url
-size_t decode(char* dest, const char* url, uint16_t len = 0);
+String encode(const char* str);
+String encode(const char* str, size_t len);
+
+String encode(const String& str);
+
+//
+
+// длина urldecoded строки
+size_t decodedLen(const char* url);
+size_t decodedLen(const char* url, size_t len);
+
+// раскодировать url (не добавляет '\0' в конец)
+size_t decode(char* str, const char* url);
+size_t decode(char* str, const char* url, size_t len);
+
+// раскодировать в String
+size_t decode(String* str, const char* url);
+size_t decode(String* str, const char* url, size_t len);
+size_t decode(String& str, const char* url);
+size_t decode(String& str, const char* url, size_t len);
+
+String decode(const char* url);
+String decode(const char* url, size_t len);
+String decode(const String& url);
 
 // раскодировать url саму в себя
-size_t decode(char* url, uint16_t len = 0);
+size_t decodeSelf(char* url);
+size_t decodeSelf(char* url, size_t len);
 
-// раскодировать url
-void decode(const char* src, uint16_t len, String& dest);
-
-// раскодировать url
-String decode(const char* src, uint16_t len);
-
-// раскодировать url
+///////////////////////
+size_t decode(const char* src, int16_t len, String& dest);
 void decode(const String& src, String& dest);
-
-// раскодировать url
-String decode(const String& src);
+void encode(const char* str, uint16_t len, String& url);
+void encode(const String& str, String& url);
 
 }  // namespace url
 }  // namespace su

@@ -113,7 +113,7 @@ size_t decode(void* data, const void* b64, size_t len) {
     size_t val = 0, idx = 0;
     int8_t valb = -8;
 
-    for (int32_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if (((const char*)b64)[i] == '=') break;
         val = (val << 6) + decodeChar(((const char*)b64)[i]);
         valb += 6;

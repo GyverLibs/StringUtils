@@ -8,7 +8,7 @@ uint8_t _swapBuf(char* p, char* buf);
 uint32_t getPow10(const uint8_t value) {
     switch (value) {
         case 0:
-            return 0;
+            return 1;
         case 1:
             return 10;
         case 2:
@@ -146,7 +146,7 @@ uint8_t floatToStrFast(float val, char* buf, uint8_t dec) {
 uint32_t strToIntHex(const char* str, int8_t len) {
     if (!str || !*str) return 0;
     uint32_t v = 0;
-    if (str[0] == '0' && str[1] == 'x') str += 2;
+    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) str += 2;
     while (*str && len) {
         switch (*str) {
             case '0' ... '9':
@@ -170,11 +170,12 @@ uint32_t strToIntHex(const char* str, int8_t len) {
  * @param sym символ utf-8
  * @return uint8_t 0 если некорректный символ или продолжение предыдущего
  */
-uint8_t charSize(const char sym) {
-    if ((sym & 0x80) == 0x00) return 1;
-    else if ((sym & 0xE0) == 0xC0) return 2;
-    else if ((sym & 0xF0) == 0xE0) return 3;
-    else return 0;
+uint8_t charSize(const unsigned char sym) {
+    if ((sym & 0x80) == 0x00) return 1;       // ASCII (0xxxxxxx)
+    else if ((sym & 0xE0) == 0xC0) return 2;  // 110xxxxx
+    else if ((sym & 0xF0) == 0xE0) return 3;  // 1110xxxx
+    else if ((sym & 0xF8) == 0xF0) return 4;  // 11110xxx
+    return 0;
 }
 
 /**
@@ -186,8 +187,14 @@ uint8_t charSize(const char sym) {
  * @return uint8_t длина числа
  */
 uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
+    if (n < 10 && base == 10) {
+        *buf++ = n + '0';
+        *buf = 0;
+        return 1;
+    }
+
     char* p = buf;
-    if (base == DEC) {
+    if (base == 10) {
         fdiv10 div;
         do {
             n = div.div10(n);
@@ -196,7 +203,7 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
     } else {
         do {
             uint8_t c = n & (base - 1);
-            n >>= (base == HEX) ? 4 : 1;
+            n >>= (base == 16) ? 4 : 1;
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
@@ -213,8 +220,8 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t intToStr(int32_t n, char* buf, const uint8_t base) {
-    if (n < 0 && base == DEC) *buf++ = '-';
-    return uintToStr((n < 0 && base == DEC) ? -n : n, buf, base) + (n < 0);
+    if (n < 0 && base == 10) *buf++ = '-';
+    return uintToStr((n < 0 && base == 10) ? -n : n, buf, base) + (n < 0);
 }
 
 /**
@@ -229,7 +236,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
     if (n <= UINT32_MAX) return uintToStr(n, buf, base);
 
     char* p = buf;
-    if (base == DEC) {
+    if (base == 10) {
         do {
             uint8_t mod = n % base;
             n /= base;
@@ -238,7 +245,7 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
     } else {
         do {
             uint8_t c = n & (base - 1);
-            n >>= (base == HEX) ? 4 : 1;
+            n >>= (base == 16) ? 4 : 1;
             *p++ = (c < 10) ? (c + '0') : (c + 'a' - 10);
         } while (n);
     }
@@ -260,27 +267,40 @@ uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base) {
         case 0 ... UINT32_MAX: return uintToStr(n, buf, base);
     }
 
-    if (n < 0 && base == DEC) *buf++ = '-';
+    if (n < 0 && base == 10) *buf++ = '-';
     return uint64ToStr((n < 0) ? -n : n, buf, base) + (n < 0);
 }
 
 // конвертация из строки во float
 float strToFloat(const char* s) {
+    if (!*s) return 0.0f;
+
+    bool neg = (*s == '-');
     float f = strToInt<int32_t>(s);
-    char* d = strchr(s, '.');
-    if (d) {
-        f += (float)strToInt<int32_t>(d + 1) / getPow10(strchr(d, 0) - d - 1) * (f < 0 ? -1 : 1);
+    const char* d = strchr(s, '.');
+
+    if (d && *(d + 1)) {
+        int32_t frac = strToInt<int32_t>(d + 1);
+        uint8_t fracLen = strlen(d + 1);
+        float fraction = (float)frac / getPow10(fracLen);
+        f += fraction * (neg ? -1.0f : 1.0f);
     }
+
     return f;
 }
 
-// конвертация из PROGEMEM строки во float
+// конвертация из строки во float
 float strToFloat_P(PGM_P s) {
+    bool neg = (pgm_read_byte(s) == '-');
     float f = strToInt_P<int32_t>(s);
-    char* d = strchr(s, '.');
+    const char* d = strchr_P(s, '.');
+
     if (d) {
-        f += (float)strToInt_P<int32_t>(d + 1) / getPow10(strchr(d, 0) - d - 1);
+        uint8_t fracLen = strlen_P(d + 1);
+        int32_t frac = strToInt_P<int32_t>(d + 1);
+        f += ((float)frac / getPow10(fracLen)) * (neg ? -1.0f : 1.0f);
     }
+
     return f;
 }
 

@@ -1,5 +1,7 @@
 #include "b64.h"
 
+// #define SU_B64_COMPACT
+
 namespace su {
 namespace b64 {
 
@@ -23,8 +25,8 @@ char encodeByte(uint8_t n) {
 #ifdef SU_B64_COMPACT
     switch (n) {
         case 0 ... 25: return n + 'A';
-        case 26 ... 51: return n - 26 + 'a';
-        case 52 ... 61: return n - 52 + '0';
+        case 26 ... 51: return n + 'a' - 26;
+        case 52 ... 61: return n + '0' - 52;
         case 62: return '+';
     }
     return '/';
@@ -36,17 +38,15 @@ char encodeByte(uint8_t n) {
 uint8_t decodeChar(char b) {
 #ifdef SU_B64_COMPACT
     switch (b) {
-        case 0 ... 42: return 0;
-        case 43: return 62;
-        case 44 ... 46: return 0;
-        case 47: return 63;
-        case 48 ... 57: return b + 4;
-        case 58 ... 65: return 0;
-        case 66 ... 90: return b - 65;
-        case 91 ... 96: return 0;
+        case 'A' ... 'Z': return b - 'A';
+        case 'a' ... 'z': return b - 'a' + 26;
+        case '0' ... '9': return b - '0' + 52;
+        case '+': return 62;
+        case '/': return 63;
     }
-    return b - 71;
+    return 0;
 #else
+    if ((uint8_t)b >= sizeof(_b64_byte)) return 0;
     return pgm_read_byte(_b64_byte + b);
 #endif
 }

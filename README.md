@@ -855,7 +855,7 @@ String decode(const char* str, size_t len);
 String decode(const String& str);
 
 // кодировать unicode символ по его коду. В массиве должно быть 5 ячеек
-void encode(char* str, uint32_t c);
+uint8_t encode(char* str, uint32_t c, bool terminate = true);
 
 // кодировать unicode символ по его коду
 String encode(uint32_t code);

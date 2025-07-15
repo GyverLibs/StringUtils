@@ -8,7 +8,7 @@ size_t decodeSelf(char* str) {
 }
 
 size_t decodeSelf(char* str, size_t len) {
-    char* end = str + (len < 0 ? strlen(str) : len);
+    char* end = str + (len ? len : strlen(str));
     char *w = str, *r = str;
     uint32_t ub = 0, buf = 0;
 
@@ -87,31 +87,36 @@ String decode(const String& str) {
     return s;
 }
 
-void encode(char* str, uint32_t c) {
+uint8_t encode(char* str, uint32_t c, bool terminate) {
     switch (c) {
         case 0x00 ... 0x7F:
-            *str++ = (c & 0x7F) | 0x00;
-            break;
+            str[0] = c;
+            if (terminate) str[1] = 0;
+            return 1;
 
         case 0x80 ... 0x7FF:
-            *str++ = ((c >> 6) & 0x1F) | 0xC0;
-            *str++ = ((c >> 0) & 0x3F) | 0x80;
-            break;
+            str[0] = 0xC0 | ((c >> 6) & 0x1F);
+            str[1] = 0x80 | (c & 0x3F);
+            if (terminate) str[2] = 0;
+            return 2;
 
         case 0x0800 ... 0xFFFF:
-            *str++ = ((c >> 12) & 0x0F) | 0xE0;
-            *str++ = ((c >> 6) & 0x3F) | 0x80;
-            *str++ = ((c >> 0) & 0x3F) | 0x80;
-            break;
+            str[0] = 0xE0 | ((c >> 12) & 0x0F);
+            str[1] = 0x80 | ((c >> 6) & 0x3F);
+            str[2] = 0x80 | (c & 0x3F);
+            if (terminate) str[3] = 0;
+            return 3;
 
         case 0x10000 ... 0x10FFFF:
-            *str++ = ((c >> 18) & 0x07) | 0xF0;
-            *str++ = ((c >> 12) & 0x3F) | 0x80;
-            *str++ = ((c >> 6) & 0x3F) | 0x80;
-            *str++ = ((c >> 0) & 0x3F) | 0x80;
-            break;
+            str[0] = 0xF0 | ((c >> 18) & 0x07);
+            str[1] = 0x80 | ((c >> 12) & 0x3F);
+            str[2] = 0x80 | ((c >> 6) & 0x3F);
+            str[3] = 0x80 | (c & 0x3F);
+            if (terminate) str[4] = 0;
+            return 4;
     }
-    *str++ = 0;
+    if (terminate) str[0] = 0;
+    return 0;
 }
 
 String encode(uint32_t code) {

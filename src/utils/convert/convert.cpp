@@ -293,7 +293,12 @@ float strToFloat(const char* s) {
 float strToFloat_P(PGM_P s) {
     bool neg = (pgm_read_byte(s) == '-');
     float f = strToInt_P<int32_t>(s);
+
+#ifdef __AVR__
     const char* d = strchr_P(s, '.');
+#else
+    const char* d = strchr(s, '.');
+#endif
 
     if (d) {
         uint8_t fracLen = strlen_P(d + 1);

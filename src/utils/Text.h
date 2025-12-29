@@ -195,8 +195,8 @@ class Text : public Printable {
         return (valid()) ? (_charAt(_len) == 0) : 0;
     }
 
-    // Напечатать в Print
-    virtual size_t printTo(Print& p) const {
+    // Напечатать в Print virtual
+    size_t printTo(Print& p) const {
         if (!length()) return 0;
         size_t ret = 0;
         if (pgm()) {
@@ -605,8 +605,8 @@ class Text : public Printable {
         return substring(unicodeToPos(start), end ? unicodeToPos(end) : 0);
     }
 
-    // Добавить к String строке. Вернёт false при неудаче
-    virtual bool addString(String& s) const {
+    // Добавить к String строке. Вернёт false при неудаче virtual
+    bool addString(String& s) const {
         if (!length() || !_len) return 0;
         if (!s.reserve(s.length() + _len)) return 0;
         if (pgm()) {

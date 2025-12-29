@@ -2,7 +2,19 @@
 
 namespace su {
 
-uint8_t _swapBuf(char* p, char* buf);
+static uint8_t _swapBuf(char* p, char* buf) {
+    uint8_t len = p - buf;
+    --p;
+    char b;
+    while (p > buf) {
+        b = *buf;
+        *buf = *p;
+        *p = b;
+        ++buf;
+        --p;
+    }
+    return len;
+}
 
 // быстрое возведение 10 в степень
 uint32_t getPow10(const uint8_t value) {
@@ -59,7 +71,7 @@ uint8_t getLog10(const uint32_t value) {
 }
 
 uint8_t getLog10(const int32_t value) {
-    return getLog10((value < 0) ? (uint32_t)(-value) : (uint32_t)value);
+    return getLog10(uint32_t(value < 0 ? -value : value));
 }
 
 /**
@@ -110,7 +122,7 @@ uint8_t floatLenNanInf(float val, const uint8_t dec) {
  * @return uint8_t длина полученной строки
  */
 uint8_t floatToStr(float val, char* buf, const uint8_t dec) {
-    dtostrf(val, dec ? dec + 2 : 1, dec, buf);
+    dtostrf(val, 0, dec, buf);
     return floatLen(val, dec);
 }
 
@@ -220,8 +232,9 @@ uint8_t uintToStr(uint32_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t intToStr(int32_t n, char* buf, const uint8_t base) {
-    if (n < 0 && base == 10) *buf++ = '-';
-    return uintToStr((n < 0 && base == 10) ? -n : n, buf, base) + (n < 0);
+    bool neg = (n < 0 && base == 10);
+    if (neg) *buf++ = '-';
+    return uintToStr(neg ? -n : n, buf, base) + neg;
 }
 
 /**
@@ -262,13 +275,9 @@ uint8_t uint64ToStr(uint64_t n, char* buf, const uint8_t base) {
  * @return uint8_t длина числа
  */
 uint8_t int64ToStr(int64_t n, char* buf, const uint8_t base) {
-    switch (n) {
-        case INT32_MIN ...(-1): return intToStr(n, buf, base);
-        case 0 ... UINT32_MAX: return uintToStr(n, buf, base);
-    }
-
-    if (n < 0 && base == 10) *buf++ = '-';
-    return uint64ToStr((n < 0) ? -n : n, buf, base) + (n < 0);
+    bool neg = (n < 0 && base == 10);
+    if (neg) *buf++ = '-';
+    return uint64ToStr(neg ? -n : n, buf, base) + neg;
 }
 
 // конвертация из строки во float
@@ -307,20 +316,6 @@ float strToFloat_P(PGM_P s) {
     }
 
     return f;
-}
-
-uint8_t _swapBuf(char* p, char* buf) {
-    uint8_t len = p - buf;
-    --p;
-    char b;
-    while (p > buf) {
-        b = *buf;
-        *buf = *p;
-        *p = b;
-        ++buf;
-        --p;
-    }
-    return len;
 }
 
 }  // namespace su

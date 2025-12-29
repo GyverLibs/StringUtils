@@ -8,7 +8,7 @@ size_t decodeSelf(char* str) {
 }
 
 size_t decodeSelf(char* str, size_t len) {
-    char* end = str + (len ? len : strlen(str));
+    char* end = str + len;
     char *w = str, *r = str;
     uint32_t ub = 0, buf = 0;
 

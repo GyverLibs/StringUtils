@@ -106,9 +106,15 @@ size_t decodedLen(const char* url) {
 }
 size_t decodedLen(const char* url, size_t len) {
     size_t dlen = 0;
-    while (len > 0) {
-        if (*url == '%') len -= 3, url += 3;
-        else --len, ++url;
+    while (len) {
+        if (*url == '%') {
+            if (len < 3) break;
+            len -= 3;
+            url += 3;
+        } else {
+            --len;
+            ++url;
+        }
         ++dlen;
     }
     return dlen;
@@ -118,7 +124,7 @@ size_t decodedLen(const char* url, size_t len) {
 
 size_t decode(char* str, const char* url, size_t len) {
     char* w = str;
-    while (len-- > 0) {
+    while (len--) {
         char c = *url++;
         if (c != '%') {
             *w++ = (c == '+') ? ' ' : c;
@@ -138,9 +144,8 @@ size_t decode(char* str, const char* url) {
 //
 
 size_t decode(String& str, const char* url, size_t len) {
-    if (len < 0) len = strlen(url);
     str.reserve(len);
-    while (len-- > 0) {
+    while (len--) {
         char c = *url++;
         if (c != '%') {
             str += (c == '+') ? ' ' : c;

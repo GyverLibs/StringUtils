@@ -96,7 +96,7 @@ uint16_t strlenRu(const char* str) {
  * @return uint8_t
  */
 uint8_t intLen(const int32_t val) {
-    return getLog10(val) + (val < 0 ? 1 : 0);
+    return getLog10(val) + (val < 0);
 }
 
 /**
@@ -106,10 +106,10 @@ uint8_t intLen(const int32_t val) {
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(float val, const uint8_t dec) {
-    return intLen((int32_t)val) + (dec ? (dec + 1) : 0);
+uint8_t floatLen(float val, uint8_t dec) {
+    return (val < 0) + intLen(uint32_t(val < 0 ? -val : val)) + (dec ? dec + 1 : 0);
 }
-uint8_t floatLenNanInf(float val, const uint8_t dec) {
+uint8_t floatLenNanInf(float val, uint8_t dec) {
     return (isnan(val) || isinf(val)) ? 3 : floatLen(val, dec);
 }
 

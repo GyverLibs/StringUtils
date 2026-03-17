@@ -55,8 +55,8 @@ uint8_t intLen(const int32_t val);
  * @param dec
  * @return uint8_t
  */
-uint8_t floatLen(float val, const uint8_t dec);
-uint8_t floatLenNanInf(float val, const uint8_t dec);
+uint8_t floatLen(float val, uint8_t dec);
+uint8_t floatLenNanInf(float val, uint8_t dec);
 
 /**
  * @brief Преобразовать строку в целое число

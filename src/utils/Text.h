@@ -432,7 +432,7 @@ class Text : public Printable {
             ++end;
             start = end;
         }
-        return Text();
+        return *this;
     }
 
     /**
@@ -453,7 +453,7 @@ class Text : public Printable {
             end += div._len;
             start = end;
         }
-        return Text();
+        return *this;
     }
 
     /**

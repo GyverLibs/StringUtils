@@ -35,7 +35,7 @@ char encodeByte(uint8_t n) {
 #endif
 }
 
-uint8_t decodeChar(char b) {
+int8_t decodeChar(char b) {
 #ifdef SU_B64_COMPACT
     switch (b) {
         case 'A' ... 'Z': return b - 'A';
@@ -44,10 +44,14 @@ uint8_t decodeChar(char b) {
         case '+': return 62;
         case '/': return 63;
     }
-    return 0;
+    return -1;
 #else
-    if ((uint8_t)b >= sizeof(_b64_byte)) return 0;
-    return pgm_read_byte(_b64_byte + b);
+    uint8_t c = (uint8_t)b;
+    if (c >= sizeof(_b64_byte)) return -1;
+
+    uint8_t v = pgm_read_byte(_b64_byte + c);
+    if (v == 0 && b != 'A') return -1;
+    return v;
 #endif
 }
 
@@ -61,12 +65,13 @@ size_t decodedLen(const void* b64) {
     return decodedLen(b64, strlen((const char*)b64));
 }
 size_t decodedLen(const void* b64, size_t len) {
-    if (len < 4) return 0;
+    if (!len || (len & 3)) return 0;
 
+    const char* s = (const char*)b64;
     uint8_t padd = 0;
-    if (((const char*)b64)[len - 2] == '=') padd = 2;
-    else if (((const char*)b64)[len - 1] == '=') padd = 1;
-    return ((len + 3) >> 2) * 3 - padd;
+    if (s[len - 1] == '=') padd++;
+    if (s[len - 2] == '=') padd++;
+    return (len / 4) * 3 - padd;
 }
 
 // =======================
@@ -91,9 +96,13 @@ size_t encode(char* b64, const void* data, size_t len, bool pgm) {
 
 size_t encode(String* b64, const void* data, size_t len, bool pgm) {
     size_t elen = encodedLen(len);
-    b64->reserve(b64->length() + elen);
-    char* p = (char*)b64->end();
-    while (elen--) b64->concat(' ');
+    if (!elen) return 0;
+
+    size_t oldLen = b64->length();
+    if (!b64->reserve(oldLen + elen)) return 0;
+    for (size_t i = 0; i < elen; i++) b64->concat(' ');
+
+    char* p = &(*b64)[oldLen];
     return encode(p, data, len, pgm);
 }
 
@@ -108,21 +117,35 @@ size_t decode(void* data, const void* b64) {
 }
 size_t decode(void* data, const void* b64, size_t len) {
     size_t dlen = decodedLen(b64, len);
-    if (!dlen) return 0;
+    if (!dlen && len) return 0;
 
-    size_t val = 0, idx = 0;
+    const char* src = (const char*)b64;
+    uint8_t* dst = (uint8_t*)data;
+
+    size_t val = 0;
+    size_t idx = 0;
     int8_t valb = -8;
 
     for (size_t i = 0; i < len; i++) {
-        if (((const char*)b64)[i] == '=') break;
-        val = (val << 6) + decodeChar(((const char*)b64)[i]);
+        char c = src[i];
+
+        if (c == '=') break;
+
+        int8_t decoded = decodeChar(c);
+        if (decoded < 0) return 0;
+
+        val = (val << 6) | decoded;
         valb += 6;
+
         if (valb >= 0) {
-            ((uint8_t*)data)[idx++] = val >> valb;
+            if (idx >= dlen) return 0;
+
+            dst[idx++] = val >> valb;
             valb -= 8;
         }
     }
-    return dlen;
+
+    return idx == dlen ? idx : 0;
 }
 
 size_t decode(void* data, const String& b64) {

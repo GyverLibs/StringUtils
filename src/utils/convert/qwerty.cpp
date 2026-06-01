@@ -4,54 +4,70 @@ namespace su {
 
 static const char _qwerty_ru[] PROGMEM = "F<DULT:PBQRKVYJGHCNEA{WXIO}SM\">Zf,dult;pbqrkvyjghcnea[wxio]sm'.z~`";
 
+static char ruUtf8ToQwertyChar(uint8_t first, uint8_t second) {
+    int8_t index = -1;
+
+    // Ё
+    if (first == 0xD0 && second == 0x81) {
+        index = 64;
+    }
+    // ё
+    else if (first == 0xD1 && second == 0x91) {
+        index = 65;
+    }
+    // А..п
+    else if (first == 0xD0 && second >= 0x90 && second <= 0xBF) {
+        index = second - 0x90;
+    }
+    // р..я
+    else if (first == 0xD1 && second >= 0x80 && second <= 0x8F) {
+        index = second - 0x50;  // 0x80 -> 48
+    }
+
+    if (index < 0) return 0;
+
+    return (char)pgm_read_byte(&_qwerty_ru[index]);
+}
+
 String toQwerty(const String& ru) {
     String qw;
-    uint8_t prev = 0;
-    for (uint16_t i = 0; i < ru.length(); i++) {
-        uint8_t cur = ru[i];
-        if (cur > 127) {
-            uint8_t thiscur = cur;
-            if (cur > 191) cur = 0;
-            else if (prev == 209 && cur == 145) cur = 193;  // ё
-            else if (prev == 208 && cur == 129) cur = 192;  // Ё
-            prev = thiscur;
-        }
-        if (!cur) continue;
+    qw.reserve(ru.length());
 
-        if (cur <= 127) {
+    for (size_t i = 0; i < ru.length(); i++) {
+        uint8_t cur = (uint8_t)ru[i];
+
+        if (cur < 0x80) {
             qw += (char)cur;
             continue;
-        } else if (cur <= 143) cur -= 80;
-        else if (cur <= 191) cur -= 144;
-        else cur -= 128;
-        qw += (char)pgm_read_byte(&_qwerty_ru[cur]);
+        }
+
+        if ((cur == 0xD0 || cur == 0xD1) && i + 1 < ru.length()) {
+            char ch = ruUtf8ToQwertyChar(cur, (uint8_t)ru[++i]);
+            if (ch) qw += ch;
+        }
     }
+
     return qw;
 }
 
 char* toQwerty(const char* ru, char* qw) {
-    uint16_t len = strlen(ru);
-    uint8_t prev = 0;
-    for (uint16_t i = 0; i < len; i++) {
-        uint8_t cur = ru[i];
-        if (cur > 127) {
-            uint8_t thiscur = cur;
-            if (cur > 191) cur = 0;
-            else if (prev == 209 && cur == 145) cur = 193;  // ё
-            else if (prev == 208 && cur == 129) cur = 192;  // Ё
-            prev = thiscur;
-        }
-        if (!cur) continue;
+    char* out = qw;
 
-        if (cur <= 127) {
-            *qw++ = (char)cur;
+    while (*ru) {
+        uint8_t cur = (uint8_t)*ru++;
+
+        if (cur < 0x80) {
+            *out++ = (char)cur;
             continue;
-        } else if (cur <= 143) cur -= 80;
-        else if (cur <= 191) cur -= 144;
-        else cur -= 128;
-        *qw++ = (char)pgm_read_byte(&_qwerty_ru[cur]);
+        }
+
+        if ((cur == 0xD0 || cur == 0xD1) && *ru) {
+            char ch = ruUtf8ToQwertyChar(cur, (uint8_t)*ru++);
+            if (ch) *out++ = ch;
+        }
     }
-    *qw = 0;
+
+    *out = '\0';
     return qw;
 }
 

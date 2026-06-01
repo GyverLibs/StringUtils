@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./utils/PrintString.h"
+#include "./utils/StrSplit.h"
 #include "./utils/String.h"
 #include "./utils/Text.h"
 #include "./utils/TextList.h"

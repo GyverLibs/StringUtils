@@ -182,7 +182,7 @@ uint32_t strToIntHex(const char* str, int8_t len) {
  * @param sym символ utf-8
  * @return uint8_t 0 если некорректный символ или продолжение предыдущего
  */
-uint8_t charSize(const unsigned char sym) {
+uint8_t charSize(const char sym) {
     if ((sym & 0x80) == 0x00) return 1;       // ASCII (0xxxxxxx)
     else if ((sym & 0xE0) == 0xC0) return 2;  // 110xxxxx
     else if ((sym & 0xF0) == 0xE0) return 3;  // 1110xxxx

@@ -179,6 +179,7 @@ class Value : public Text {
     void _copy(const Value& v) {
         if (v._type == Type::value) {
             memcpy(buf, v.buf, v._len);
+            buf[v._len] = 0;
             _init();
         } else {
             _type = v._type;

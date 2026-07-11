@@ -12,7 +12,7 @@ class Parser {
     Parser(String& list, char div = ';') : Parser((char*)list.c_str(), div) {}
     
     Parser(char* list, char div = ';') : _str((char*)list), _div(div) {
-        if (!*list) _stop = 1;
+        if (!list || !*list) _stop = 1;
     }
 
     // установить разделитель

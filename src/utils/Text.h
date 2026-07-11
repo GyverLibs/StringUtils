@@ -101,8 +101,8 @@ class Text : public Printable {
 
     // ========================== CONSTRUCTOR ==========================
     Text() {}
-    Text(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : strlen_P((PGM_P)str)), _type(Type::pgmChar) {}
-    Text(const char* str, int16_t len = -1, bool pgm = 0) : _str(str), _len(len >= 0 ? len : (pgm ? strlen_P(str) : strlen(str ? str : ""))), _type(pgm ? Type::pgmChar : Type::constChar) {}
+    Text(const __FlashStringHelper* str, int16_t len = -1) : _str((PGM_P)str), _len(len >= 0 ? len : (str ? strlen_P((PGM_P)str) : 0)), _type(Type::pgmChar) {}
+    Text(const char* str, int16_t len = -1, bool pgm = 0) : _str(str), _len(len >= 0 ? len : (str ? (pgm ? strlen_P(str) : strlen(str)) : 0)), _type(pgm ? Type::pgmChar : Type::constChar) {}
     Text(const uint8_t* str, uint16_t len) : _str((const char*)str), _len(len) {}
     Text(const String& str) : _str(str.c_str()), _len(str.length()) {}
 
@@ -246,13 +246,13 @@ class Text : public Printable {
        @return false строки не совпадают
     */
     bool compare(const char* s) const {
-        return (length() && s) ? !_compare(_str, s, false, _len) : 0;
+        return (valid() && s) ? !_compare(_str, s, false, _len) : 0;
     }
     bool compare(const __FlashStringHelper* s) const {
-        return (length() && s) ? !_compare(_str, (PGM_P)s, true, _len) : 0;
+        return (valid() && s) ? !_compare(_str, (PGM_P)s, true, _len) : 0;
     }
     bool compare(const Text& txt) const {
-        return (txt.length() == _len) ? !_compareN(_str, txt._str, txt.pgm(), _len) : 0;
+        return (valid() && txt.valid() && txt._len == _len) ? !_compareN(_str, txt._str, txt.pgm(), _len) : 0;
     }
 
     /**
@@ -269,10 +269,10 @@ class Text : public Printable {
         return !_compareN(_str + from, txt._str, txt.pgm(), amount);
     }
     bool compareN(const char* s, uint16_t amount, uint16_t from = 0) const {
-        return (valid() && from + amount <= _len) ? !_compareN(_str + from, s, false, amount) : 0;
+        return (valid() && s && from + amount <= _len) ? !_compareN(_str + from, s, false, amount) : 0;
     }
     bool compareN(const __FlashStringHelper* s, uint16_t amount, uint16_t from = 0) const {
-        return (valid() && from + amount <= _len) ? !_compareN(_str + from, (PGM_P)s, true, amount) : 0;
+        return (valid() && s && from + amount <= _len) ? !_compareN(_str + from, (PGM_P)s, true, amount) : 0;
     }
 
     // ========================== SEARCH ==========================
@@ -291,10 +291,14 @@ class Text : public Printable {
 
     // начинается со строки
     bool startsWith(const char* s) const {
-        return length() ? !_compareEnd(_str, s, false, _len) : 0;
+        if (!length() || !s) return 0;
+        uint16_t len = strlen(s);
+        return len && len <= _len ? !_compareN(_str, s, false, len) : 0;
     }
     bool startsWith(const __FlashStringHelper* s) const {
-        return length() ? !_compareEnd(_str, (PGM_P)s, true, _len) : 0;
+        if (!length() || !s) return 0;
+        uint16_t len = strlen_P((PGM_P)s);
+        return len && len <= _len ? !_compareN(_str, (PGM_P)s, true, len) : 0;
     }
     bool startsWith(const Text& txt) const {
         return (length() && txt.length() && txt._len <= _len) ? !_compareN(_str, txt._str, txt.pgm(), txt._len) : 0;
@@ -304,7 +308,7 @@ class Text : public Printable {
     bool endsWith(const Text& txt) const {
         return (length() && txt.length() && txt._len <= _len) ? !_compareN(_str + _len - txt._len, txt._str, txt.pgm(), txt._len) : 0;
     }
-    bool endsWith(char c) {
+    bool endsWith(char c) const {
         return length() ? (_charAt(_len - 1) == c) : 0;
     }
 
@@ -326,18 +330,10 @@ class Text : public Printable {
         return -1;
     }
     int16_t indexOf(const char* s, uint16_t from = 0) const {
-        if (!length()) return -1;
-        for (uint16_t i = from; i < _len; i++) {
-            if (!_compareEnd(_str + i, s, false, _len - i)) return i;
-        }
-        return -1;
+        return s ? indexOf(Text(s), from) : -1;
     }
     int16_t indexOf(const __FlashStringHelper* s, uint16_t from = 0) const {
-        if (!length()) return -1;
-        for (uint16_t i = from; i < _len; i++) {
-            if (!_compareEnd(_str + i, (PGM_P)s, true, _len - i)) return i;
-        }
-        return -1;
+        return s ? indexOf(Text(s), from) : -1;
     }
 
     // Найти позицию строки в строке, результат в юникод-позиции
@@ -584,7 +580,7 @@ class Text : public Printable {
         if (start < 0) start += _len;
         if (!end) end = _len;
         else if (end < 0) end += _len;
-        if (start > (int16_t)_len || end > (int16_t)_len) return Text();
+        if (start < 0 || end < 0 || start > (int16_t)_len || end > (int16_t)_len) return Text();
 
         if (end && end < start) {
             int16_t b = end;
@@ -596,12 +592,13 @@ class Text : public Printable {
 
     // выделить подстроку с содержанием юникода (начало, конец не включая). Отрицательные индексы работают с конца строки
     Text substringUnicode(int16_t start, int16_t end = 0) const {
+        if (!length()) return Text();
+        uint16_t ulen = lengthUnicode();
         if (start < 0 || end < 0) {
-            uint16_t ulen = lengthUnicode();
             if (start < 0) start += ulen;
             if (end < 0) end += ulen;
         }
-        if (start < 0 || end < 0 || start > (int16_t)_len || end > (int16_t)_len) return Text();
+        if (start < 0 || end < 0 || start > (int16_t)ulen || end > (int16_t)ulen) return Text();
         return substring(unicodeToPos(start), end ? unicodeToPos(end) : 0);
     }
 
@@ -802,6 +799,11 @@ class Text : public Printable {
         if (pgm()) {
             char buf[_len + 1];
             strncpy_P(buf, _str, _len);
+            buf[_len] = 0;
+            return atof(buf);
+        } else if (!terminated()) {
+            char buf[_len + 1];
+            strncpy(buf, _str, _len);
             buf[_len] = 0;
             return atof(buf);
         } else {

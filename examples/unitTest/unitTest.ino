@@ -1,17 +1,22 @@
 #include <Arduino.h>
 #include <StringUtils.h>
 
-template <typename T>
-void __print(const T& arg) {
-    Serial.print(arg);
-    Serial.print('\t');
-}
-
-template <typename... Args>
-void LOG(const Args&... args) {
-    (__print(args), ...);
-    Serial.println();
-}
+#define LOG_PRINT(arg) \
+    Serial.print(arg); \
+    Serial.print('\t')
+#define LOG_1(arg)   \
+    do {             \
+        LOG_PRINT(arg); \
+        Serial.println(); \
+    } while (0)
+#define LOG_2(arg1, arg2) \
+    do {                  \
+        LOG_PRINT(arg1);  \
+        LOG_PRINT(arg2);  \
+        Serial.println(); \
+    } while (0)
+#define LOG_GET(_1, _2, NAME, ...) NAME
+#define LOG(...) LOG_GET(__VA_ARGS__, LOG_2, LOG_1)(__VA_ARGS__)
 
 #define TEST_TEXT "1234.5abcd"
 #define TEST_TEXT_SH "1234.5abc"

@@ -33,7 +33,11 @@ size_t decodeSelf(char* str, size_t len) {
                     }
 
                     switch (ub) {
-                        case 0x0000 ... 0x07FF:
+                        case 0x0000 ... 0x007F:
+                            *w++ = ub;
+                            break;
+
+                        case 0x0080 ... 0x07FF:
                             *w++ = (0b11000000 | ((ub >> 6) & 0b11111));
                             *w++ = (0b10000000 | (ub & 0b111111));
                             break;

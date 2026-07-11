@@ -49,11 +49,11 @@ Text get(const Text& list, uint16_t idx, char div = ';');
 // распарсить в массив указанного типа и размера. Вернёт количество записанных подстрок
 template <typename T>
 uint16_t parse(const Text& list, T* buf, uint16_t len, char div = ';') {
-    if (!list.valid() || !list.length()) return 0;
+    if (!list.valid() || !list.length() || !buf || !len) return 0;
     uint16_t idx = 0;
     int16_t st = 0, end = -1;
     bool stop = 0;
-    while (1) {
+    while (idx < len) {
         st = ++end;
         end = list.indexOf(div, end);
         if (end < 0) {
@@ -63,8 +63,8 @@ uint16_t parse(const Text& list, T* buf, uint16_t len, char div = ';') {
         buf[idx] = Text(list.str() + st, end - st, list.pgm());
         idx++;
         if (stop) return idx;
-        if (idx == len) return len;
     }
+    return idx;
 }
 
 }  // namespace list

@@ -30,7 +30,7 @@ void setup() {
     {
         Serial.print("TextList: ");
         su::TextList list(txtC, ';');
-        for (int i = 0; i < list.length(); i++) {
+        for (uint16_t i = 0; i < list.length(); i++) {
             Serial.print(list[i]);
             Serial.print(',');
         }
@@ -41,7 +41,7 @@ void setup() {
     {
         Serial.print("TextList: ");
         su::TextList list(txtT, "::");
-        for (int i = 0; i < list.length(); i++) {
+        for (uint16_t i = 0; i < list.length(); i++) {
             Serial.print(list[i]);
             Serial.print(',');
         }

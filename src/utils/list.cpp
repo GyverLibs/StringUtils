@@ -56,7 +56,7 @@ int16_t indexOf(const Text& list, const Text& str, char div) {
  * @return true содержит
  * @return false не содержит
  */
-bool includes(const Text& list, Text str, char div) {
+bool includes(const Text& list, const Text& str, char div) {
     return indexOf(list, str, div) >= 0;
 }
 

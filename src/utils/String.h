@@ -21,7 +21,7 @@ class StringExt : public Text {
 
     // завершить нулём
     void terminate() {
-        if (_str && !terminated() && _concatChar(0)) _len--;
+        if (_str && _len < capacity) ((char*)_str)[_len] = 0;
     }
 
     // автоматически завершать нулём (умолч. false)
@@ -36,8 +36,10 @@ class StringExt : public Text {
 
     // прибавить
     bool concat(const Value& txt) {
-        if (!_str) return 0;
-        _len += txt.toStr((char*)_str + _len, capacity - _len, autoter);
+        if (!_str || _len > capacity) return 0;
+        uint16_t written = txt.toStr((char*)_str + _len, capacity - _len, autoter);
+        if (txt.length() && !written) return 0;
+        _len += written;
         return 1;
     }
 
@@ -322,7 +324,7 @@ class StringStatic : public StringExt {
     using StringExt::operator+=;
 
    private:
-    char buf[cap];
+    char buf[cap] = {};
 };
 
 }  // namespace su
